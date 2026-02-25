@@ -508,7 +508,7 @@ Extraídos de F1, F2, F4:
 | modalidad | string | F4 (ej. "En agravio a la sociedad") |
 | horas_a_cubrir | number | F4 |
 
-### Entidad: `FamiliarimarioPrimario` (núcleo familiar)
+### Entidad: `FamiliarPrimario` (núcleo familiar)
 
 | Campo | Tipo | Fuente |
 |---|---|---|
