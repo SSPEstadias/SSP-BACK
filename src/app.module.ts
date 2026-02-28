@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from './shared/shared.module';
 import { PersonasModule } from './voluntarios/personas/personas.module';
+import { ActividadesModule } from './voluntarios/actividades/actividades.module';
 
 @Module({
   imports: [
@@ -30,6 +31,8 @@ import { PersonasModule } from './voluntarios/personas/personas.module';
     SharedModule,
 
     PersonasModule,
+
+    ActividadesModule,
     
   ],
 })
