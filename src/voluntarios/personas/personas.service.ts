@@ -1,26 +1,51 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Persona } from './entities/persona.entity';
 import { CreatePersonaDto } from './dto/create-persona.dto';
 import { UpdatePersonaDto } from './dto/update-persona.dto';
 
 @Injectable()
 export class PersonasService {
-  create(createPersonaDto: CreatePersonaDto) {
-    return 'This action adds a new persona';
+  constructor(
+    @InjectRepository(Persona)
+    private readonly personaRepository: Repository<Persona>,
+  ) {}
+
+  // ─── CREAR ───────────────────────────────────────────────────
+  async create(createPersonaDto: CreatePersonaDto): Promise<Persona> {
+    const persona = this.personaRepository.create(createPersonaDto);
+    return await this.personaRepository.save(persona);
+    // TypeORM genera el UUID automáticamente con @PrimaryGeneratedColumn('uuid')
   }
 
-  findAll() {
-    return `This action returns all personas`;
+  // ─── LISTAR TODOS ────────────────────────────────────────────
+  async findAll(): Promise<Persona[]> {
+    return await this.personaRepository.find({
+      order: { createdAt: 'DESC' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} persona`;
+  // ─── BUSCAR UNO ──────────────────────────────────────────────
+  async findOne(id: string): Promise<Persona> {
+    const persona = await this.personaRepository.findOne({ where: { id } });
+    if (!persona) {
+      throw new NotFoundException(`Persona con id ${id} no encontrada`);
+    }
+    return persona;
   }
 
-  update(id: number, updatePersonaDto: UpdatePersonaDto) {
-    return `This action updates a #${id} persona`;
+  // ─── ACTUALIZAR ──────────────────────────────────────────────
+  async update(id: string, updatePersonaDto: UpdatePersonaDto): Promise<Persona> {
+    const persona = await this.findOne(id);
+    const updated = this.personaRepository.merge(persona, updatePersonaDto);
+    return await this.personaRepository.save(updated);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} persona`;
+  // ─── ELIMINAR ────────────────────────────────────────────────
+  async remove(id: string): Promise<{ message: string }> {
+    const persona = await this.findOne(id);
+    await this.personaRepository.remove(persona);
+    return { message: `Persona con id ${id} eliminada correctamente` };
   }
 }
