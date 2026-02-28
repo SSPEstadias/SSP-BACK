@@ -12,22 +12,20 @@ import { PersonasModule } from './voluntarios/personas/personas.module';
     }),
 
     //  aqui hacemos la conexion a PostgreSQL usando las variables del .env
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get<string>('DB_HOST'),
-        port: config.get<number>('DB_PORT'),
-        username: config.get<string>('DB_USERNAME'),
-        password: config.get<string>('DB_PASSWORD'),
-        database: config.get<string>('DB_NAME'),
-        //Importante modificar esto en produccion , synchronize debe ser falso y se deben usar migraciones para evitar perdida de datos
-        autoLoadEntities: true,
-        synchronize:false,
-        // dropSchema:true
-      }),
-    }),
+ TypeOrmModule.forRootAsync({
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => ({
+    type: 'postgres',
+    host: config.get<string>('DB_HOST'),
+    port: parseInt(config.get<string>('DB_PORT') || '5432'),
+    username: config.get<string>('DB_USERNAME'),
+    password: config.get<string>('DB_PASSWORD') || '123123',
+    database: config.get<string>('DB_NAME'),
+    autoLoadEntities: true,
+    synchronize: true,
+  }),
+}),
 
     SharedModule,
 
