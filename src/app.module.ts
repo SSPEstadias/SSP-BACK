@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from './shared/shared.module';
+import { PersonasModule } from './voluntarios/personas/personas.module';
 
 @Module({
   imports: [
@@ -29,6 +30,9 @@ import { SharedModule } from './shared/shared.module';
     }),
 
     SharedModule,
+
+    PersonasModule,
+    
   ],
 })
 export class AppModule {}
