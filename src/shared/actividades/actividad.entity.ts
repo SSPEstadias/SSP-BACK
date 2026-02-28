@@ -16,7 +16,7 @@ import {
     @PrimaryGeneratedColumn()
     id!: number;
   
-    @Column({ type: 'text' })
+    @Column({ type: 'text' ,unique: true})
     nombre!: string;
   
     @Column({ type: 'text', nullable: true })
