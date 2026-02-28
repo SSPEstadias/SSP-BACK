@@ -1,0 +1,342 @@
+{
+  "info": {
+    "_postman_id": "5c073fa6-6cf2-447b-83dc-0097f1afe25e",
+    "name": "SSP-BACKEND",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Actividades",
+      "item": [
+        {
+          "name": "Crear Actividad",
+          "id": "f20852fb-60df-42e4-8ae0-14c731072173",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nombre de la actividad\",\n  \"descripcion\": \"Descripción opcional\",\n  \"objetivo\": \"Objetivo opcional\",\n  \"categoria\": \"TRABAJO_COMUNITARIO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/actividades",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actividades"
+              ]
+            },
+            "description": "Crea una nueva actividad. Valores de categoria: TRABAJO_COMUNITARIO, LIDERAZGO_COMUNITARIO, ATENCION_SUSTANCIAS, EDUCACION_PARA_LA_VIDA, PROMOCION_CULTURAL_DEPORTIVA"
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Actividades Activas",
+          "id": "ccade7d6-084d-4dc6-90c2-8419f294c50f",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actividades",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actividades"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Todas las Actividades",
+          "id": "4c4c6cf6-027c-4df3-b87a-db6be86f2748",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actividades/todas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actividades",
+                "todas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filtrar Actividades por Categoría",
+          "id": "04f31a00-f1fc-4cc0-a561-2a93d049bfce",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actividades/categoria?cat=TRABAJO_COMUNITARIO",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actividades",
+                "categoria"
+              ],
+              "query": [
+                {
+                  "key": "cat",
+                  "value": "TRABAJO_COMUNITARIO"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Actividad por ID",
+          "id": "1b638990-5cc4-41c2-bebc-d552d43642d3",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actividades/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actividades",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar Actividad",
+          "id": "e9848d3c-1c70-4c56-881a-f6ef3cfc0480",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nombre actualizado\",\n  \"descripcion\": \"Descripción actualizada\",\n  \"objetivo\": \"Objetivo actualizado\",\n  \"categoria\": \"LIDERAZGO_COMUNITARIO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/actividades/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actividades",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Desactivar Actividad",
+          "id": "4faed8e5-0b98-43c7-b234-7ba8a50979f5",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actividades/1/desactivar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actividades",
+                "1",
+                "desactivar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reactivar Actividad",
+          "id": "4a976f2e-95ee-4607-91a3-0bf8307310f3",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actividades/1/reactivar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actividades",
+                "1",
+                "reactivar"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "fb30ae09-ee16-442a-ab97-d6f4cb71c7cf"
+    },
+    {
+      "name": "Beneficiarios",
+      "item": [
+        {
+          "name": "Crear Beneficiario",
+          "id": "5495e61e-cc88-47f5-8115-cec02a1fd197",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nombre del beneficiario\",\n  \"tiempoAsignado\": 10,\n  \"unidadTiempo\": \"HORAS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/beneficiarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "beneficiarios"
+              ]
+            },
+            "description": "Crea un nuevo beneficiario. Valores de unidadTiempo: HORAS, MESES"
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Todos los Beneficiarios",
+          "id": "85abd1f9-2d36-4209-a8d3-a92e7b2fef11",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/beneficiarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "beneficiarios"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filtrar Beneficiarios por Unidad",
+          "id": "1552ac8f-5faa-427d-b24c-39a107a29a16",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/beneficiarios/filtrar?unidad=HORAS",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "beneficiarios",
+                "filtrar"
+              ],
+              "query": [
+                {
+                  "key": "unidad",
+                  "value": "HORAS"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener Beneficiario por ID",
+          "id": "d0dfbb99-3a46-4b26-b51d-2c0e9940729b",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/beneficiarios/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "beneficiarios",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Actualizar Beneficiario",
+          "id": "4a021bbe-8bf7-4e36-bc0e-005982a2f677",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Nombre actualizado\",\n  \"tiempoAsignado\": 20,\n  \"unidadTiempo\": \"MESES\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/beneficiarios/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "beneficiarios",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar Beneficiario",
+          "id": "32d12d4f-c8f3-48dd-923c-c84c71f22207",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/beneficiarios/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "beneficiarios",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "9f930f9d-3e98-4cca-b0c9-516ac49e3ab4"
+    }
+  ],
+  "variable": [
+    {
+      "id": "898b4659-37fc-4562-8c4f-f07ca53cc07a",
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    }
+  ]
+}
