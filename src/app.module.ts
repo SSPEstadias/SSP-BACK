@@ -23,7 +23,8 @@ import { SharedModule } from './shared/shared.module';
         database: config.get<string>('DB_NAME'),
         //Importante modificar esto en produccion , synchronize debe ser falso y se deben usar migraciones para evitar perdida de datos
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize:false,
+        // dropSchema:true
       }),
     }),
 
