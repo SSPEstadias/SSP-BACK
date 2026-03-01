@@ -3,7 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import type { StringValue } from 'ms';
-import { JwtStrategy } from './jtw.strategy';
+import { JwtStrategy } from './jwt.strategy';
 
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
