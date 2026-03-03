@@ -8,7 +8,7 @@ import { ActividadesController } from './actividades.controller';
   imports: [TypeOrmModule.forFeature([Actividad])],
   controllers: [ActividadesController],
   providers: [ActividadesService],
-  exports: [ActividadesService, TypeOrmModule],
+  exports: [ActividadesService, ],
   // exports: permite que el módulo Cívico use las actividades en su bitácora
 })
 export class ActividadesModule {}

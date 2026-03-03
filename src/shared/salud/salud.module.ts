@@ -8,7 +8,7 @@ import { SaludService } from './salud.service';
   imports: [TypeOrmModule.forFeature([Salud])],
   controllers: [SaludController],
   providers: [SaludService],
-  exports: [SaludService, TypeOrmModule],
-  // Exporta SaludService y TypeOrmModule para que otros módulos puedan inyectar el repositorio
+  exports: [SaludService,],
+  // Exporta SaludService  para que otros módulos puedan inyectar el repositorio
 })
 export class SaludModule {}

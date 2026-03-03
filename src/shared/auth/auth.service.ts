@@ -5,13 +5,14 @@ import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(nom_usuario: string, contrasena: string) {
-    const user = await this.usersService.findByUsername(nom_usuario);
+  async login(nomUsuario: string, contrasena: string) {
+    const user = await this.usersService.findByUsername(nomUsuario);
 
     if (!user || !user.estatus) {
       throw new UnauthorizedException('Credenciales inválidas');
@@ -20,19 +21,20 @@ export class AuthService {
     const ok = await bcrypt.compare(contrasena, user.contrasena);
     if (!ok) throw new UnauthorizedException('Credenciales inválidas');
 
+    // Payload que viaja dentro del token JWT
     const payload = {
-      sub: user.id,
-      rol: user.rol,
-      nom_usuario: user.nom_usuario,
+      sub:        user.id,
+      rol:        user.rol,          // ej: "Admin", "Guia"
+      nomUsuario: user.nomUsuario,   // camelCase
     };
 
     return {
       access_token: await this.jwtService.signAsync(payload),
       user: {
-        id: user.id,
-        nombre: user.nombre,
-        rol: user.rol,
-        nom_usuario: user.nom_usuario,
+        id:        user.id,
+        nombre:    user.nombre,
+        rol:       user.rol,
+        nomUsuario: user.nomUsuario,
       },
     };
   }

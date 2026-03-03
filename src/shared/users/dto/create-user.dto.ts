@@ -9,7 +9,7 @@ export class CreateUserDto {
   rol: RolUsuario;
 
   @IsString()
-  nom_usuario: string;
+  nomUsuario: string;
 
   @IsString()
   @MinLength(6)

@@ -11,7 +11,7 @@ import { BeneficiariosController } from './beneficiarios.controller';
   ],
   controllers: [BeneficiariosController],
   providers: [BeneficiariosService],
-  exports: [BeneficiariosService, TypeOrmModule],
+  exports: [BeneficiariosService,],
   // exports: permite que otros módulos (Cívico, Penal) usen este servicio
 })
 export class BeneficiariosModule {}

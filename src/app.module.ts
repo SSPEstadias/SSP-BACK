@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from './modules/users/users.module';
-import { AuthModule } from './modules/auth/auth.module';
+import { SharedModule } from './shared/shared.module';
+import { SeederModule } from './seeds/seeder.module';
+ 
 
 @Module({
   imports: [
@@ -12,19 +13,24 @@ import { AuthModule } from './modules/auth/auth.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: config.get<string>('DB_HOST'),
-        port: Number(config.get<string>('DB_PORT')),
-        username: config.get<string>('DB_USER'),
-        password: config.get<string>('DB_PASS'),
+        host:     config.get<string>('DB_HOST'),
+        port:     Number(config.get<string>('DB_PORT')),
+        username: config.get<string>('DB_USERNAME'), 
+        password: config.get<string>('DB_PASSWORD'), 
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
-        synchronize: false,
-        migrationsRun: true,
+        synchronize:      false,
+        // dropSchema:        false,
+        migrationsRun:    true,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),
     }),
-    UsersModule,
-    AuthModule,
+    
+
+    SharedModule,
+    SeederModule
+    // CivicoModule,   
+    // PenalModule,     ← compañero
   ],
 })
 export class AppModule {}
