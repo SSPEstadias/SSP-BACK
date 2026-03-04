@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from './shared/shared.module';
 import { SeederModule } from './seeds/seeder.module';
+import { CivicoModule } from './modules/civico/civico.module';
  
 
 @Module({
@@ -25,11 +26,11 @@ import { SeederModule } from './seeds/seeder.module';
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),
     }),
-    
+
 
     SharedModule,
-    SeederModule
-    // CivicoModule,   
+    SeederModule,
+    CivicoModule,
     // PenalModule,     ← compañero
   ],
 })
