@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from './shared/shared.module';
 import { SeederModule } from './seeds/seeder.module';
 import { CivicoModule } from './modules/civico/civico.module';
+import { VoluntarioModule } from './modules/voluntarios/voluntario.module';
  
 
 @Module({
@@ -31,6 +32,7 @@ import { CivicoModule } from './modules/civico/civico.module';
     SharedModule,
     SeederModule,
     CivicoModule,
+    VoluntarioModule
     // PenalModule,     ← compañero
   ],
 })
