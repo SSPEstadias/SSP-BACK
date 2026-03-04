@@ -2,33 +2,35 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from './shared/shared.module';
+import { SeederModule } from './seeds/seeder.module';
+ 
 
 @Module({
   imports: [
-    // cargamos las variables de entorno globalmente
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
 
-    //  aqui hacemos la conexion a PostgreSQL usando las variables del .env
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: config.get<string>('DB_HOST'),
-        port: config.get<number>('DB_PORT'),
-        username: config.get<string>('DB_USERNAME'),
-        password: config.get<string>('DB_PASSWORD'),
+        host:     config.get<string>('DB_HOST'),
+        port:     Number(config.get<string>('DB_PORT')),
+        username: config.get<string>('DB_USERNAME'), 
+        password: config.get<string>('DB_PASSWORD'), 
         database: config.get<string>('DB_NAME'),
-        //Importante modificar esto en produccion , synchronize debe ser falso y se deben usar migraciones para evitar perdida de datos
         autoLoadEntities: true,
-        synchronize:false,
-        // dropSchema:true
+        synchronize:      false,
+        // dropSchema:        false,
+        migrationsRun:    true,
+        migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),
     }),
+    
 
     SharedModule,
+    SeederModule
+    // CivicoModule,   
+    // PenalModule,     ← compañero
   ],
 })
 export class AppModule {}
