@@ -13,20 +13,24 @@ import {
   import { UpdateEstudioSocioeconomicoDto } from './dto/update-estudio-socioeconomico.dto';
   import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard';
   import { FormStatusEnum } from '../enums/civico.enums';
-  
-  @UseGuards(JwtAuthGuard)
+  import { RolesGuard } from '../../../shared/common/guards/roles.guard';
+  import { Roles } from '../../../shared/common/decorators/roles.decorator';
+
+  @UseGuards(JwtAuthGuard,RolesGuard)
   @Controller('civico/f2')
   export class F2EstudioController {
     constructor(private readonly service: F2EstudioService) {}
   
     // POST /civico/f2
     @Post()
+    @Roles('Admin', 'TrabajoSocial')
     create(@Body() dto: CreateEstudioSocioeconomicoDto) {
       return this.service.create(dto);
     }
   
     // GET /civico/f2/expediente/:expedienteId
     @Get('expediente/:expedienteId')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial')
     findByExpediente(@Param('expedienteId', ParseUUIDPipe) expedienteId: string) {
       return this.service.findByExpediente(expedienteId);
     }
@@ -34,18 +38,21 @@ import {
     // GET /civico/f2/expediente/:expedienteId/candado-f3
     // RF-008: consultado antes de crear el F3
     @Get('expediente/:expedienteId/candado-f3')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial')
     verificarCandado(@Param('expedienteId', ParseUUIDPipe) expedienteId: string) {
       return this.service.verificarCandadoF3(expedienteId);
     }
   
     // GET /civico/f2/:id
     @Get(':id')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial')
     findOne(@Param('id', ParseUUIDPipe) id: string) {
       return this.service.findOne(id);
     }
   
     // PATCH /civico/f2/:id
     @Patch(':id')
+    @Roles('Admin', 'TrabajoSocial')
     update(
       @Param('id', ParseUUIDPipe) id: string,
       @Body() dto: UpdateEstudioSocioeconomicoDto,
@@ -55,6 +62,7 @@ import {
   
     // PATCH /civico/f2/:id/estatus
     @Patch(':id/estatus')
+    @Roles('Admin', 'TrabajoSocial')
     cambiarEstatus(
       @Param('id', ParseUUIDPipe) id: string,
       @Body('estatus') estatus: FormStatusEnum,

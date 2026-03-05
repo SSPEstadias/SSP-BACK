@@ -22,6 +22,7 @@ import { VoluntarioModule } from './modules/voluntarios/voluntario.module';
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize:     false,
+        
         // dropSchema:        false,
         migrationsRun:    true,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
