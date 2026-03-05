@@ -19,7 +19,7 @@ import {
   
     // ── Identidad ─────────────────────────────────────────────────────
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     @MaxLength(18)
     curp!: string;
   
@@ -56,7 +56,7 @@ import {
     codigoPostal?: string;
   
     @IsString()
-    @IsOptional()
+    @IsNotEmpty()
     @MaxLength(15)
     telefonoContacto?: string;
   
@@ -91,7 +91,7 @@ import {
     religion?: string;
   
     @IsObject()
-    @IsOptional()
+    @IsNotEmpty()
     contactosFamiliares?: object;
     // Ejemplo: { "padre": {"nombre":"...", "telefono":"..."}, "madre": {...} }
   

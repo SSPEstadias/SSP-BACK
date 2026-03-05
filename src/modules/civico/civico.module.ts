@@ -36,6 +36,9 @@ import { OficiosController }            from './oficios/oficios.controller';
 
 // ── Núcleo compartido ─────────────────────────────────────────────────
 import { SharedModule } from '../../shared/shared.module';
+// ── Entidades compartidas que BitacoraService necesita leer ──────────
+import { Salud } from 'src/shared/salud/salud.entity';
+import { Actividad } from 'src/shared/actividades/actividad.entity';
 
 @Module({
   imports: [
@@ -49,6 +52,8 @@ import { SharedModule } from '../../shared/shared.module';
       CedulaInicial,
       SeguimientoPsicologico,
       OficioGenerado,
+      Salud,
+      Actividad,
     ]),
     SharedModule,
   ],
