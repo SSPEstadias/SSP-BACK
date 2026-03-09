@@ -1,4 +1,5 @@
-import { IsInt, IsBoolean, IsString, IsOptional } from 'class-validator';
+import { IsInt, IsBoolean, IsString, IsOptional,IsArray,IsEnum } from 'class-validator';
+import { ActividadCategoriaEnum } from '../../actividades/actividad.entity';
 
 export class UpdateSaludDto {
   @IsOptional()
@@ -12,6 +13,11 @@ export class UpdateSaludDto {
   @IsOptional()
   @IsString()
   nombreEnfermedad?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(ActividadCategoriaEnum, { each: true })
+  restriccionesCategorias?: string[];
 
   @IsOptional()
   @IsBoolean()
