@@ -90,7 +90,7 @@ import {
         // Marcar el expediente como baja por incidencia
         await this.expedienteRepo.update(
           { idUUID: expedienteId },
-          { estatusProceso: CivicStatusEnum.BAJA_POR_INCIDENCIA },
+          { estatusProceso: CivicStatusEnum.BAJA_POR_ACUMULACION_DE_INCIDENCIAS},
         );
   
         // Marcar las incidencias pendientes como DERIVO_EN_BAJA

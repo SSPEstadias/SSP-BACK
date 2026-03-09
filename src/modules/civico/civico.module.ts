@@ -39,6 +39,7 @@ import { SharedModule } from '../../shared/shared.module';
 // ── Entidades compartidas que BitacoraService necesita leer ──────────
 import { Salud } from 'src/shared/salud/salud.entity';
 import { Actividad } from 'src/shared/actividades/actividad.entity';
+import { Beneficiario } from 'src/shared/beneficiarios/beneficiario.entity';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { Actividad } from 'src/shared/actividades/actividad.entity';
       CedulaInicial,
       SeguimientoPsicologico,
       OficioGenerado,
+      Beneficiario,  
       Salud,
       Actividad,
     ]),
