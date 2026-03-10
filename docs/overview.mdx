@@ -1,0 +1,41 @@
+---
+title: Visión General
+description: Backend del Sistema Integral de Información del Programa "Reconecta con la Paz" — Módulo de Justicia Cívica
+---
+
+## ¿Qué es este sistema?
+
+El **Sistema Integral Reconecta con la Paz** es un backend construido con **NestJS + PostgreSQL**, desarrollado para la Dirección General de Prevención del Delito y Participación Ciudadana de Oaxaca (SSPC).
+
+Centraliza la gestión operativa del programa de justicia cívica: expedientes, diagnósticos (F1–F5), bitácoras de asistencia, incidencias y generación de documentos oficiales en PDF.
+
+## Arquitectura
+
+El proyecto sigue el patrón de **Monolito Modular**:
+
+```
+src/
+├── shared/          ← Núcleo compartido (Beneficiarios, Actividades, Salud, Usuarios, Auth)
+└── modules/
+    ├── civico/      ← Módulo de Justicia Cívica (este proyecto)
+    └── voluntarios/ ← Módulo de Voluntariado
+```
+
+## Stack tecnológico
+
+| Capa | Tecnología |
+|---|---|
+| Framework | NestJS (Node.js + TypeScript) |
+| Base de Datos | PostgreSQL |
+| ORM | TypeORM |
+| Autenticación | JWT (RFC 7519) + Bcrypt |
+| Generación de PDF | Puppeteer + Handlebars |
+| Metodología | Kanban (Trello) |
+
+## URL base
+
+```
+http://localhost:3000
+```
+
+Todos los endpoints del módulo Cívico tienen el prefijo `/civico/`.

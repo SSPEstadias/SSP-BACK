@@ -1,0 +1,182 @@
+---
+title: Expedientes Cívicos
+description: Carátula del expediente — eje central del Módulo Cívico. Todos los formatos F1–F5 derivan de este registro.
+---
+
+## Descripción
+
+La **Carátula** (`civic_expedientes`) es el registro raíz. Contiene datos jurídicos, personales y controla el ciclo de vida del beneficiario en el programa. Usa **UUID** como PK para no exponer secuencias numéricas.
+
+**Tabla:** `civic_expedientes` — **PK:** UUID
+
+---
+
+## Estados del proceso (`CivicStatusEnum`)
+
+| Valor | Descripción |
+|-------|-------------|
+| `INDUCCION` | Etapa inicial al ingresar |
+| `DIAGNOSTICO` | F1 y F2 en proceso |
+| `PLANEACION` | F3 siendo elaborado |
+| `EN_SEGUIMIENTO` | Cumpliendo actividades |
+| `GRADUADO` | Cumplió horas de sentencia |
+| `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` | Dado de baja por 3 strikes (RF-013) |
+| `BAJA_VOLUNTARIA` | Baja por solicitud propia |
+| `HISTORICO` | Expediente archivado — reingreso detectado |
+
+<Warning>
+El valor `BAJA_POR_INCIDENCIA` fue renombrado a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` en la versión actual. Usar siempre el nombre actualizado.
+</Warning>
+
+---
+
+## Endpoints
+
+### `POST /civico/expedientes`
+
+Crea un nuevo expediente vinculado a un `beneficiarioId` existente.
+
+**Roles:** `Admin`
+
+<CodeGroup>
+```bash cURL
+curl -X POST http://localhost:3000/civico/expedientes \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "beneficiarioId": 1,
+    "curp": "LEAY020315HOCSNH08",
+    "fechaNacimiento": "2002-03-15",
+    "genero": "Masculino",
+    "domicilioCompleto": "Calle Reforma 45, Col. Centro, Oaxaca",
+    "municipio": "Oaxaca de Juárez",
+    "folioIncorporacion": "CVX-2026-001",
+    "causaPenal": "123/2026",
+    "juezControl": "Lic. María Pérez Sánchez",
+    "horasSentencia": 80,
+    "delitoImputado": "Daño en propiedad ajena"
+  }'
+```
+</CodeGroup>
+
+**Respuesta `201 Created`:**
+```json
+{
+  "idUUID": "550e8400-e29b-41d4-a716-446655440000",
+  "beneficiarioId": 1,
+  "curp": "LEAY020315HOCSNH08",
+  "folioIncorporacion": "CVX-2026-001",
+  "causaPenal": "123/2026",
+  "juezControl": "Lic. María Pérez Sánchez",
+  "horasSentencia": 80,
+  "avanceHoras": "0.00",
+  "estatusProceso": "INDUCCION",
+  "esActivo": true,
+  "creadoEn": "2026-03-10T10:30:00.000Z"
+}
+```
+
+---
+
+### `GET /civico/expedientes/caratulas`
+
+Lista todos los expedientes activos con datos del beneficiario (JOIN). **Pantalla principal del sistema.**
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+**Respuesta `200 OK`:**
+```json
+[
+  {
+    "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+    "folioIncorporacion": "CVX-2026-001",
+    "nombre": "Juan Pérez López",
+    "fechaIngreso": "2026-03-01",
+    "horasSentencia": 80,
+    "avanceHoras": "32.00",
+    "estatusProceso": "EN_SEGUIMIENTO",
+    "beneficiarioId": 1
+  }
+]
+```
+
+---
+
+### `GET /civico/expedientes/:id/caratula`
+
+Devuelve la carátula completa de un expediente específico (JOIN con beneficiario).
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+```http
+GET /civico/expedientes/550e8400-e29b-41d4-a716-446655440000/caratula
+```
+
+**Respuesta `200 OK`:**
+```json
+{
+  "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+  "folioIncorporacion": "CVX-2026-001",
+  "causaPenal": "123/2026",
+  "aliasSobrenombre": "El Pelón",
+  "numJuzgadoCivico": "JUZ-01",
+  "delitoImputado": "Daño en propiedad ajena",
+  "modalidadFalta": "Falta administrativa",
+  "estatusProceso": "EN_SEGUIMIENTO",
+  "horasSentencia": 80,
+  "nombre": "Juan Pérez López",
+  "fechaIngreso": "2026-03-01",
+  "tiempoAsignado": 80,
+  "beneficiarioId": 1
+}
+```
+
+---
+
+### `GET /civico/expedientes/curp/:curp`
+
+Busca expediente por CURP del beneficiario.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+```http
+GET /civico/expedientes/curp/LEAY020315HOCSNH08
+```
+
+---
+
+### `GET /civico/expedientes/:id`
+
+Expediente completo con todos los campos.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+---
+
+### `PATCH /civico/expedientes/:id`
+
+Actualización parcial del expediente (cualquier campo del DTO).
+
+**Roles:** `Admin`
+
+```json
+{
+  "estatusProceso": "EN_SEGUIMIENTO",
+  "juezControl": "Lic. Roberto García"
+}
+```
+
+---
+
+### `DELETE /civico/expedientes/:id`
+
+Desactiva el expediente (`esActivo: false`). **No elimina el registro.**
+
+**Roles:** `Admin`
+
+**Respuesta `200 OK`:**
+```json
+{
+  "message": "Expediente CVX-2026-001 desactivado correctamente"
+}
+```

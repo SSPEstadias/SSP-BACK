@@ -1,0 +1,167 @@
+---
+title: Incidencias
+description: Registro de eventos conductuales — lógica de 3 strikes que puede derivar en baja definitiva (RF-013)
+---
+
+## Descripción
+
+Las incidencias (`civic_incidencias`) documentan comportamientos que pueden afectar la continuidad del beneficiario en el programa. Al acumularse **3 incidencias con `esAcumulativa: true`**, el sistema cambia automáticamente el `estatusProceso` a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS`.
+
+**Tabla:** `civic_incidencias` — **PK:** UUID
+
+---
+
+## Tipos de incidencia (`IncidenciaTipoEnum`)
+
+| Valor | Acumulativa por defecto | Descripción |
+|-------|------------------------|-------------|
+| `FALTA_INJUSTIFICADA` | ✅ Sí | Ausencia sin causa válida |
+| `RETARDO` | ✅ Sí | Llegada tarde |
+| `CONDUCTA_INAPROPIADA` | ✅ Sí | Comportamiento fuera de normas |
+| `INCUMPLIMIENTO_TAREA` | ✅ Sí | No realizó la actividad asignada |
+| `INASISTENCIA_JUSTIFICADA` | ❌ No | Falta con causa válida (no suma a strikes) |
+| `VISITA_DOMICILIARIA` | ❌ No | Registro de visita al domicilio |
+| `RETIRO_ANTICIPADO` | ✅ Sí | Abandona antes de terminar |
+| `CONVERSATORIO` | ❌ No | Sesión de orientación preventiva |
+
+---
+
+## Estatus de resolución (`IncidenciaEstatusEnum`)
+
+| Valor | Descripción |
+|-------|-------------|
+| `PENDIENTE` | Registrada, en seguimiento |
+| `RESUELTA` | Atendida y cerrada |
+| `DERIVO_EN_BAJA` | Completó los 3 strikes |
+
+---
+
+## Endpoints
+
+### `POST /civico/incidencias`
+
+Registra una nueva incidencia. Si es la 3ª acumulativa, dispara la baja automática del expediente.
+
+**Roles:** `Admin`, `Guia`
+
+<CodeGroup>
+```bash Falta injustificada
+curl -X POST http://localhost:3000/civico/incidencias \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+    "guiaId": 3,
+    "tipo": "FALTA_INJUSTIFICADA",
+    "fechaIncidencia": "2026-03-10",
+    "descripcionHechos": "El beneficiario no se presentó sin aviso previo.",
+    "esAcumulativa": true
+  }'
+```
+```bash Visita domiciliaria
+curl -X POST http://localhost:3000/civico/incidencias \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+    "guiaId": 3,
+    "tipo": "VISITA_DOMICILIARIA",
+    "fechaIncidencia": "2026-03-10",
+    "descripcionHechos": "Se realizó visita al domicilio. Beneficiario en casa.",
+    "esAcumulativa": false
+  }'
+```
+</CodeGroup>
+
+**Respuesta `201 Created`:**
+```json
+{
+  "idUUID": "c3d4e5f6-...",
+  "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+  "guiaId": 3,
+  "tipo": "FALTA_INJUSTIFICADA",
+  "fechaIncidencia": "2026-03-10",
+  "descripcionHechos": "El beneficiario no se presentó sin aviso previo.",
+  "esAcumulativa": true,
+  "estatusResolucion": "PENDIENTE",
+  "numOficioNotificacion": null
+}
+```
+
+---
+
+### `GET /civico/incidencias/expediente/:expedienteId`
+
+Lista todas las incidencias de un expediente.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+**Respuesta `200 OK`:**
+```json
+[
+  {
+    "idUUID": "c3d4e5f6-...",
+    "tipo": "FALTA_INJUSTIFICADA",
+    "fechaIncidencia": "2026-03-10",
+    "esAcumulativa": true,
+    "estatusResolucion": "PENDIENTE"
+  }
+]
+```
+
+---
+
+### `GET /civico/incidencias/expediente/:expedienteId/strikes`
+
+Devuelve el conteo actual de strikes activos. **Usado por el frontend para mostrar la barra de advertencia.**
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+**Respuesta `200 OK`:**
+```json
+{
+  "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+  "strikesActivos": 1,
+  "maximoPermitido": 3,
+  "alertas": "⚠️ 1 de 3 incidencias acumulativas registradas"
+}
+```
+
+---
+
+### `PATCH /civico/incidencias/:id/resolver`
+
+Marca una incidencia como resuelta y opcionalmente registra el número de oficio de notificación.
+
+**Roles:** `Admin`, `Guia`
+
+```json
+{
+  "numOficio": "OFICIO-2026-045"
+}
+```
+
+**Respuesta `200 OK`:**
+```json
+{
+  "idUUID": "c3d4e5f6-...",
+  "estatusResolucion": "RESUELTA",
+  "numOficioNotificacion": "OFICIO-2026-045"
+}
+```
+
+---
+
+### `PATCH /civico/incidencias/:id`
+
+Actualización general de una incidencia (descripción, tipo, fecha).
+
+**Roles:** `Admin`
+
+---
+
+### `GET /civico/incidencias/:id`
+
+Obtiene una incidencia específica por UUID.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`

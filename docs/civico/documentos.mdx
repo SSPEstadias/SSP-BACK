@@ -1,0 +1,31 @@
+---
+title: Motor de Documentos PDF
+description: Generación de PDFs con Puppeteer + Handlebars (RF-014)
+---
+
+## Descripción
+
+El servicio `DocumentosService` convierte plantillas `.hbs` (Handlebars) en archivos PDF usando **Puppeteer**. El formato de salida es **Carta (21.59 × 27.94 cm)** con márgenes institucionales.
+
+## Flujo interno
+
+```
+1. Recibe tipo de documento + datos del expediente
+2. Lee la plantilla: src/modules/civico/documentos/templates/{tipo}.hbs
+3. Compila la plantilla con Handlebars (inyecta datos)
+4. Puppeteer renderiza el HTML y genera el PDF
+5. Retorna el Buffer del PDF al controlador
+```
+
+## Endpoints disponibles
+
+### `GET /civico/documentos/oficio-incorporacion/:expedienteId`
+### `GET /civico/documentos/f3-plan-trabajo/:expedienteId`
+### `GET /civico/documentos/lista-asistencia/:expedienteId`
+### `GET /civico/documentos/oficio-conclusion/:expedienteId`
+
+<Note>
+El `OFICIO_CONCLUSION` solo se genera si `avanceHoras >= horasSentencia` Y todos los formatos F1–F5 tienen estatus `CERRADO` (RF-015).
+</Note>
+
+**Roles para todos:** `Admin`

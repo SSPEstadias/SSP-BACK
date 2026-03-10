@@ -1,0 +1,101 @@
+---
+title: F4 — Cédula Inicial
+description: Ficha técnica del beneficiario para reportes a la plataforma federal (RF-014, HU-05)
+---
+
+## Descripción
+
+La **Cédula Inicial** (`civic_cedula_inicial`) consolida el perfil del beneficiario en el formato requerido por la plataforma federal. Organiza los datos en bloques JSONB por categoría de intervención, correspondiendo a las 5 áreas de seguimiento del programa.
+
+**Tabla:** `civic_cedula_inicial` — **PK:** UUID  
+**Relación:** 1:1 con el expediente
+
+---
+
+## Bloques de categoría (JSONB)
+
+| Campo | Categoría | Descripción |
+|-------|-----------|-------------|
+| `procesoIngreso` | Ingreso | Datos del proceso de incorporación al programa |
+| `categoriaEducativa` | EDUCATIVA | Avance académico y actividades de formación |
+| `categoriaLaboral` | LABORAL | Actividades productivas y empleo |
+| `categoriaFamiliar` | FAMILIAR | Intervención familiar y red de apoyo |
+| `categoriaDeportiva` | DEPORTIVO | Actividades físicas (requiere `esAptoFisico: true`) |
+| `categoriaCultural` | CULTURAL | Actividades artísticas y culturales |
+
+---
+
+## Endpoints
+
+### `POST /civico/f4`
+
+**Roles:** `Admin`, `Psicologo`
+
+<CodeGroup>
+```bash Cédula básica
+curl -X POST http://localhost:3000/civico/f4 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+    "procesoIngreso": {
+      "fecha_incorporacion": "2026-03-15",
+      "folio": "CVX-2026-001",
+      "juzgado": "Juzgado Cívico No. 1",
+      "horas_sentencia": 80
+    },
+    "categoriaEducativa": {
+      "actividades": ["Taller de Habilidades Socioemocionales"],
+      "objetivo": "Fortalecer competencias de comunicación asertiva"
+    },
+    "categoriaLaboral": {
+      "actividades": ["Tequio Comunitario"],
+      "objetivo": "Desarrollar cultura de servicio comunitario"
+    }
+  }'
+```
+</CodeGroup>
+
+**Respuesta `201 Created`:**
+```json
+{
+  "idUUID": "c4d5e6f7-a8b9-0123-defa-234567890123",
+  "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+  "procesoIngreso": { "folio": "CVX-2026-001", "horas_sentencia": 80 },
+  "categoriaEducativa": { "actividades": ["Taller de Habilidades Socioemocionales"] },
+  "estatusF4": "PENDIENTE"
+}
+```
+
+---
+
+### `GET /civico/f4/expediente/:expedienteId`
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`
+
+---
+
+### `GET /civico/f4/:id`
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`
+
+---
+
+### `PATCH /civico/f4/:id`
+
+Actualización de cualquier bloque JSONB.  
+**Roles:** `Admin`, `Psicologo`
+
+---
+
+### `PATCH /civico/f4/:id/estatus`
+
+**Roles:** `Admin`
+
+```json
+{ "estatus": "COMPLETADO" }
+```
+
+<Note>
+El PDF de la Cédula Inicial (para el paquete federal HU-05) se genera desde `GET /civico/documentos/f4-cedula/:expedienteId`. El nombre del archivo seguirá la nomenclatura `CURP_F4_CEDULA_INICIAL.pdf`.
+</Note>
