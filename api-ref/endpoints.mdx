@@ -1,0 +1,77 @@
+---
+title: Tabla de Endpoints
+description: Referencia rápida de todos los endpoints del sistema con método, ruta y roles permitidos
+---
+
+## Autenticación
+
+| Método | Ruta | Descripción | Roles |
+|--------|------|-------------|-------|
+| `POST` | `/auth/login` | Obtener token JWT | Público |
+
+## Beneficiarios (Shared)
+
+| Método | Ruta | Descripción | Roles |
+|--------|------|-------------|-------|
+| `POST` | `/beneficiarios` | Registrar beneficiario | Admin |
+| `GET` | `/beneficiarios` | Listar todos | Admin, Psicologo, TrabajoSocial |
+| `GET` | `/beneficiarios/filtrar?unidad=HORAS` | Filtrar por módulo | Admin |
+| `GET` | `/beneficiarios/:id` | Obtener por ID | Admin, Psicologo, TrabajoSocial |
+| `PATCH` | `/beneficiarios/:id` | Actualizar | Admin |
+
+## Actividades (Shared)
+
+| Método | Ruta | Descripción | Roles |
+|--------|------|-------------|-------|
+| `POST` | `/actividades` | Crear actividad | Admin |
+| `GET` | `/actividades` | Listar activas | Todos |
+| `GET` | `/actividades/todas` | Listar todas (incl. inactivas) | Admin |
+| `GET` | `/actividades/categoria?cat=...` | Filtrar por categoría | Todos |
+| `GET` | `/actividades/:id` | Obtener por ID | Todos |
+| `PATCH` | `/actividades/:id` | Actualizar | Admin |
+
+## Salud (Shared)
+
+| Método | Ruta | Descripción | Roles |
+|--------|------|-------------|-------|
+| `POST` | `/salud` | Crear perfil de salud | Admin, Psicologo |
+| `GET` | `/salud` | Listar todos | Admin |
+| `GET` | `/salud/beneficiario/:id` | Por beneficiario | Admin, Psicologo |
+| `GET` | `/salud/aptitud?esApto=true` | Filtrar por aptitud | Admin |
+| `GET` | `/salud/:id` | Por ID | Admin, Psicologo |
+| `PATCH` | `/salud/:id` | Actualizar | Admin, Psicologo |
+| `PATCH` | `/salud/beneficiario/:id` | Actualizar por beneficiario | Admin, Psicologo |
+
+## Expedientes Cívicos
+
+| Método | Ruta | Descripción | Roles |
+|--------|------|-------------|-------|
+| `POST` | `/civico/expedientes` | Crear expediente | Admin |
+| `GET` | `/civico/expedientes` | Listar todos | Todos |
+| `GET` | `/civico/expedientes/caratulas` | Lista con JOIN beneficiario | Todos |
+| `GET` | `/civico/expedientes/curp/:curp` | Buscar por CURP | Todos |
+| `GET` | `/civico/expedientes/:id` | Expediente completo | Todos |
+| `GET` | `/civico/expedientes/:id/caratula` | Carátula individual | Todos |
+| `PATCH` | `/civico/expedientes/:id` | Actualizar | Admin |
+| `DELETE` | `/civico/expedientes/:id` | Desactivar | Admin |
+
+## Bitácora
+
+| Método | Ruta | Descripción | Roles |
+|--------|------|-------------|-------|
+| `POST` | `/civico/bitacora` | Registrar asistencia/falta | Admin, Guia |
+| `GET` | `/civico/bitacora/expediente/:id` | Historial del expediente | Todos |
+| `GET` | `/civico/bitacora/expediente/:id/horas` | Resumen de horas | Todos |
+| `GET` | `/civico/bitacora/:id` | Registro individual | Todos |
+| `DELETE` | `/civico/bitacora/:id` | Eliminar registro | Admin |
+
+## Incidencias
+
+| Método | Ruta | Descripción | Roles |
+|--------|------|-------------|-------|
+| `POST` | `/civico/incidencias` | Registrar incidencia | Admin, Guia |
+| `GET` | `/civico/incidencias/expediente/:id` | Por expediente | Todos |
+| `GET` | `/civico/incidencias/expediente/:id/strikes` | Conteo de strikes | Todos |
+| `GET` | `/civico/incidencias/:id` | Individual | Todos |
+| `PATCH` | `/civico/incidencias/:id` | Actualizar | Admin |
+| `PATCH` | `/civico/incidencias/:id/resolver` | Marcar como resuelta | Admin, Guia |

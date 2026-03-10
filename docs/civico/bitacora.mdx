@@ -1,0 +1,149 @@
+---
+title: Bitácora de Actividades
+description: Registro diario de asistencia — reemplaza el Excel "Control de Horas" (RF-010, RF-011)
+---
+
+## Descripción
+
+Cada registro de bitácora (`civic_bitacora`) documenta una sesión de actividad. Al guardar, el sistema suma automáticamente las horas al campo `avanceHoras` del expediente.
+
+**Reglas de negocio:**
+- Máximo **8 horas** por registro (validado en DTO y BD)
+- Si `asistencia = false`, el campo `motivoFalta` es **obligatorio**
+- Solo se puede registrar bitácora para expedientes en estatus `EN_SEGUIMIENTO`
+
+**Tabla:** `civic_bitacora` — **PK:** UUID
+
+---
+
+## Endpoints
+
+### `POST /civico/bitacora`
+
+Registra una asistencia o falta del beneficiario.
+
+**Roles:** `Admin`, `Guia`
+
+<CodeGroup>
+```bash Asistencia normal
+curl -X POST http://localhost:3000/civico/bitacora \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+    "guiaId": 3,
+    "actividadId": 5,
+    "fechaActividad": "2026-03-10",
+    "horasCubiertas": 4,
+    "asistencia": true
+  }'
+```
+```bash Registro de falta
+curl -X POST http://localhost:3000/civico/bitacora \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+    "guiaId": 3,
+    "actividadId": 5,
+    "fechaActividad": "2026-03-10",
+    "horasCubiertas": 0,
+    "asistencia": false,
+    "motivoFalta": "El beneficiario reportó enfermedad con justificante médico"
+  }'
+```
+</CodeGroup>
+
+**Respuesta `201 Created`:**
+```json
+{
+  "idUUID": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+  "guiaId": 3,
+  "actividadId": 5,
+  "fechaActividad": "2026-03-10",
+  "horasCubiertas": "4.00",
+  "asistencia": true,
+  "motivoFalta": null,
+  "evidenciaUrl": null
+}
+```
+
+<Note>
+Al registrar exitosamente, el servicio actualiza automáticamente `avanceHoras` en la tabla `civic_expedientes`. No se necesita un endpoint separado para esto.
+</Note>
+
+---
+
+### `GET /civico/bitacora/expediente/:expedienteId`
+
+Historial completo de asistencias de un expediente, ordenado por fecha descendente.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+```http
+GET /civico/bitacora/expediente/550e8400-e29b-41d4-a716-446655440000
+```
+
+**Respuesta `200 OK`:**
+```json
+[
+  {
+    "idUUID": "a1b2c3d4-...",
+    "fechaActividad": "2026-03-10",
+    "horasCubiertas": "4.00",
+    "asistencia": true,
+    "actividadId": 5
+  },
+  {
+    "idUUID": "b2c3d4e5-...",
+    "fechaActividad": "2026-03-08",
+    "horasCubiertas": "0.00",
+    "asistencia": false,
+    "motivoFalta": "Enfermedad justificada"
+  }
+]
+```
+
+---
+
+### `GET /civico/bitacora/expediente/:expedienteId/horas`
+
+Devuelve el resumen de horas acumuladas vs horas de sentencia.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+```http
+GET /civico/bitacora/expediente/550e8400-e29b-41d4-a716-446655440000/horas
+```
+
+**Respuesta `200 OK`:**
+```json
+{
+  "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+  "horasAcumuladas": 32,
+  "horasSentencia": 80,
+  "porcentajeAvance": 40,
+  "horasRestantes": 48
+}
+```
+
+---
+
+### `GET /civico/bitacora/:id`
+
+Obtiene un registro individual de bitácora por su UUID.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+---
+
+### `DELETE /civico/bitacora/:id`
+
+Elimina un registro de bitácora (corrección de errores de captura).
+
+**Roles:** `Admin`
+
+<Warning>
+Al eliminar un registro, el servicio descuenta automáticamente las horas del `avanceHoras` del expediente.
+</Warning>
