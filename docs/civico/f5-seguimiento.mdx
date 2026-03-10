@@ -1,0 +1,19 @@
+---
+title: F5 — Notas de Evolución
+description: Registro sesión por sesión del progreso terapéutico
+---
+
+## Descripción
+
+El F5 es completado por el **Psicólogo** en cada sesión de seguimiento. Documenta el progreso del beneficiario a lo largo del programa.
+
+## Endpoints
+
+### `POST /civico/f5-seguimiento`
+**Roles:** `Psicologo`
+
+### `GET /civico/f5-seguimiento/expediente/:expedienteId`
+**Roles:** `Psicologo`, `Admin`
+
+### `PATCH /civico/f5-seguimiento/:id`
+**Roles:** `Psicologo`

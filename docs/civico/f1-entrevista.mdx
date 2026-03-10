@@ -1,0 +1,36 @@
+---
+title: F1 — Entrevista Psicológica
+description: Instrumento de diagnóstico clínico inicial (RF-006)
+---
+
+## Descripción
+
+El F1 captura la entrevista psicológica inicial del beneficiario. Almacena datos estructurados en columnas y bloques flexibles en **JSONB** para secciones que pueden variar según la normativa.
+
+**Solo puede crearse si el expediente existe.** Al completarse, habilita la creación del F3 junto con el F2 (RF-008).
+
+## Bloques JSONB del F1
+
+| Campo | Contenido |
+|---|---|
+| `generalesEntrevista` | Datos generales de la sesión |
+| `situacionJuridicaF1` | Contexto legal del beneficiario |
+| `nucleoFamiliarPrimario` | Composición del hogar |
+| `sustanciasDetalle` | Historial de consumo de sustancias |
+| `perfilPersonal` | Rasgos de personalidad evaluados |
+
+## Estatus del formulario (`FormStatusEnum`)
+
+`PENDIENTE` → `EN_PROCESO` → `COMPLETADO` → `CERRADO`
+
+## Endpoints
+
+### `POST /civico/f1-entrevista`
+**Roles:** `Psicologo`
+
+### `GET /civico/f1-entrevista/expediente/:expedienteId`
+**Roles:** `Psicologo`, `Admin`
+
+### `PATCH /civico/f1-entrevista/:id`
+Actualización parcial (incluyendo cambio de estatus).  
+**Roles:** `Psicologo`

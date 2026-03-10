@@ -1,0 +1,65 @@
+---
+title: Incidencias
+description: Registro y seguimiento de incidencias conductuales — lógica de 3 strikes (RF-013)
+---
+
+## Descripción
+
+Las incidencias registran eventos conductuales o de asistencia que pueden derivar en la **baja definitiva** del beneficiario. Al acumularse **3 incidencias con `esAcumulativa = true`**, el sistema cambia automáticamente el `estatusProceso` del expediente a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS`.
+
+**Tabla:** `civic_incidencias`  
+**PK:** UUID
+
+## Tipos de incidencia (`IncidenciaTipoEnum`)
+
+| Valor | Descripción |
+|---|---|
+| `FALTA_INJUSTIFICADA` | Ausencia sin justificación válida |
+| `RETARDO` | Llegada tarde a la actividad |
+| `CONDUCTA_INAPROPIADA` | Comportamiento fuera de las normas del programa |
+| `INCUMPLIMIENTO_TAREA` | No realizó la actividad asignada |
+| `INASISTENCIA_JUSTIFICADA` | Falta con causa válida (no cuenta para strikes) |
+| `VISITA_DOMICILIARIA` | Registro de visita al domicilio del beneficiario |
+| `RETIRO_ANTICIPADO` | Abandono antes de concluir la actividad |
+| `CONVERSATORIO` | Sesión de orientación preventiva |
+
+<Note>
+Solo las incidencias con `esAcumulativa: true` cuentan para el conteo de strikes (RF-013). Por ejemplo, `INASISTENCIA_JUSTIFICADA` tiene `esAcumulativa: false`.
+</Note>
+
+## Estatus de resolución (`IncidenciaEstatusEnum`)
+
+| Valor | Descripción |
+|---|---|
+| `PENDIENTE` | Incidencia registrada, pendiente de seguimiento |
+| `RESUELTA` | La incidencia fue atendida y cerrada |
+| `DERIVO_EN_BAJA` | La incidencia fue la que completó los 3 strikes |
+
+## Endpoints
+
+### `POST /civico/incidencias`
+Registra una nueva incidencia. Si es la 3ª acumulativa, dispara la baja automática.
+
+**Roles:** `Guia`, `Admin`
+
+**Body:**
+```json
+{
+  "expedienteId": "uuid-del-expediente",
+  "guiaId": 3,
+  "tipo": "FALTA_INJUSTIFICADA",
+  "fechaIncidencia": "2026-03-10",
+  "descripcionHechos": "El beneficiario no se presentó sin previo aviso.",
+  "esAcumulativa": true
+}
+```
+
+### `GET /civico/incidencias/expediente/:expedienteId`
+Lista todas las incidencias de un expediente.
+
+**Roles:** `Admin`, `Guia`, `TrabajoSocial`, `Psicologo`
+
+### `PATCH /civico/incidencias/:id`
+Actualiza el estatus de resolución de una incidencia.
+
+**Roles:** `Admin`

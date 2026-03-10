@@ -1,0 +1,22 @@
+---
+title: F3 — Plan de Trabajo
+description: Plan individualizado de actividades (RF-009) — requiere F1 y F2 en COMPLETADO
+---
+
+## Descripción
+
+El F3 asigna las actividades que el beneficiario debe cumplir. Solo puede crearse si el F1 y el F2 tienen estatus `COMPLETADO` (Guard de dependencia — RF-008).
+
+Las actividades se seleccionan del catálogo compartido (`actividades`). El sistema valida que la actividad no contravenga la bandera `esAptoFisico` del perfil de salud (RF-005/RF-009).
+
+## Endpoints
+
+### `POST /civico/f3-plan`
+**Roles:** `Psicologo`, `TrabajoSocial`
+
+### `GET /civico/f3-plan/expediente/:expedienteId`
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+### `GET /civico/f3-plan/:id/pdf`
+Genera el PDF del Plan de Trabajo usando Puppeteer + Handlebars (RF-014).  
+**Roles:** `Admin`

@@ -1,0 +1,46 @@
+---
+title: Autenticación
+description: JWT — Flujo de login y uso del token en la API
+---
+
+## Login
+
+```http
+POST /auth/login
+```
+
+**Body:**
+```json
+{
+  "nomUsuario": "admin",
+  "contrasena": "Admin1234"
+}
+```
+
+**Respuesta exitosa `200`:**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+## Uso del token
+
+Incluye el token en el header `Authorization` de cada petición protegida:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+## Roles del sistema
+
+| Rol | Descripción |
+|---|---|
+| `Admin` | Acceso total. Alta de expedientes, generación de oficios de conclusión. |
+| `Psicologo` | Lectura/escritura de F1 y F5 (datos clínicos). |
+| `TrabajoSocial` | Captura de F2 (estudio socioeconómico). |
+| `Guia` | Registro de bitácora e incidencias (datos logísticos únicamente). |
+
+## Expiración
+
+El token expira en **8 horas** (equivalente a la jornada laboral estándar). Configurable mediante la variable de entorno `JWT_EXPIRES_IN`.

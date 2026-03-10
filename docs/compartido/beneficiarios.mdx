@@ -1,0 +1,53 @@
+---
+title: Beneficiarios
+description: Gestión del catálogo compartido de beneficiarios (Cívico y Penal)
+---
+
+# Beneficiarios
+
+Tabla **compartida** entre los módulos Cívico y Penal. Se diferencian por el campo `unidadTiempo`:
+- `HORAS` → Justicia Cívica
+- `MESES` → Módulo Penal
+
+## Endpoints
+
+### POST /beneficiarios
+Registrar un nuevo beneficiario.
+
+**Roles:** `Admin`, `TrabajoSocial`
+
+```json
+{
+  "nombre": "Juan Carlos Pérez López",
+  "tiempoAsignado": 80,
+  "unidadTiempo": "HORAS"
+}
+```
+
+**Respuesta (201):**
+```json
+{
+  "id": 1,
+  "nombre": "Juan Carlos Pérez López",
+  "tiempoAsignado": 80,
+  "unidadTiempo": "HORAS",
+  "fechaIngreso": "2026-03-10",
+  "creadoEn": "2026-03-10T15:00:00.000Z"
+}
+```
+
+### GET /beneficiarios
+Obtener todos los beneficiarios.
+
+### GET /beneficiarios/filtrar?unidad=HORAS
+Filtrar solo beneficiarios cívicos.
+
+### GET /beneficiarios/:id
+Obtener un beneficiario por ID.
+
+### PATCH /beneficiarios/:id
+Actualizar datos del beneficiario.
+
+<Warning>
+No usar DELETE en producción. La BD bloquea la eliminación si existen expedientes relacionados (`ON DELETE RESTRICT`).
+</Warning>

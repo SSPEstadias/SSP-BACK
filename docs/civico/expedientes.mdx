@@ -1,0 +1,76 @@
+---
+title: Expedientes Cívicos
+description: Gestión de la Carátula del expediente — eje central del módulo cívico
+---
+
+## Descripción
+
+La **Carátula** (`civic_expedientes`) es el registro raíz del beneficiario dentro del módulo cívico. Contiene los datos jurídicos, personales y el estado del proceso. Todos los formatos F1–F5 heredan su información de este registro (RF-004).
+
+**PK:** UUID (no expone secuencias numéricas por seguridad).
+
+## Campos principales
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `idUUID` | UUID | Clave primaria |
+| `beneficiarioId` | int | FK → tabla `beneficiarios` (SharedModule) |
+| `curp` | varchar(18) | CURP — se hereda en F1, F2, F3, F4 |
+| `folioIncorporacion` | varchar(50) | Único por expediente |
+| `causaPenal` | varchar(50) | Número de causa |
+| `juezControl` | varchar(150) | Nombre del Juez |
+| `horasSentencia` | int | Horas dictadas por el juzgado |
+| `avanceHoras` | decimal(5,2) | Horas acumuladas (actualizado por bitácora) |
+| `estatusProceso` | enum | Ver estados abajo |
+| `contactosFamiliares` | JSONB | `{ "padre": {...}, "madre": {...} }` |
+| `diasAsignadosJuzgado` | JSONB | `{ "dias": [...], "horas_por_dia": 4 }` |
+
+## Estados del proceso (`CivicStatusEnum`)
+
+| Valor | Descripción |
+|---|---|
+| `INDUCCION` | Etapa inicial al ingresar al programa |
+| `DIAGNOSTICO` | F1 y F2 en proceso |
+| `PLANEACION` | F3 siendo elaborado |
+| `EN_SEGUIMIENTO` | Cumpliendo actividades (bitácora activa) |
+| `GRADUADO` | Cumplió horas de sentencia |
+| `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` | Dado de baja por 3 incidencias acumulativas (RF-013) |
+| `BAJA_VOLUNTARIA` | Baja por solicitud propia |
+| `HISTORICO` | Expediente archivado (reingreso detectado) |
+
+<Warning>
+El estado `BAJA_POR_INCIDENCIA` fue renombrado a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` en la versión actual. Usar el nombre actualizado en todos los DTOs y consultas.
+</Warning>
+
+## Endpoints
+
+### `POST /civico/expedientes`
+Crea un nuevo expediente. Requiere que el `beneficiarioId` exista en la tabla compartida.
+
+**Roles:** `Admin`
+
+### `GET /civico/expedientes`
+Lista todos los expedientes activos.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`
+
+### `GET /civico/expedientes/caratula/:id`
+Devuelve la carátula completa con los datos del beneficiario (JOIN).
+
+**Respuesta:**
+```json
+{
+  "expedienteId": "uuid",
+  "folioIncorporacion": "CVX-2026-001",
+  "causaPenal": "123/2026",
+  "nombre": "Juan Pérez López",
+  "horasSentencia": 80,
+  "avanceHoras": 32.5,
+  "estatusProceso": "EN_SEGUIMIENTO"
+}
+```
+
+### `PATCH /civico/expedientes/:id`
+Actualización parcial del expediente.
+
+**Roles:** `Admin`

@@ -1,0 +1,46 @@
+---
+title: Bitácora de Actividades
+description: Registro diario de asistencia y horas cumplidas — sustituto digital del Excel de Control de Horas
+---
+
+## Descripción
+
+La bitácora (`civic_bitacora`) registra cada sesión de actividad del beneficiario. Cada registro suma al campo `avanceHoras` del expediente. **Máximo 8 horas por día** (validado a nivel de DTO y regla de BD).
+
+## Campos clave
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `expedienteId` | UUID | FK al expediente cívico |
+| `guiaId` | int | FK al usuario (rol Guía) |
+| `actividadId` | int | FK al catálogo compartido de actividades |
+| `fechaActividad` | date | Fecha de la sesión |
+| `horasCubiertas` | decimal | Min: 0.1 / Max: 8 horas |
+| `asistencia` | boolean | `true` = asistió, `false` = falta |
+| `motivoFalta` | text | Obligatorio si `asistencia = false` |
+| `evidenciaUrl` | url | URL de evidencia fotográfica (opcional) |
+
+## Endpoints
+
+### `POST /civico/bitacora`
+Registra una asistencia o falta. Al guardar, suma `horasCubiertas` al `avanceHoras` del expediente.
+
+**Roles:** `Guia`
+
+**Body:**
+```json
+{
+  "expedienteId": "uuid",
+  "guiaId": 3,
+  "actividadId": 5,
+  "fechaActividad": "2026-03-10",
+  "horasCubiertas": 4,
+  "asistencia": true
+}
+```
+
+### `GET /civico/bitacora/expediente/:expedienteId`
+Historial completo de asistencias de un expediente.
+
+### `GET /civico/bitacora/expediente/:expedienteId/resumen`
+Devuelve el total de horas acumuladas vs horas de sentencia.

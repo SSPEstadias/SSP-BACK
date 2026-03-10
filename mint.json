@@ -1,0 +1,54 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Sistema Reconecta con la Paz — API Docs",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#7B1F2F",
+    "light": "#A63248",
+    "dark": "#5C1622"
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/SSPEstadias/SSP-BACK"
+    }
+  ],
+  "tabs": [],
+  "navigation": [
+    {
+      "group": "Introducción",
+      "pages": ["docs/overview", "docs/autenticacion"]
+    },
+    {
+      "group": "Núcleo Compartido (SharedModule)",
+      "pages": [
+        "docs/shared/beneficiarios",
+        "docs/shared/actividades",
+        "docs/shared/salud",
+        "docs/shared/usuarios"
+      ]
+    },
+    {
+      "group": "Módulo Cívico",
+      "pages": [
+        "docs/civico/expedientes",
+        "docs/civico/f1-entrevista",
+        "docs/civico/f2-estudio",
+        "docs/civico/f3-plan",
+        "docs/civico/f4-cedula",
+        "docs/civico/f5-seguimiento",
+        "docs/civico/bitacora",
+        "docs/civico/incidencias",
+        "docs/civico/oficios",
+        "docs/civico/documentos"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/SSPEstadias/SSP-BACK"
+  }
+}
