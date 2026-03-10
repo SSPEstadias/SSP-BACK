@@ -1,19 +1,163 @@
 ---
 title: F5 — Notas de Evolución
-description: Registro sesión por sesión del progreso terapéutico
+description: Registro sesión por sesión del progreso terapéutico — múltiples sesiones por expediente
 ---
 
 ## Descripción
 
-El F5 es completado por el **Psicólogo** en cada sesión de seguimiento. Documenta el progreso del beneficiario a lo largo del programa.
+Las **Notas de Evolución** (`civic_seguimiento_psicologico`) documentan cada sesión terapéutica del beneficiario. A diferencia del F1 (1:1), el F5 es **1:N** — un expediente puede tener múltiples notas, una por cada sesión.
+
+**Tabla:** `civic_seguimiento_psicologico` — **PK:** UUID  
+**Relación:** N:1 con `civic_expedientes` (múltiples sesiones por expediente)
+
+<Warning>
+El rol `Guia` **no tiene acceso** al F5. La información clínica de cada sesión es estrictamente confidencial (RNF-002).
+</Warning>
+
+---
+
+## Campos de la entidad
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `numSesion` | int | Número secuencial de la sesión (1, 2, 3...) |
+| `fechaSesion` | date | Fecha de la sesión |
+| `horaSesion` | time | Hora de inicio (opcional) |
+| `fechaProximaSesion` | date | Cita programada para la siguiente sesión |
+| `objetivoSesion` | text | Meta terapéutica de esta sesión |
+| `conductaDisposicion` | text | Actitud y disposición del beneficiario |
+| `descripcionIntervencion` | text | Descripción de la intervención realizada |
+| `temaSesion` | varchar(150) | Tema central trabajado |
+| `estrategiaAplicada` | text | Técnica terapéutica utilizada |
+| `planTerapeutico` | text | Plan para las próximas sesiones |
+| `actividadesAsignadasUsuario` | text | Tareas para el beneficiario |
+| `avancePercibido` | varchar(50) | Evaluación subjetiva del avance |
+| `observaciones` | text | Notas adicionales del psicólogo |
+
+---
 
 ## Endpoints
 
-### `POST /civico/f5-seguimiento`
-**Roles:** `Psicologo`
+### `POST /civico/f5`
 
-### `GET /civico/f5-seguimiento/expediente/:expedienteId`
-**Roles:** `Psicologo`, `Admin`
+Registra una nueva nota de evolución. Cada llamada crea una sesión nueva.
 
-### `PATCH /civico/f5-seguimiento/:id`
-**Roles:** `Psicologo`
+**Roles:** `Admin`, `Psicologo`
+
+<CodeGroup>
+```bash Primera sesión
+curl -X POST http://localhost:3000/civico/f5 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+    "psicologoId": 2,
+    "numSesion": 1,
+    "fechaSesion": "2026-03-15",
+    "horaSesion": "10:00:00",
+    "fechaProximaSesion": "2026-03-22",
+    "objetivoSesion": "Establecer rapport y presentar el plan terapéutico.",
+    "conductaDisposicion": "Beneficiario cooperador, levemente ansioso al inicio.",
+    "temaSesion": "Encuadre terapéutico y expectativas del programa",
+    "estrategiaAplicada": "Entrevista motivacional",
+    "actividadesAsignadasUsuario": "Completar el formato de autorretrato emocional.",
+    "avancePercibido": "Inicial",
+    "observaciones": "Se recomienda abordaje en regulación emocional desde la sesión 2."
+  }'
+```
+```bash Sesión de seguimiento
+curl -X POST http://localhost:3000/civico/f5 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+    "psicologoId": 2,
+    "numSesion": 3,
+    "fechaSesion": "2026-03-29",
+    "objetivoSesion": "Reforzar estrategias de manejo de ira.",
+    "temaSesion": "Control de impulsos — Técnica de pausa",
+    "estrategiaAplicada": "Terapia Cognitivo-Conductual — reestructuración cognitiva",
+    "avancePercibido": "Moderado",
+    "planTerapeutico": "Continuar con técnicas de mindfulness en sesión 4."
+  }'
+```
+</CodeGroup>
+
+**Respuesta `201 Created`:**
+```json
+{
+  "idUUID": "d5e6f7a8-b9c0-1234-efab-345678901234",
+  "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+  "psicologoId": 2,
+  "numSesion": 1,
+  "fechaSesion": "2026-03-15",
+  "horaSesion": "10:00:00",
+  "fechaProximaSesion": "2026-03-22",
+  "objetivoSesion": "Establecer rapport y presentar el plan terapéutico.",
+  "temaSesion": "Encuadre terapéutico y expectativas del programa",
+  "avancePercibido": "Inicial"
+}
+```
+
+---
+
+### `GET /civico/f5/expediente/:expedienteId`
+
+Lista **todas las sesiones** del expediente ordenadas por `numSesion`.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`
+
+**Respuesta `200 OK`:**
+```json
+[
+  { "numSesion": 1, "fechaSesion": "2026-03-15", "temaSesion": "Encuadre terapéutico", "avancePercibido": "Inicial" },
+  { "numSesion": 2, "fechaSesion": "2026-03-22", "temaSesion": "Regulación emocional", "avancePercibido": "Bajo" },
+  { "numSesion": 3, "fechaSesion": "2026-03-29", "temaSesion": "Control de impulsos", "avancePercibido": "Moderado" }
+]
+```
+
+---
+
+### `GET /civico/f5/expediente/:expedienteId/total`
+
+Devuelve el conteo total de sesiones registradas.
+
+**Respuesta `200 OK`:**
+```json
+{
+  "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+  "totalSesiones": 3,
+  "ultimaSesion": "2026-03-29"
+}
+```
+
+---
+
+### `GET /civico/f5/expediente/:expedienteId/sesion/:num`
+
+Obtiene una sesión específica por número.
+
+```http
+GET /civico/f5/expediente/550e8400-.../sesion/3
+```
+
+---
+
+### `GET /civico/f5/:id`
+
+Obtiene una nota por su UUID.
+
+---
+
+### `PATCH /civico/f5/:id`
+
+Actualización parcial de cualquier campo de la sesión.
+
+**Roles:** `Admin`, `Psicologo`
+
+```json
+{
+  "planTerapeutico": "Sesión 4: abordar duelo y cierre del proceso.",
+  "avancePercibido": "Significativo"
+}
+```

@@ -1,22 +1,114 @@
 ---
 title: F3 — Plan de Trabajo
-description: Plan individualizado de actividades (RF-009) — requiere F1 y F2 en COMPLETADO
+description: Plan individualizado de actividades — BLOQUEADO hasta que F1 y F2 estén COMPLETADOS (RF-008, RF-009)
 ---
 
 ## Descripción
 
-El F3 asigna las actividades que el beneficiario debe cumplir. Solo puede crearse si el F1 y el F2 tienen estatus `COMPLETADO` (Guard de dependencia — RF-008).
+El **Plan de Trabajo** (`civic_plan_trabajo`) asigna las actividades que el beneficiario debe cumplir durante el programa. Es el pivote entre el diagnóstico y la ejecución operativa.
 
-Las actividades se seleccionan del catálogo compartido (`actividades`). El sistema valida que la actividad no contravenga la bandera `esAptoFisico` del perfil de salud (RF-005/RF-009).
+**Regla crítica (RF-008):** Si el F1 o el F2 no están en estatus `COMPLETADO`, el `POST /civico/f3` retorna `403 Forbidden`. No hay excepciones.
+
+**Tabla:** `civic_plan_trabajo` — **PK:** UUID
+
+---
+
+## Validación de aptitud física (RF-009)
+
+Al asignar actividades de categoría `PROMOCION_CULTURAL_DEPORTIVA`, el servicio verifica la bandera `esAptoFisico` del perfil de salud del beneficiario. Si no es apto, la asignación es rechazada con `422 Unprocessable Entity`.
+
+---
 
 ## Endpoints
 
-### `POST /civico/f3-plan`
-**Roles:** `Psicologo`, `TrabajoSocial`
+### `POST /civico/f3`
 
-### `GET /civico/f3-plan/expediente/:expedienteId`
+Crea el plan de trabajo. **Falla automáticamente si F1 o F2 no están `COMPLETADO`.**
+
+**Roles:** `Admin`
+
+<CodeGroup>
+```bash Plan básico
+curl -X POST http://localhost:3000/civico/f3 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+    "actividadesIds": [3, 5, 7],
+    "observaciones": "Actividades seleccionadas según perfil socioemocional y aptitud física.",
+    "fechaInicioPlan": "2026-03-15"
+  }'
+```
+</CodeGroup>
+
+**Respuesta `201 Created`:**
+```json
+{
+  "idUUID": "b3c4d5e6-f7a8-9012-cdef-123456789012",
+  "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+  "actividadesIds": [3, 5, 7],
+  "observaciones": "Actividades seleccionadas según perfil socioemocional.",
+  "fechaInicioPlan": "2026-03-15",
+  "estatusF3": "PENDIENTE"
+}
+```
+
+**Error `403` si F1 o F2 no están completos:**
+```json
+{
+  "statusCode": 403,
+  "message": "No se puede crear el F3: el diagnóstico (F1 o F2) no está COMPLETADO",
+  "error": "Forbidden"
+}
+```
+
+**Error `422` por actividad deportiva sin aptitud física:**
+```json
+{
+  "statusCode": 422,
+  "message": "La actividad seleccionada requiere aptitud física. El beneficiario no tiene esta condición habilitada.",
+  "error": "Unprocessable Entity"
+}
+```
+
+---
+
+### `GET /civico/f3/expediente/:expedienteId`
+
 **Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
 
-### `GET /civico/f3-plan/:id/pdf`
-Genera el PDF del Plan de Trabajo usando Puppeteer + Handlebars (RF-014).  
+**Respuesta `200 OK`:**
+```json
+{
+  "idUUID": "b3c4d5e6-...",
+  "expedienteId": "550e8400-...",
+  "actividades": [
+    { "id": 3, "nombre": "Tequio Comunitario", "categoria": "TRABAJO_COMUNITARIO" },
+    { "id": 5, "nombre": "Taller de Habilidades para el Trabajo", "categoria": "EDUCACION_PARA_LA_VIDA" }
+  ],
+  "fechaInicioPlan": "2026-03-15",
+  "estatusF3": "COMPLETADO"
+}
+```
+
+---
+
+### `GET /civico/f3/:id`
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+---
+
+### `PATCH /civico/f3/:id`
+
+Actualización de actividades u observaciones.
+
+---
+
+### `PATCH /civico/f3/:id/estatus`
+
 **Roles:** `Admin`
+
+```json
+{ "estatus": "COMPLETADO" }
+```

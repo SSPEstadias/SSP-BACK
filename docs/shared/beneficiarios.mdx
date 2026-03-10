@@ -1,123 +1,161 @@
 ---
 title: Beneficiarios
-description: Gestión del catálogo compartido de beneficiarios (Cívico y Penal)
----
-
-# Beneficiarios
-
-Tabla **compartida** entre los módulos Cívico y Penal. Se diferencian por el campo `unidadTiempo`:
-- `HORAS` → Justicia Cívica
-- `MESES` → Módulo Penal
-
-## Endpoints
-
-### POST /beneficiarios
-Registrar un nuevo beneficiario.
-
-**Roles:** `Admin`, `TrabajoSocial`
-
-```json
-{
-  "nombre": "Juan Carlos Pérez López",
-  "tiempoAsignado": 80,
-  "unidadTiempo": "HORAS"
-}
-```
-
-**Respuesta (201):**
-```json
-{
-  "id": 1,
-  "nombre": "Juan Carlos Pérez López",
-  "tiempoAsignado": 80,
-  "unidadTiempo": "HORAS",
-  "fechaIngreso": "2026-03-10",
-  "creadoEn": "2026-03-10T15:00:00.000Z"
-}
-```
-
-### GET /beneficiarios
-Obtener todos los beneficiarios.
-
-### GET /beneficiarios/filtrar?unidad=HORAS
-Filtrar solo beneficiarios cívicos.
-
-### GET /beneficiarios/:id
-Obtener un beneficiario por ID.
-
-### PATCH /beneficiarios/:id
-Actualizar datos del beneficiario.
-
-<Warning>
-No usar DELETE en producción. La BD bloquea la eliminación si existen expedientes relacionados (`ON DELETE RESTRICT`).
-</Warning>---
-title: Beneficiarios
-description: Registro central de ciudadanos — compartido entre módulo Cívico y Penal
+description: Registro central de ciudadanos — núcleo compartido entre el Módulo Cívico y el Módulo Penal
 ---
 
 ## Descripción
 
-La tabla `beneficiarios` es el núcleo de identidad compartido entre todos los módulos del sistema. Un beneficiario representa al ciudadano antes de que se le asigne un expediente en cualquier módulo.
+La tabla `beneficiarios` es el punto de entrada único del sistema. **Todo expediente cívico o penal nace de un beneficiario**. Este módulo es parte del `SharedModule` y es consumido por ambos módulos.
 
-**Tabla:** `beneficiarios`  
-**Módulo:** SharedModule  
-**PK:** `id` (integer, autogenerado)
+**Tabla:** `beneficiarios` — **PK:** `id` (integer, autogenerado)  
+**Archivo:** `src/shared/beneficiarios/beneficiario.entity.ts`
 
-## Campos
+<Note>
+El `beneficiarioId` es el **primer dato que se necesita** antes de crear un expediente cívico. El flujo correcto es: `POST /beneficiarios` → `POST /civico/expedientes`.
+</Note>
 
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| `id` | int | Clave primaria |
+---
+
+## Campos de la entidad
+
+| Campo | Tipo DB | Descripción |
+|-------|---------|-------------|
+| `id` | int (autoincrement) | PK — se usa como `beneficiarioId` en los expedientes |
 | `nombre` | varchar(150) | Nombre completo del ciudadano |
-| `tiempoAsignado` | int | Tiempo de sanción (número) |
-| `unidadTiempo` | enum | `HORAS` para Cívico / `MESES` para Penal |
 | `fechaIngreso` | date | Fecha de ingreso al programa (default: hoy) |
-| `creadoEn` | timestamp | Fecha de creación del registro |
+| `tiempoAsignado` | int | Duración de la sanción (número) |
+| `unidadTiempo` | enum | `HORAS` para Cívico / `MESES` para Penal |
+| `creadoEn` | timestamp | Fecha de creación automática |
 
 ## Unidad de tiempo (`UnidadTiempoEnum`)
 
-| Valor | Módulo que lo usa |
-|-------|-------------------|
-| `HORAS` | Módulo Cívico (justicia cívica) |
-| `MESES` | Módulo Penal |
+| Valor | Módulo |
+|-------|--------|
+| `HORAS` | Justicia Cívica |
+| `MESES` | Penal |
+
+---
 
 ## Endpoints
 
 ### `POST /beneficiarios`
-Registra un nuevo beneficiario en el sistema.
 
-**Roles:** `Admin`
+Registra un nuevo ciudadano. Este registro es el **paso previo obligatorio** para crear un expediente cívico.
 
+<CodeGroup>
+```bash cURL
+curl -X POST http://localhost:3000/beneficiarios \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Juan Carlos Pérez López",
+    "tiempoAsignado": 80,
+    "unidadTiempo": "HORAS"
+  }'
+```
+</CodeGroup>
+
+**Respuesta `201 Created`:**
 ```json
 {
-  "nombre": "Juan Pérez López",
+  "id": 12,
+  "nombre": "Juan Carlos Pérez López",
+  "fechaIngreso": "2026-03-10",
   "tiempoAsignado": 80,
-  "unidadTiempo": "HORAS"
+  "unidadTiempo": "HORAS",
+  "creadoEn": "2026-03-10T10:00:00.000Z"
+}
+```
+
+<Warning>
+Guarda el `id` retornado — lo necesitarás como `beneficiarioId` al crear el expediente en `POST /civico/expedientes`.
+</Warning>
+
+---
+
+### `GET /beneficiarios`
+
+Lista todos los beneficiarios del sistema ordenados por `creadoEn` descendente.
+
+**Respuesta `200 OK`:**
+```json
+[
+  {
+    "id": 12,
+    "nombre": "Juan Carlos Pérez López",
+    "fechaIngreso": "2026-03-10",
+    "tiempoAsignado": 80,
+    "unidadTiempo": "HORAS"
+  },
+  {
+    "id": 11,
+    "nombre": "María Sánchez Ruiz",
+    "fechaIngreso": "2026-03-05",
+    "tiempoAsignado": 6,
+    "unidadTiempo": "MESES"
+  }
+]
+```
+
+---
+
+### `GET /beneficiarios/filtrar?unidad=HORAS`
+
+Filtra beneficiarios por módulo usando el query param `unidad`.
+
+```http
+GET /beneficiarios/filtrar?unidad=HORAS
+GET /beneficiarios/filtrar?unidad=MESES
+```
+
+**Respuesta `200 OK`:** (solo beneficiarios del módulo Cívico)
+```json
+[
+  {
+    "id": 12,
+    "nombre": "Juan Carlos Pérez López",
+    "tiempoAsignado": 80,
+    "unidadTiempo": "HORAS"
+  }
+]
+```
+
+---
+
+### `GET /beneficiarios/:id`
+
+Obtiene un beneficiario por su ID entero.
+
+```http
+GET /beneficiarios/12
+```
+
+**Respuesta `404` si no existe:**
+```json
+{
+  "statusCode": 404,
+  "message": "Beneficiario con id 12 no encontrado",
+  "error": "Not Found"
 }
 ```
 
 ---
 
-### `GET /beneficiarios`
-Lista todos los beneficiarios ordenados por fecha de creación descendente.
+### `PATCH /beneficiarios/:id`
 
-**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`
+Actualización parcial. Útil para corregir el nombre o el tiempo asignado.
 
----
-
-### `GET /beneficiarios/filtrar?unidad=HORAS`
-Filtra beneficiarios por unidad de tiempo.
-
-| Parámetro | Valor | Descripción |
-|-----------|-------|-------------|
-| `unidad` | `HORAS` | Solo beneficiarios del módulo Cívico |
-| `unidad` | `MESES` | Solo beneficiarios del módulo Penal |
+```json
+{
+  "tiempoAsignado": 100
+}
+```
 
 ---
 
-### `GET /beneficiarios/:id`
-Obtiene un beneficiario por su ID.
+### `DELETE /beneficiarios/:id`
+
+Elimina un beneficiario.
 
 <Warning>
-Si el beneficiario tiene expedientes relacionados, **no puede eliminarse** (restricción `ON DELETE RESTRICT` — RNF-004).
+Si el beneficiario tiene expedientes relacionados (cívicos o penales), la eliminación fallará con `409 Conflict` por la restricción `ON DELETE RESTRICT` de la FK.
 </Warning>
