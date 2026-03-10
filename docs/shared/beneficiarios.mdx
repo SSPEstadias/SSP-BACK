@@ -1,0 +1,123 @@
+---
+title: Beneficiarios
+description: Gestión del catálogo compartido de beneficiarios (Cívico y Penal)
+---
+
+# Beneficiarios
+
+Tabla **compartida** entre los módulos Cívico y Penal. Se diferencian por el campo `unidadTiempo`:
+- `HORAS` → Justicia Cívica
+- `MESES` → Módulo Penal
+
+## Endpoints
+
+### POST /beneficiarios
+Registrar un nuevo beneficiario.
+
+**Roles:** `Admin`, `TrabajoSocial`
+
+```json
+{
+  "nombre": "Juan Carlos Pérez López",
+  "tiempoAsignado": 80,
+  "unidadTiempo": "HORAS"
+}
+```
+
+**Respuesta (201):**
+```json
+{
+  "id": 1,
+  "nombre": "Juan Carlos Pérez López",
+  "tiempoAsignado": 80,
+  "unidadTiempo": "HORAS",
+  "fechaIngreso": "2026-03-10",
+  "creadoEn": "2026-03-10T15:00:00.000Z"
+}
+```
+
+### GET /beneficiarios
+Obtener todos los beneficiarios.
+
+### GET /beneficiarios/filtrar?unidad=HORAS
+Filtrar solo beneficiarios cívicos.
+
+### GET /beneficiarios/:id
+Obtener un beneficiario por ID.
+
+### PATCH /beneficiarios/:id
+Actualizar datos del beneficiario.
+
+<Warning>
+No usar DELETE en producción. La BD bloquea la eliminación si existen expedientes relacionados (`ON DELETE RESTRICT`).
+</Warning>---
+title: Beneficiarios
+description: Registro central de ciudadanos — compartido entre módulo Cívico y Penal
+---
+
+## Descripción
+
+La tabla `beneficiarios` es el núcleo de identidad compartido entre todos los módulos del sistema. Un beneficiario representa al ciudadano antes de que se le asigne un expediente en cualquier módulo.
+
+**Tabla:** `beneficiarios`  
+**Módulo:** SharedModule  
+**PK:** `id` (integer, autogenerado)
+
+## Campos
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | int | Clave primaria |
+| `nombre` | varchar(150) | Nombre completo del ciudadano |
+| `tiempoAsignado` | int | Tiempo de sanción (número) |
+| `unidadTiempo` | enum | `HORAS` para Cívico / `MESES` para Penal |
+| `fechaIngreso` | date | Fecha de ingreso al programa (default: hoy) |
+| `creadoEn` | timestamp | Fecha de creación del registro |
+
+## Unidad de tiempo (`UnidadTiempoEnum`)
+
+| Valor | Módulo que lo usa |
+|-------|-------------------|
+| `HORAS` | Módulo Cívico (justicia cívica) |
+| `MESES` | Módulo Penal |
+
+## Endpoints
+
+### `POST /beneficiarios`
+Registra un nuevo beneficiario en el sistema.
+
+**Roles:** `Admin`
+
+```json
+{
+  "nombre": "Juan Pérez López",
+  "tiempoAsignado": 80,
+  "unidadTiempo": "HORAS"
+}
+```
+
+---
+
+### `GET /beneficiarios`
+Lista todos los beneficiarios ordenados por fecha de creación descendente.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`
+
+---
+
+### `GET /beneficiarios/filtrar?unidad=HORAS`
+Filtra beneficiarios por unidad de tiempo.
+
+| Parámetro | Valor | Descripción |
+|-----------|-------|-------------|
+| `unidad` | `HORAS` | Solo beneficiarios del módulo Cívico |
+| `unidad` | `MESES` | Solo beneficiarios del módulo Penal |
+
+---
+
+### `GET /beneficiarios/:id`
+Obtiene un beneficiario por su ID.
+
+<Warning>
+Si el beneficiario tiene expedientes relacionados, **no puede eliminarse** (restricción `ON DELETE RESTRICT` — RNF-004).
+</Warning>

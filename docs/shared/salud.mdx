@@ -1,0 +1,69 @@
+---
+title: Perfil de Salud
+description: Perfil de salud del beneficiario — compartido entre Cívico y Penal (RF-005)
+---
+
+## Descripción
+
+La tabla `salud_perfil_general` almacena el perfil médico general del beneficiario. Es **1:1 con la tabla beneficiarios** — cada beneficiario puede tener como máximo un perfil de salud.
+
+La bandera `esAptoFisico` es crítica: el sistema la consulta antes de permitir la asignación de actividades físicas o deportivas (RF-005 / RF-009).
+
+**Tabla:** `salud_perfil_general`  
+**Relación:** `OneToOne` → `beneficiarios`
+
+## Campos principales
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `beneficiarioId` | int (FK único) | Referencia al beneficiario |
+| `esAptoFisico` | boolean | `true` = apto para actividades físicas |
+| `padecEnfermedad` | boolean | Indica si padece alguna enfermedad |
+| `nombreEnfermedad` | varchar(255) | Nombre de la enfermedad (si aplica) |
+| `consumeSustancias` | boolean | Historial de consumo de sustancias |
+| `tipoSustancias` | varchar | Tipo de sustancias (si aplica) |
+| `afiliadoServicioSalud` | varchar | Institución de salud |
+| `necesitaLentes` | boolean | Indicador para actividades visuales |
+| `observacionesMedicas` | text | Notas adicionales del médico |
+
+## Endpoints
+
+### `POST /salud`
+Crea el perfil de salud de un beneficiario.
+
+**Roles:** `Admin`, `Psicologo`
+
+```json
+{
+  "beneficiarioId": 5,
+  "esAptoFisico": true,
+  "padecEnfermedad": false,
+  "consumeSustancias": true,
+  "tipoSustancias": "Alcohol",
+  "afiliadoServicioSalud": "IMSS"
+}
+```
+
+<Warning>
+Si el beneficiario ya tiene un perfil de salud registrado, el sistema retorna `409 Conflict`. Usa `PATCH` para actualizar.
+</Warning>
+
+---
+
+### `GET /salud/beneficiario/:beneficiarioId`
+Obtiene el perfil de salud por ID de beneficiario.
+
+---
+
+### `GET /salud/aptitud?esApto=true`
+Filtra beneficiarios por aptitud física.
+
+---
+
+### `PATCH /salud/:id`
+Actualiza el perfil de salud.
+
+---
+
+### `PATCH /salud/beneficiario/:beneficiarioId`
+Actualiza el perfil de salud usando el ID del beneficiario (más conveniente en el flujo del expediente).

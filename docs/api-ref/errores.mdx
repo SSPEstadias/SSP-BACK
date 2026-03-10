@@ -1,0 +1,45 @@
+---
+title: Códigos de Error
+description: Respuestas de error estándar del sistema
+---
+
+## Errores de autenticación
+
+| Código | Causa | Solución |
+|--------|-------|----------|
+| `401 Unauthorized` | Token no incluido o expirado | Hacer login nuevamente |
+| `403 Forbidden` | Rol insuficiente para el endpoint | Verificar permisos del usuario |
+
+## Errores de validación
+
+| Código | Causa | Ejemplo |
+|--------|-------|---------|
+| `400 Bad Request` | DTO inválido | Campo requerido vacío, tipo incorrecto |
+| `409 Conflict` | Unicidad violada | CURP duplicado, folioIncorporacion repetido |
+| `404 Not Found` | Recurso no existe | UUID de expediente inexistente |
+
+## Formato de error estándar
+
+```json
+{
+  "statusCode": 400,
+  "message": ["horasCubiertas must not be greater than 8"],
+  "error": "Bad Request"
+}
+```
+
+```json
+{
+  "statusCode": 409,
+  "message": "Ya existe un expediente con el folio CVX-2026-001",
+  "error": "Conflict"
+}
+```
+
+```json
+{
+  "statusCode": 403,
+  "message": "Forbidden resource",
+  "error": "Forbidden"
+}
+```

@@ -1,0 +1,60 @@
+---
+title: Enumeraciones (Enums)
+description: Valores válidos para todos los campos enum del sistema — basado en civico.enums.ts
+---
+
+## `CivicStatusEnum` — Estado del proceso
+
+```typescript
+INDUCCION | DIAGNOSTICO | PLANEACION | EN_SEGUIMIENTO |
+GRADUADO  | BAJA_POR_ACUMULACION_DE_INCIDENCIAS |
+BAJA_VOLUNTARIA | HISTORICO
+```
+
+## `FormStatusEnum` — Estado de los formularios F1–F5
+
+```typescript
+PENDIENTE | EN_PROCESO | COMPLETADO | CERRADO
+```
+
+## `IncidenciaTipoEnum` — Tipo de incidencia
+
+```typescript
+FALTA_INJUSTIFICADA | RETARDO | CONDUCTA_INAPROPIADA |
+INCUMPLIMIENTO_TAREA | INASISTENCIA_JUSTIFICADA |
+VISITA_DOMICILIARIA | RETIRO_ANTICIPADO | CONVERSATORIO
+```
+
+## `IncidenciaEstatusEnum` — Estatus de resolución
+
+```typescript
+PENDIENTE | RESUELTA | DERIVO_EN_BAJA
+```
+
+## `TipoDocumentoEnum` — Tipo de oficio/documento PDF
+
+```typescript
+OFICIO_CANALIZACION | OFICIO_INCORPORACION | OFICIO_CONCLUSION |
+INFORME_INCIDENCIAS | OFICIO_BAJA_DEFINITIVA | OFICIO_MODIFICACION_DIAS |
+F3_PLAN_TRABAJO | F4_CEDULA_INICIAL | LISTA_ASISTENCIA | REPORTE_SEMANAL_GUIA
+```
+
+## `UnidadTiempoEnum` — Unidad del módulo (Shared)
+
+```typescript
+HORAS    // Módulo Cívico
+MESES    // Módulo Penal
+```
+
+## `RolUsuario` — Roles del sistema (Shared)
+
+```typescript
+Admin | Psicologo | TrabajoSocial | Guia
+```
+
+## `ActividadCategoriaEnum` — Categorías del catálogo (Shared)
+
+```typescript
+TRABAJO_COMUNITARIO | LIDERAZGO_COMUNITARIO | ATENCION_SUSTANCIAS |
+EDUCACION_PARA_LA_VIDA | PROMOCION_CULTURAL_DEPORTIVA
+```

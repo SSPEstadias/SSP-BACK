@@ -1,15 +1,18 @@
 ---
 title: Autenticación
-description: JWT — Flujo de login y uso del token en la API
+description: JWT — Flujo de inicio de sesión y uso del token en la API
 ---
 
 ## Login
 
-```http
+<CodeGroup>
+```http Petición
 POST /auth/login
 ```
+</CodeGroup>
 
-**Body:**
+**Cuerpo:**
+
 ```json
 {
   "nomUsuario": "admin",
@@ -18,29 +21,62 @@ POST /auth/login
 ```
 
 **Respuesta exitosa `200`:**
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
 
+**Errores posibles:**
+
+| Código | Descripción |
+|--------|-------------|
+| `401`  | Credenciales inválidas |
+| `400`  | Campos faltantes o mal formateados |
+
+---
+
 ## Uso del token
 
-Incluye el token en el header `Authorization` de cada petición protegida:
+Incluye el token en el header `Authorization` de **cada petición protegida**:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
+<Warning>
+Si no incluyes el header `Authorization`, todos los endpoints protegidos retornarán `401 Unauthorized`.
+</Warning>
+
+---
+
 ## Roles del sistema
 
-| Rol | Descripción |
-|---|---|
-| `Admin` | Acceso total. Alta de expedientes, generación de oficios de conclusión. |
-| `Psicologo` | Lectura/escritura de F1 y F5 (datos clínicos). |
-| `TrabajoSocial` | Captura de F2 (estudio socioeconómico). |
-| `Guia` | Registro de bitácora e incidencias (datos logísticos únicamente). |
+Cada usuario tiene un rol asignado que determina a qué endpoints puede acceder.
 
-## Expiración
+| Rol | Descripción | Acceso principal |
+|-----|-------------|-----------------|
+| `Admin` | Acceso total | Alta de expedientes, generación de Oficio de Conclusión, gestión de usuarios |
+| `Psicologo` | Datos clínicos | F1 (Entrevista), F5 (Notas de Evolución), perfil de Salud |
+| `TrabajoSocial` | Datos socioeconómicos | F2 (Estudio Socioeconómico) |
+| `Guia` | Operatividad de campo | Bitácora de asistencias, registro de incidencias |
 
-El token expira en **8 horas** (equivalente a la jornada laboral estándar). Configurable mediante la variable de entorno `JWT_EXPIRES_IN`.
+<Note>
+El rol `Guia` **no tiene acceso** a los formatos F1 ni F5. Esto garantiza la confidencialidad clínica según el principio de Mínimo Privilegio (RNF-002).
+</Note>
+
+---
+
+## Expiración del token
+
+El token expira en **8 horas** — equivalente a la jornada laboral estándar de los operadores.
+
+Esto es configurable mediante la variable de entorno `JWT_EXPIRES_IN` en el archivo `.env`.
+
+```env
+JWT_EXPIRES_IN=8h
+JWT_SECRET=tu_secreto_seguro
+```
+
+Al expirar, el cliente recibirá un `401 Unauthorized` y deberá hacer login nuevamente.

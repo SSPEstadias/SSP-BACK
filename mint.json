@@ -17,14 +17,23 @@
       "url": "https://github.com/SSPEstadias/SSP-BACK"
     }
   ],
-  "tabs": [],
+  "tabs": [
+    {
+      "name": "Guía General",
+      "url": "docs"
+    },
+    {
+      "name": "Referencia API",
+      "url": "api-ref"
+    }
+  ],
   "navigation": [
     {
       "group": "Introducción",
-      "pages": ["docs/overview", "docs/autenticacion"]
+      "pages": ["docs/overview", "docs/instalacion", "docs/autenticacion"]
     },
     {
-      "group": "Núcleo Compartido (SharedModule)",
+      "group": "Núcleo Compartido",
       "pages": [
         "docs/shared/beneficiarios",
         "docs/shared/actividades",
@@ -45,6 +54,14 @@
         "docs/civico/incidencias",
         "docs/civico/oficios",
         "docs/civico/documentos"
+      ]
+    },
+    {
+      "group": "Referencia Rápida",
+      "pages": [
+        "api-ref/endpoints",
+        "api-ref/enums",
+        "api-ref/errores"
       ]
     }
   ],
