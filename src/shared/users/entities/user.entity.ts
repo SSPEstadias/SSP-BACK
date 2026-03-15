@@ -7,10 +7,10 @@ import {
 } from 'typeorm';
 
 export enum RolUsuario {
-  Admin         = 'Admin',
-  Psicologo     = 'Psicologo',
-  TrabajoSocial = 'TrabajoSocial',
-  Guia          = 'Guia',
+  ADMIN = 'admin',
+  PSICOLOGO = 'psicologo',
+  TRABAJO_SOCIAL = 'trabajo_social',
+  GUIA = 'guia',
 }
 
 @Entity('usuarios')
@@ -25,7 +25,7 @@ export class User {
   rol: RolUsuario;
 
   @Index({ unique: true })
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ name: 'nom_usuario', type: 'varchar', length: 100 })
   nomUsuario: string;
 
   @Column({ type: 'text' })
@@ -34,6 +34,6 @@ export class User {
   @Column({ type: 'boolean', default: true })
   estatus: boolean;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn({ name: 'creado_en', type: 'timestamp' })
   creadoEn: Date;
 }

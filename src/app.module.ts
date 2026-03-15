@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from './shared/shared.module';
 import { SeederModule } from './seeds/seeder.module';
- 
+import { PenalModule } from './modules/penal/penal.module';
 
 @Module({
   imports: [
@@ -13,23 +13,23 @@ import { SeederModule } from './seeds/seeder.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host:     config.get<string>('DB_HOST'),
-        port:     Number(config.get<string>('DB_PORT')),
-        username: config.get<string>('DB_USERNAME'), 
-        password: config.get<string>('DB_PASSWORD'), 
+        host: config.get<string>('DB_HOST'),
+        port: Number(config.get<string>('DB_PORT')),
+        username: config.get<string>('DB_USERNAME'),
+        password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
-        synchronize:      false,
+        synchronize: true,
         // dropSchema:        false,
-        migrationsRun:    true,
+        migrationsRun: false,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),
     }),
-    
 
     SharedModule,
-    SeederModule
-    // CivicoModule,   
+    SeederModule,
+    PenalModule,
+    // CivicoModule,
     // PenalModule,     ← compañero
   ],
 })

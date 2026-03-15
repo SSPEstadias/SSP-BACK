@@ -33,14 +33,14 @@ export class SeederService implements OnApplicationBootstrap {
     }
 
     const password = process.env.SEED_ADMIN_PASSWORD ?? 'Admin1234';
-    const hashed   = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, 10);
 
     const admin = this.userRepo.create({
-      nombre:      'Admin Principal',
-      rol:         RolUsuario.Admin,
+      nombre: 'Admin Principal',
+      rol: RolUsuario.ADMIN,
       nomUsuario: 'admin',
-      contrasena:  hashed,
-      estatus:     true,
+      contrasena: hashed,
+      estatus: true,
     });
 
     await this.userRepo.save(admin);
