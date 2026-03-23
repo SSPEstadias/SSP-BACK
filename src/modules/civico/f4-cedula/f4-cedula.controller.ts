@@ -15,8 +15,10 @@ import {
   import { FormStatusEnum } from '../enums/civico.enums';
   import { RolesGuard } from '../../../shared/common/guards/roles.guard';
   import { Roles } from '../../../shared/common/decorators/roles.decorator';
+  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
-
+  @ApiTags('📄 F4 — Cédula')
+@ApiBearerAuth('JWT-Auth')
   @UseGuards(JwtAuthGuard,RolesGuard)
   @Controller('civico/f4')
   export class F4CedulaController {

@@ -9,12 +9,12 @@ import {
     ParseIntPipe,
     UseGuards,
   } from '@nestjs/common';
-  import { F5SeguimientoService } from './f5-seguimiento.sevice';
+  import { F5SeguimientoService } from './f5-seguimiento.service';
   import { CreateSeguimientoPsicologicoDto } from './dto/create-seguimiento-psicologico.dto';
   import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard';
   import { RolesGuard } from '../../../shared/common/guards/roles.guard';
   import { Roles } from '../../../shared/common/decorators/roles.decorator';
-
+  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
   
   @UseGuards(JwtAuthGuard,RolesGuard)

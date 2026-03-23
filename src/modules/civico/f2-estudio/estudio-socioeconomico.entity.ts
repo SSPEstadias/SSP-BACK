@@ -72,9 +72,8 @@ import {
     @Column({ name: 'hubo_violencia_intrafamiliar', type: 'boolean', default: false })
     huboViolenciaIntrafamiliar!: boolean;
   
-    @Column({ name: 'diagnostico_social', type: 'varchar', length: 50, nullable: true })
+    @Column({ name: 'diagnostico_social', type: 'text', nullable: true })
     diagnosticoSocial!: string | null;
-  
     // ── Bloques JSONB por sección del F2 físico ───────────────────────
     @Column({ name: 'generales_f2', type: 'jsonb', nullable: true })
     generalesF2!: object | null;

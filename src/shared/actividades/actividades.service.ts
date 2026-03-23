@@ -69,7 +69,6 @@ import {
   
     // Actualizar actividad
     async update(id: number, dto: Partial<CreateActividadDto>): Promise<Actividad> {
-  
       const actividad = await this.findOne(id);
   
       // si viene un nombre nuevo, validar que no exista otra actividad con ese nombre

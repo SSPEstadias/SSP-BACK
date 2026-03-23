@@ -5,7 +5,10 @@ import {
   import { BeneficiariosService } from './beneficiarios.service';
   import { CreateBeneficiarioDto } from './dto/create-beneficiario.dto';
   import { UpdateBeneficiarioDto } from './dto/update-beneficiario.dto';
-  
+  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+
+  @ApiTags('📋 Beneficiarios')
+@ApiBearerAuth('JWT-Auth')
   @Controller('beneficiarios')
   export class BeneficiariosController {
   

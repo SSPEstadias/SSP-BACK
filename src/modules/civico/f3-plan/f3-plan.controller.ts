@@ -15,8 +15,11 @@ import {
   import { FormStatusEnum } from '../enums/civico.enums';
   import { RolesGuard } from '../../../shared/common/guards/roles.guard';
   import { Roles } from '../../../shared/common/decorators/roles.decorator';
+  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
 
+  @ApiTags('📌 F3 — Plan')
+@ApiBearerAuth('JWT-Auth')
   @UseGuards(JwtAuthGuard,RolesGuard)
   @Controller('civico/f3')
   export class F3PlanController {

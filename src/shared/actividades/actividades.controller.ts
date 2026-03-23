@@ -4,7 +4,11 @@ import {
   } from '@nestjs/common';
   import { ActividadesService } from './actividades.service';
   import { CreateActividadDto } from './dto/create-actividad.dto';
-  
+  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { UpdateActividadDto } from './dto/update-actividad.dto';
+
+  @ApiTags('🏃 Actividades')
+@ApiBearerAuth('JWT-Auth')
   @Controller('actividades')
   export class ActividadesController {
   
@@ -47,7 +51,7 @@ import {
     @Patch(':id')
     update(
       @Param('id', ParseIntPipe) id: number,
-      @Body(ValidationPipe) dto: Partial<CreateActividadDto>,
+      @Body(ValidationPipe) dto: UpdateActividadDto,
     ) {
       return this.actividadesService.update(id, dto);
     }

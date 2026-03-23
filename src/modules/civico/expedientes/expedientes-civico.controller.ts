@@ -15,6 +15,9 @@ import { Roles } from '../../../shared/common/decorators/roles.decorator';
 import { ExpedientesCivicoService } from './expedientes-civico.service';
 import { CreateExpedienteCivicoDto } from './dto/create-expediente-civico.dto';
 import { UpdateExpedienteCivicoDto } from './dto/update-expediente-civico.dto';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+@ApiTags('📁 Expedientes Cívico')   
+@ApiBearerAuth('JWT-Auth')   
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('civico/expedientes')
@@ -85,4 +88,5 @@ export class ExpedientesCivicoController {
   deactivate(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.deactivate(id);
   }
+  
 }

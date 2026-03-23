@@ -14,7 +14,10 @@ import {
   import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard';
   import { RolesGuard } from '../../../shared/common/guards/roles.guard';
   import { Roles } from '../../../shared/common/decorators/roles.decorator';
+  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
   
+  @ApiTags('⚠️ Incidencias')
+@ApiBearerAuth('JWT-Auth')
   @UseGuards(JwtAuthGuard,RolesGuard)
   @Controller('civico/incidencias')
   export class IncidenciasController {
