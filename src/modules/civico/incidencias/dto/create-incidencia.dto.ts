@@ -24,8 +24,8 @@ import {
     tipo!: IncidenciaTipoEnum;
   
     @IsDateString()
-    @IsOptional()
-    fechaIncidencia?: string;
+    @IsNotEmpty()
+    fechaIncidencia!: string;
   
   
     @IsString()
