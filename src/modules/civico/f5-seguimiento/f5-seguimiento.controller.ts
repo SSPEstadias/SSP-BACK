@@ -14,9 +14,12 @@ import {
   import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard';
   import { RolesGuard } from '../../../shared/common/guards/roles.guard';
   import { Roles } from '../../../shared/common/decorators/roles.decorator';
-  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+  import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';import { UpdateSeguimientoPsicologicoDto } from './dto/update-seguimiento-psicologico.dto';
+``
 
-  
+  @ApiTags('🧠 F5 — Seguimiento')
+  @ApiBearerAuth('JWT-Auth')
+
   @UseGuards(JwtAuthGuard,RolesGuard)
   @Controller('civico/f5')
   export class F5SeguimientoController {
@@ -62,11 +65,29 @@ import {
   
     // PATCH /civico/f5/:id
     @Patch(':id')
-    @Roles('Admin', 'Psicologo')
-    update(
-      @Param('id', ParseUUIDPipe) id: string,
-      @Body() dto: Partial<CreateSeguimientoPsicologicoDto>,
-    ) {
-      return this.service.update(id, dto);
-    }
+  @Roles('Admin', 'Psicologo')
+  @ApiBody({
+    type: UpdateSeguimientoPsicologicoDto,
+    examples: {
+      'Actualizar seguimiento clínico': {
+        value: {
+          planTerapeutico: 'Sesión 2: Profundizar en técnicas de regulación emocional',
+          avancePercibido: 'Moderado',
+          observaciones: 'Mejora notable en la expresión de emociones',
+        },
+      },
+      'Registrar intervención': {
+        value: {
+          descripcionIntervencion: 'Se utilizó técnica de reestructuración cognitiva',
+          estrategiaAplicada: 'TCC — Reestructuración de creencias irracionales',
+        },
+      },
+    },
+  })
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateSeguimientoPsicologicoDto,
+  ) {
+    return this.service.update(id, dto);
   }
+}

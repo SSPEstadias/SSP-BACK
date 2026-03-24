@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard';
 import { FormStatusEnum } from '../enums/civico.enums';
 import { RolesGuard } from '../../../shared/common/guards/roles.guard';
 import { Roles } from '../../../shared/common/decorators/roles.decorator';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('📝 F1 — Entrevista')
 @ApiBearerAuth('JWT-Auth')
@@ -58,6 +58,18 @@ export class F1EntrevistaController {
   // PATCH /civico/f1/:id/estatus
   @Patch(':id/estatus')
   @Roles('Admin', 'Psicologo')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        estatus: {
+          type: 'string',
+          enum: ['PENDIENTE', 'EN_PROCESO', 'COMPLETADO', 'CERRADO'],
+          example: 'COMPLETADO',
+        },
+      },
+    },
+  })
   cambiarEstatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('estatus') estatus: FormStatusEnum,
@@ -65,3 +77,4 @@ export class F1EntrevistaController {
     return this.service.cambiarEstatus(id, estatus);
   }
 }
+

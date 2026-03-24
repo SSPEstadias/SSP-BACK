@@ -16,6 +16,7 @@ export enum CivicStatusEnum {
     COMPLETADO = 'COMPLETADO',
     CERRADO    = 'CERRADO',
   }
+
   
   export enum IncidenciaTipoEnum {
     FALTA_INJUSTIFICADA       = 'FALTA_INJUSTIFICADA',
@@ -33,6 +34,13 @@ export enum CivicStatusEnum {
     RESUELTA       = 'RESUELTA',
     DERIVO_EN_BAJA = 'DERIVO_EN_BAJA',
   }
+  export enum AsistenciaEnum {
+    PRESENTE           = 'PRESENTE',
+    FALTA_JUSTIFICADA  = 'FALTA_JUSTIFICADA',
+    FALTA_INJUSTIFICADA = 'FALTA_INJUSTIFICADA',
+    PRESENTE_PARCIAL   = 'PRESENTE_PARCIAL',
+  }
+  
   
   export enum TipoDocumentoEnum {
     OFICIO_CANALIZACION       = 'OFICIO_CANALIZACION',
@@ -46,3 +54,4 @@ export enum CivicStatusEnum {
     LISTA_ASISTENCIA          = 'LISTA_ASISTENCIA',
     REPORTE_SEMANAL_GUIA      = 'REPORTE_SEMANAL_GUIA',
   }
+  

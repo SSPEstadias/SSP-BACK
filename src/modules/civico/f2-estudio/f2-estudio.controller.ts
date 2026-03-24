@@ -15,7 +15,7 @@ import {
   import { FormStatusEnum } from '../enums/civico.enums';
   import { RolesGuard } from '../../../shared/common/guards/roles.guard';
   import { Roles } from '../../../shared/common/decorators/roles.decorator';
-  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+  import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 
 @ApiTags('🏠 F2 — Estudio')
@@ -57,6 +57,23 @@ import {
     // PATCH /civico/f2/:id
     @Patch(':id')
     @Roles('Admin', 'TrabajoSocial')
+    @ApiBody({
+      type: UpdateEstudioSocioeconomicoDto,
+      examples: {
+        'Actualizar datos socioeconómicos': {
+          value: {
+            nivelSocioeconomico: 'MEDIO',
+            grupoFamiliar: 'FUNCIONAL',
+            diagnosticoSocial: 'Familia con recursos económicos limitados pero funcional',
+          },
+        },
+        'Actualizar estatus': {
+          value: {
+            estatusF2: 'EN_PROCESO',
+          },
+        },
+      },
+    })
     update(
       @Param('id', ParseUUIDPipe) id: string,
       @Body() dto: UpdateEstudioSocioeconomicoDto,
@@ -64,13 +81,27 @@ import {
       return this.service.update(id, dto);
     }
   
+  
     // PATCH /civico/f2/:id/estatus
     @Patch(':id/estatus')
     @Roles('Admin', 'TrabajoSocial')
+    @ApiBody({
+      schema: {
+        type: 'object',
+        properties: {
+          estatusF2: {
+            type: 'string',
+            enum: ['PENDIENTE', 'EN_PROCESO', 'COMPLETADO', 'CERRADO'],
+            example: 'COMPLETADO',
+          },
+        },
+        required: ['estatusF2'],
+      },
+    })
     cambiarEstatus(
       @Param('id', ParseUUIDPipe) id: string,
-      @Body('estatus') estatus: FormStatusEnum,
+      @Body('estatusF2') estatusF2: FormStatusEnum,
     ) {
-      return this.service.cambiarEstatus(id, estatus);
+      return this.service.cambiarEstatus(id, estatusF2);
     }
   }

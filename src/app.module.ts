@@ -21,9 +21,9 @@ import { VoluntarioModule } from './modules/voluntarios/voluntario.module';
         password: config.get<string>('DB_PASSWORD'), 
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
-        synchronize:     false,
+        synchronize:     true,
         
-        // dropSchema:        false,
+        // dropSchema:      true  ,
         migrationsRun:    true,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),

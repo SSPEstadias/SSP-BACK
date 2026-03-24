@@ -15,7 +15,7 @@ import {
   import { FormStatusEnum } from '../enums/civico.enums';
   import { RolesGuard } from '../../../shared/common/guards/roles.guard';
   import { Roles } from '../../../shared/common/decorators/roles.decorator';
-  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+  import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
   @ApiTags('📄 F4 — Cédula')
 @ApiBearerAuth('JWT-Auth')
@@ -57,11 +57,24 @@ import {
   
     // PATCH /civico/f4/:id/estatus
     @Patch(':id/estatus')
-    @Roles('Admin')
-    cambiarEstatus(
-      @Param('id', ParseUUIDPipe) id: string,
-      @Body('estatus') estatus: FormStatusEnum,
-    ) {
-      return this.service.cambiarEstatus(id, estatus);
-    }
+  @Roles('Admin')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        estatusF4: {
+          type: 'string',
+          enum: ['PENDIENTE', 'EN_PROCESO', 'COMPLETADO', 'CERRADO'],
+          example: 'COMPLETADO',
+        },
+      },
+      required: ['estatus'],
+    },
+  })
+  cambiarEstatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('estatusF4') estatusF4: FormStatusEnum,
+  ) {
+    return this.service.cambiarEstatus(id, estatusF4);
   }
+}
