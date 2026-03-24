@@ -7,7 +7,14 @@ import { Beneficiario } from '../../shared/beneficiarios/beneficiario.entity';
 import { ValoracionPsicologicaModule } from './valoracion-psicologica/valoracion-psicologica.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PenalExpediente, Beneficiario]), ValoracionPsicologicaModule],
+  imports: [
+    TypeOrmModule.forFeature([
+      PenalExpediente,
+      Beneficiario,
+      ValoracionPsicologicaModule,
+    ]),
+    ValoracionPsicologicaModule,
+  ],
   controllers: [PenalController],
   providers: [PenalService],
 })
