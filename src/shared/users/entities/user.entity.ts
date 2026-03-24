@@ -25,7 +25,7 @@ export class User {
   rol: RolUsuario;
 
   @Index({ unique: true })
-  @Column({ name: 'nom_usuario', type: 'varchar', length: 100 })
+  @Column({ name: 'nomUsuario', type: 'varchar', length: 100 })
   nomUsuario: string;
 
   @Column({ type: 'text' })
@@ -34,6 +34,6 @@ export class User {
   @Column({ type: 'boolean', default: true })
   estatus: boolean;
 
-  @CreateDateColumn({ name: 'creado_en', type: 'timestamp' })
+  @CreateDateColumn({ name: 'creadoEn', type: 'timestamp' })
   creadoEn: Date;
 }

@@ -20,7 +20,7 @@ import { F2EstudioService }          from './f2-estudio/f2-estudio.service';
 import { F3PlanService }             from './f3-plan/f3-plan.service';
 import { IncidenciasService }        from './incidencias/incidencias.service';
 import { F4CedulaService }           from './f4-cedula/f4-cedula.service';
-import { F5SeguimientoService }      from './f5-seguimiento/f5-seguimiento.sevice';
+import { F5SeguimientoService }      from './f5-seguimiento/f5-seguimiento.service';
 import { OficiosService }            from './oficios/oficios.service';
 
 // ── Controladores ─────────────────────────────────────────────────────
