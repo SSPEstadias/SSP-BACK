@@ -21,6 +21,26 @@ import { BitacoraCivica } from '../bitacora/bitacora-civica.entity';
 import { User } from '../../../shared/users/entities/user.entity';
 import { AsistenciaEnum } from '../enums/civico.enums';
 
+/**
+ * Resuelve el directorio raíz del módulo de documentos.
+ * Prueba primero `__dirname` (dist/ tras nest build) y luego la ruta fuente
+ * (src/) como respaldo, de modo que la aplicación funcione con cualquier
+ * variante de inicio (nest start, nest start:dev, start:prod).
+ */
+function resolveDocumentosRoot(): string {
+  // En producción __dirname apunta a dist/modules/civico/documentos
+  if (fs.existsSync(path.join(__dirname, 'templates'))) {
+    return __dirname;
+  }
+  // Respaldo: busca desde la raíz del proyecto hacia src/
+  const srcRoot = path.join(process.cwd(), 'src', 'modules', 'civico', 'documentos');
+  if (fs.existsSync(path.join(srcRoot, 'templates'))) {
+    return srcRoot;
+  }
+  // Último recurso: usar __dirname (lanzará el error descriptivo si no existe)
+  return __dirname;
+}
+
 /** Convierte una ruta de archivo local a data URI base64. */
 function toDataUri(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
@@ -84,7 +104,8 @@ export class DocumentosService implements OnModuleInit {
 
   // ── Inicialización: logos + partials + helpers ──────────────────────
   onModuleInit(): void {
-    const assetsDir = path.join(__dirname, 'assets');
+    const docRoot = resolveDocumentosRoot();
+    const assetsDir = path.join(docRoot, 'assets');
 
     // Cargar logos — los nombres de archivo se mantienen tal como están en el repo.
     // Fallback a string vacío si el archivo no existe en el entorno de despliegue.
@@ -101,7 +122,7 @@ export class DocumentosService implements OnModuleInit {
     this.marcaAgua = fs.existsSync(marcaPath) ? toDataUri(marcaPath) : '';
 
     // Registrar partials HBS
-    const partialsDir = path.join(__dirname, 'partials');
+    const partialsDir = path.join(docRoot, 'partials');
     if (fs.existsSync(partialsDir)) {
       for (const file of fs.readdirSync(partialsDir)) {
         if (file.endsWith('.hbs')) {
@@ -179,7 +200,7 @@ export class DocumentosService implements OnModuleInit {
     datos: Record<string, unknown>,
   ): Promise<Buffer> {
     const rutaTemplate = path.join(
-      __dirname,
+      resolveDocumentosRoot(),
       'templates',
       `${tipoDocumento}.hbs`,
     );
