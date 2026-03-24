@@ -87,14 +87,14 @@ export class BitacoraCivicaService {
         dto.asistencia === AsistenciaEnum.PRESENTE_PARCIAL) &&
       dto.horasCubiertas > 0
     ) {
-      expediente.avanceHoras =
-        (expediente.avanceHoras || 0) + dto.horasCubiertas;
+      // ✅ Parsear a número: TypeORM devuelve columnas DECIMAL como string desde PostgreSQL
+      const avanceActual = parseFloat(String(expediente.avanceHoras ?? 0));
+      const horasNuevas = Number(dto.horasCubiertas);
+      const nuevoAvance = avanceActual + horasNuevas;
+      expediente.avanceHoras = nuevoAvance;
 
       // Verificar si llegó a las horas requeridas
-      if (
-        expediente.horasSentencia &&
-        expediente.avanceHoras >= expediente.horasSentencia
-      ) {
+      if (expediente.horasSentencia && nuevoAvance >= Number(expediente.horasSentencia)) {
         expediente.estatusProceso = CivicStatusEnum.GRADUADO;
       }
 
