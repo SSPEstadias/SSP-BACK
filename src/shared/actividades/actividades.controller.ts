@@ -4,7 +4,12 @@ import {
   } from '@nestjs/common';
   import { ActividadesService } from './actividades.service';
   import { CreateActividadDto } from './dto/create-actividad.dto';
-  
+  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { UpdateActividadDto } from './dto/update-actividad.dto';
+import { Roles } from '../common/decorators/roles.decorator';
+
+  @ApiTags('🏃 Actividades')
+@ApiBearerAuth('JWT-Auth')
   @Controller('actividades')
   export class ActividadesController {
   
@@ -45,21 +50,24 @@ import {
     // ── PATCH /actividades/:id ─────────────────────────────────────────
     // Actualizar caulquier cmapo
     @Patch(':id')
+    @Roles('Admin')
     update(
       @Param('id', ParseIntPipe) id: number,
-      @Body(ValidationPipe) dto: Partial<CreateActividadDto>,
+      @Body(ValidationPipe) dto: UpdateActividadDto,
     ) {
       return this.actividadesService.update(id, dto);
     }
   
     // ── PATCH /actividades/:id/desactivar ─────────────────────────────
     @Patch(':id/desactivar')
+    @Roles('Admin') 
     desactivar(@Param('id', ParseIntPipe) id: number) {
       return this.actividadesService.desactivar(id);
     }
   
     // ── PATCH /actividades/:id/reactivar ──────────────────────────────
     @Patch(':id/reactivar')
+    @Roles('Admin') 
     reactivar(@Param('id', ParseIntPipe) id: number) {
       return this.actividadesService.reactivar(id);
     }

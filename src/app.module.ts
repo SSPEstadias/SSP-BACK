@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from './shared/shared.module';
 import { SeederModule } from './seeds/seeder.module';
 import { PenalModule } from './modules/penal/penal.module';
+import { CivicoModule } from './modules/civico/civico.module';
+import { VoluntarioModule } from './modules/voluntarios/voluntario.module';
 
 @Module({
   imports: [
@@ -19,18 +21,20 @@ import { PenalModule } from './modules/penal/penal.module';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize:     false,
+        
         // dropSchema:        false,
-        migrationsRun: false,
+        migrationsRun: true,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),
     }),
 
+
     SharedModule,
     SeederModule,
-    PenalModule,
-    // CivicoModule,
-    // PenalModule,     ← compañero
+    CivicoModule,
+    VoluntarioModule,
+    PenalModule,    
   ],
 })
 export class AppModule {}

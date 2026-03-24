@@ -1,16 +1,16 @@
 {
   "info": {
-    "_postman_id": "5c073fa6-6cf2-447b-83dc-0097f1afe25e",
+    "_postman_id": "5937bbd2-9a04-45de-aabe-e842ffe7ecba",
     "name": "SSP-BACKEND",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Actividades",
+      "name": "🔐 Auth",
       "item": [
         {
-          "name": "Crear Actividad",
-          "id": "f20852fb-60df-42e4-8ae0-14c731072173",
+          "name": "Login",
+          "id": "9bfc0967-834c-4d9f-95c9-d3fb98435f69",
           "request": {
             "method": "POST",
             "header": [
@@ -21,322 +21,2863 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Nombre de la actividad\",\n  \"descripcion\": \"Descripción opcional\",\n  \"objetivo\": \"Objetivo opcional\",\n  \"categoria\": \"TRABAJO_COMUNITARIO\"\n}"
+              "raw": "{\n  \"nomUsuario\": \"\",\n  \"contrasena\": \"\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/actividades",
+              "raw": "{{baseUrl}}/auth/login",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "actividades"
-              ]
-            },
-            "description": "Crea una nueva actividad. Valores de categoria: TRABAJO_COMUNITARIO, LIDERAZGO_COMUNITARIO, ATENCION_SUSTANCIAS, EDUCACION_PARA_LA_VIDA, PROMOCION_CULTURAL_DEPORTIVA"
-          },
-          "response": []
-        },
-        {
-          "name": "Obtener Actividades Activas",
-          "id": "ccade7d6-084d-4dc6-90c2-8419f294c50f",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/actividades",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "actividades"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Obtener Todas las Actividades",
-          "id": "4c4c6cf6-027c-4df3-b87a-db6be86f2748",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/actividades/todas",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "actividades",
-                "todas"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Filtrar Actividades por Categoría",
-          "id": "04f31a00-f1fc-4cc0-a561-2a93d049bfce",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/actividades/categoria?cat=TRABAJO_COMUNITARIO",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "actividades",
-                "categoria"
-              ],
-              "query": [
-                {
-                  "key": "cat",
-                  "value": "TRABAJO_COMUNITARIO"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Obtener Actividad por ID",
-          "id": "1b638990-5cc4-41c2-bebc-d552d43642d3",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/actividades/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "actividades",
-                "1"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Actualizar Actividad",
-          "id": "e9848d3c-1c70-4c56-881a-f6ef3cfc0480",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Nombre actualizado\",\n  \"descripcion\": \"Descripción actualizada\",\n  \"objetivo\": \"Objetivo actualizado\",\n  \"categoria\": \"LIDERAZGO_COMUNITARIO\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/actividades/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "actividades",
-                "1"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Desactivar Actividad",
-          "id": "4faed8e5-0b98-43c7-b234-7ba8a50979f5",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/actividades/1/desactivar",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "actividades",
-                "1",
-                "desactivar"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Reactivar Actividad",
-          "id": "4a976f2e-95ee-4607-91a3-0bf8307310f3",
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/actividades/1/reactivar",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "actividades",
-                "1",
-                "reactivar"
+                "auth",
+                "login"
               ]
             }
           },
           "response": []
         }
       ],
-      "id": "fb30ae09-ee16-442a-ab97-d6f4cb71c7cf"
+      "id": "eb16d5ea-87e1-4790-8dba-4f6cd907ab68"
     },
     {
-      "name": "Beneficiarios",
+      "name": "👤 Users",
       "item": [
         {
-          "name": "Crear Beneficiario",
-          "id": "5495e61e-cc88-47f5-8115-cec02a1fd197",
+          "name": "Crear Usuario",
+          "id": "16a02ec5-c629-4012-81cb-59b8691975cf",
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Nombre del beneficiario\",\n  \"tiempoAsignado\": 10,\n  \"unidadTiempo\": \"HORAS\"\n}"
+              "raw": "{}"
             },
             "url": {
-              "raw": "{{baseUrl}}/beneficiarios",
+              "raw": "{{baseUrl}}/users",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "beneficiarios"
+                "users"
               ]
             },
-            "description": "Crea un nuevo beneficiario. Valores de unidadTiempo: HORAS, MESES"
+            "description": "Roles: Admin"
           },
           "response": []
         },
         {
-          "name": "Obtener Todos los Beneficiarios",
-          "id": "85abd1f9-2d36-4209-a8d3-a92e7b2fef11",
+          "name": "Listar Usuarios",
+          "id": "29e884cf-9c88-4098-9573-2c85a7e21c21",
           "request": {
             "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/beneficiarios",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "beneficiarios"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Filtrar Beneficiarios por Unidad",
-          "id": "1552ac8f-5faa-427d-b24c-39a107a29a16",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/beneficiarios/filtrar?unidad=HORAS",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "beneficiarios",
-                "filtrar"
-              ],
-              "query": [
-                {
-                  "key": "unidad",
-                  "value": "HORAS"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Obtener Beneficiario por ID",
-          "id": "d0dfbb99-3a46-4b26-b51d-2c0e9940729b",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/beneficiarios/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "beneficiarios",
-                "1"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Actualizar Beneficiario",
-          "id": "4a021bbe-8bf7-4e36-bc0e-005982a2f677",
-          "request": {
-            "method": "PATCH",
             "header": [
               {
-                "key": "Content-Type",
-                "value": "application/json"
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nombre\": \"Nombre actualizado\",\n  \"tiempoAsignado\": 20,\n  \"unidadTiempo\": \"MESES\"\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/beneficiarios/1",
+              "raw": "{{baseUrl}}/users",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
-                "beneficiarios",
-                "1"
+                "users"
               ]
-            }
+            },
+            "description": "Roles: Admin"
           },
           "response": []
+        }
+      ],
+      "id": "0ca71117-29b1-4375-8ca3-22eb80b30f23"
+    },
+    {
+      "name": "📋 Shared",
+      "item": [
+        {
+          "name": "Beneficiarios",
+          "item": [
+            {
+              "name": "Crear Beneficiario",
+              "id": "503c3cc2-12a3-4472-b7c2-99069a052f29",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/beneficiarios",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "beneficiarios"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar Beneficiarios",
+              "id": "91dae7d5-3e72-4724-9992-3ff1a1b4fbb6",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/beneficiarios",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "beneficiarios"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Filtrar por Unidad",
+              "id": "a29604b1-2f78-410d-b10a-1b2a374619ea",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/beneficiarios/filtrar?unidad=",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "beneficiarios",
+                    "filtrar"
+                  ],
+                  "query": [
+                    {
+                      "key": "unidad",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Beneficiario",
+              "id": "7f10af17-244e-4393-ae9f-206e4216aca2",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/beneficiarios/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "beneficiarios",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Beneficiario",
+              "id": "b2018628-7175-4960-a945-5ba25ab74a67",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/beneficiarios/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "beneficiarios",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Eliminar Beneficiario",
+              "id": "ea0f8e66-39f9-4736-86a0-75df82cf23c8",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/beneficiarios/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "beneficiarios",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "245623d6-1110-4b49-8e95-3b7efd6e9797"
         },
         {
-          "name": "Eliminar Beneficiario",
-          "id": "32d12d4f-c8f3-48dd-923c-c84c71f22207",
+          "name": "Salud",
+          "item": [
+            {
+              "name": "Crear Perfil Salud",
+              "id": "c9825ba9-9d96-49d9-aae9-38a85ad75243",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/salud",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "salud"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar Perfiles Salud",
+              "id": "55ac6283-e341-4b04-9c72-17c1e459b311",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/salud",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "salud"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Filtrar por Aptitud",
+              "id": "e7d86515-af5e-43e3-ac90-2f903c1ecd1e",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/salud/aptitud?esApto=true",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "salud",
+                    "aptitud"
+                  ],
+                  "query": [
+                    {
+                      "key": "esApto",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Salud por Beneficiario",
+              "id": "c9061406-1e23-48b0-a2a7-932d3310a848",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/salud/beneficiario/:beneficiarioId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "salud",
+                    "beneficiario",
+                    ":beneficiarioId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "beneficiarioId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Perfil Salud",
+              "id": "e5b6ef92-6a10-4441-bba2-8d7919e121f3",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/salud/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "salud",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Salud",
+              "id": "71cc4490-88f5-4dd5-af3b-af78afda3d08",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/salud/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "salud",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Salud por Beneficiario",
+              "id": "dcebfc94-4613-45c2-83ef-8eafe033bb9c",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/salud/beneficiario/:beneficiarioId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "salud",
+                    "beneficiario",
+                    ":beneficiarioId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "beneficiarioId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Eliminar Perfil Salud",
+              "id": "5d47f51f-3862-4a8d-b2bc-53d938acad11",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/salud/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "salud",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "9c649005-8a56-4af2-a2b2-896a6582bdd6"
+        },
+        {
+          "name": "Actividades (Shared)",
+          "item": [
+            {
+              "name": "Crear Actividad",
+              "id": "17e9d5f8-db48-4b0f-b35c-8cc63e488f09",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/actividades",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "actividades"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar Actividades Activas",
+              "id": "4a4ec59e-8ef1-46a3-94f5-3a2502c9e722",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/actividades",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "actividades"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar Todas las Actividades",
+              "id": "cd79d039-74d8-4624-a8b5-8b8fe343c859",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/actividades/todas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "actividades",
+                    "todas"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Filtrar por Categoría",
+              "id": "f2aa8af7-6749-4171-870d-2243ee96dcf3",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/actividades/categoria?cat=",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "actividades",
+                    "categoria"
+                  ],
+                  "query": [
+                    {
+                      "key": "cat",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Actividad",
+              "id": "73f1cf87-e20d-4a73-8d4d-22a9d915e40b",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/actividades/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "actividades",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Actividad",
+              "id": "a2c6f6f7-b7cc-4e48-aea4-f1cced952df9",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/actividades/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "actividades",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Desactivar Actividad",
+              "id": "4b4af875-1f19-4982-af53-4dc48d7b4e93",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/actividades/:id/desactivar",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "actividades",
+                    ":id",
+                    "desactivar"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Reactivar Actividad",
+              "id": "7706d531-4090-4b14-986e-92a806ddee9b",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/actividades/:id/reactivar",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "actividades",
+                    ":id",
+                    "reactivar"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "e88d5f5c-dd79-4d81-9c1c-9e4eeb7082bb"
+        }
+      ],
+      "id": "e5c29306-480a-487b-845b-5d39951e3c19"
+    },
+    {
+      "name": "🏛️ Módulo Cívico",
+      "item": [
+        {
+          "name": "Expedientes",
+          "item": [
+            {
+              "name": "Crear Expediente",
+              "id": "4ddf4f99-c2ca-443c-9715-9438f5b5ae36",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/expedientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "expedientes"
+                  ]
+                },
+                "description": "Roles: Admin"
+              },
+              "response": []
+            },
+            {
+              "name": "Listar Carátulas",
+              "id": "d163f978-f870-41ae-a3b6-a75aa8df18f8",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/expedientes/caratulas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "expedientes",
+                    "caratulas"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar Expedientes",
+              "id": "79a4edf4-8233-4c88-9cf0-1568d57631b5",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/expedientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "expedientes"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Buscar por CURP",
+              "id": "4c13646e-7a44-4ca3-a338-1b2441c75f2f",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/expedientes/curp/:curp",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "expedientes",
+                    "curp",
+                    ":curp"
+                  ],
+                  "variable": [
+                    {
+                      "key": "curp"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Carátula de Expediente",
+              "id": "5ad444c7-4ef5-40dd-bef5-3b184386778d",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/expedientes/:id/caratula",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "expedientes",
+                    ":id",
+                    "caratula"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Expediente",
+              "id": "5b8ddd25-01e3-43db-83c0-1878272e84c7",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/expedientes/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "expedientes",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Expediente",
+              "id": "9656fc5e-8543-44b5-a15c-675fd39f89dd",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/expedientes/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "expedientes",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin"
+              },
+              "response": []
+            },
+            {
+              "name": "Desactivar Expediente",
+              "id": "8b06065e-9082-4065-a1e3-f2cfcd8fbf18",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/expedientes/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "expedientes",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin"
+              },
+              "response": []
+            }
+          ],
+          "id": "642c66d0-5792-4cb7-ba30-29da341df584"
+        },
+        {
+          "name": "Bitácora",
+          "item": [
+            {
+              "name": "Crear Entrada Bitácora",
+              "id": "ac83e63e-d5c7-4768-ab49-8ebd82d22529",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/bitacora",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "bitacora"
+                  ]
+                },
+                "description": "Roles: Admin, Guia"
+              },
+              "response": []
+            },
+            {
+              "name": "Bitácora por Expediente",
+              "id": "576ae53a-203a-4e1b-9a94-181959540d3e",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/bitacora/expediente/:expedienteId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "bitacora",
+                    "expediente",
+                    ":expedienteId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Horas Acumuladas",
+              "id": "e8b33933-07bd-46f0-a3a7-779eb01d9c0a",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/bitacora/expediente/:expedienteId/horas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "bitacora",
+                    "expediente",
+                    ":expedienteId",
+                    "horas"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Entrada Bitácora",
+              "id": "e0908110-5fea-4842-9833-43f9dd04b763",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/bitacora/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "bitacora",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Eliminar Entrada Bitácora",
+              "id": "d0c5b05d-9bec-4280-9648-43b9e7f0b95a",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/bitacora/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "bitacora",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin"
+              },
+              "response": []
+            }
+          ],
+          "id": "57e4f0fd-3ddb-4aa7-a8fd-5698d1cdb2d7"
+        },
+        {
+          "name": "Incidencias",
+          "item": [
+            {
+              "name": "Crear Incidencia",
+              "id": "65259054-aaae-499c-b07b-00fa60957b56",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/incidencias",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "incidencias"
+                  ]
+                },
+                "description": "Roles: Admin, Guia"
+              },
+              "response": []
+            },
+            {
+              "name": "Incidencias por Expediente",
+              "id": "384ff3ab-4150-4bf9-a8aa-a0f269d15dde",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/incidencias/expediente/:expedienteId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "incidencias",
+                    "expediente",
+                    ":expedienteId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Contar Strikes",
+              "id": "058dc903-e3bb-479e-ba0a-d4dfa54369cf",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/incidencias/expediente/:expedienteId/strikes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "incidencias",
+                    "expediente",
+                    ":expedienteId",
+                    "strikes"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Incidencia",
+              "id": "b9232646-8ab4-4c8d-9dbf-1514aa74bbf6",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/incidencias/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "incidencias",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Incidencia",
+              "id": "0d924277-6955-4d98-ae7c-08be63b587fd",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/incidencias/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "incidencias",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin"
+              },
+              "response": []
+            },
+            {
+              "name": "Resolver Incidencia",
+              "id": "5d53ee43-66b3-49cc-8c63-afb0f8c8c23a",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"numOficio\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/incidencias/:id/resolver",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "incidencias",
+                    ":id",
+                    "resolver"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin, Guia"
+              },
+              "response": []
+            }
+          ],
+          "id": "fabf30b9-9059-44ef-90c5-6f1bbd4f3cf6"
+        },
+        {
+          "name": "Oficios",
+          "item": [
+            {
+              "name": "Crear Oficio",
+              "id": "a51d363e-1558-4351-b548-dee27b8222fa",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/oficios",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "oficios"
+                  ]
+                },
+                "description": "Roles: Admin, Guia"
+              },
+              "response": []
+            },
+            {
+              "name": "Oficios por Expediente",
+              "id": "f32663e6-0ab7-4f48-8bad-7a2f93a1aa45",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/oficios/expediente/:expedienteId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "oficios",
+                    "expediente",
+                    ":expedienteId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Oficios por Tipo",
+              "id": "181985c2-2a43-4ab0-91a7-2d3db29d2e96",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/oficios/expediente/:expedienteId/tipo?tipo=",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "oficios",
+                    "expediente",
+                    ":expedienteId",
+                    "tipo"
+                  ],
+                  "query": [
+                    {
+                      "key": "tipo",
+                      "value": ""
+                    }
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Buscar por Folio",
+              "id": "d04c15bd-34a1-4827-a525-6fb8d4b94d20",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/oficios/folio/:folio",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "oficios",
+                    "folio",
+                    ":folio"
+                  ],
+                  "variable": [
+                    {
+                      "key": "folio"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Modificaciones de Oficio",
+              "id": "b394cb3a-8dae-426f-921e-6cb27f1d6e1d",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/oficios/:id/modificaciones",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "oficios",
+                    ":id",
+                    "modificaciones"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Oficio",
+              "id": "ae679341-221f-413b-b0e8-5c34c757205c",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/oficios/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "oficios",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "156c9951-2ac9-4f7f-93e9-8cb3ed0bd098"
+        },
+        {
+          "name": "Documentos",
+          "item": [],
+          "id": "a6049125-db40-4a26-b6f7-ee0e5a94d79e",
+          "description": "No endpoints implemented yet — placeholder folder"
+        },
+        {
+          "name": "F1 - Entrevista Clínica",
+          "item": [
+            {
+              "name": "Crear Entrevista",
+              "id": "1051bad7-e744-48dc-9a7b-8d8b177c2c5e",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f1",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f1"
+                  ]
+                },
+                "description": "Roles: Admin, Psicologo"
+              },
+              "response": []
+            },
+            {
+              "name": "Entrevista por Expediente",
+              "id": "06c13c78-68c6-4d5e-8bb9-97a1e149ce79",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f1/expediente/:expedienteId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f1",
+                    "expediente",
+                    ":expedienteId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Entrevista",
+              "id": "9dc66514-2dcd-44fe-ac34-020a089e42ca",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f1/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f1",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Entrevista",
+              "id": "db25ac6a-5cc0-4931-a671-b6fcf1eabc0e",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f1/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f1",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin, Psicologo"
+              },
+              "response": []
+            },
+            {
+              "name": "Cambiar Estatus F1",
+              "id": "ee4acf8a-5e17-4519-b9ee-b8922c29b6e2",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estatus\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f1/:id/estatus",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f1",
+                    ":id",
+                    "estatus"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin, Psicologo"
+              },
+              "response": []
+            }
+          ],
+          "id": "18a5f53c-ac7b-4e72-af0d-07c2bc5d4651"
+        },
+        {
+          "name": "F2 - Estudio Socioeconómico",
+          "item": [
+            {
+              "name": "Crear Estudio",
+              "id": "543bfa06-d3f2-4067-a511-601e4c1c21e5",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f2",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f2"
+                  ]
+                },
+                "description": "Roles: Admin, TrabajoSocial"
+              },
+              "response": []
+            },
+            {
+              "name": "Estudio por Expediente",
+              "id": "cba4c84d-73ab-4f3c-8f8c-67f72fac1ac4",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f2/expediente/:expedienteId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f2",
+                    "expediente",
+                    ":expedienteId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Verificar Candado F3",
+              "id": "6e81e487-978b-408a-af8f-23cde4d7bd1b",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f2/expediente/:expedienteId/candado-f3",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f2",
+                    "expediente",
+                    ":expedienteId",
+                    "candado-f3"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Estudio",
+              "id": "daf0f6d3-4a15-4e11-b41c-4c643cd2ba65",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f2/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f2",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Estudio",
+              "id": "4faee57f-46da-4a3c-8cf4-ed38d2baed47",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f2/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f2",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin, TrabajoSocial"
+              },
+              "response": []
+            },
+            {
+              "name": "Cambiar Estatus F2",
+              "id": "baf1b21d-256c-4dcf-9c5f-3798c92cea5c",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estatus\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f2/:id/estatus",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f2",
+                    ":id",
+                    "estatus"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin, TrabajoSocial"
+              },
+              "response": []
+            }
+          ],
+          "id": "7a402c98-f17d-4070-abac-121b61c1936b"
+        },
+        {
+          "name": "F3 - Plan de Trabajo",
+          "item": [
+            {
+              "name": "Crear Plan de Trabajo",
+              "id": "83e8653b-d91e-455e-9adf-eebe68d18710",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f3",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f3"
+                  ]
+                },
+                "description": "Roles: Admin"
+              },
+              "response": []
+            },
+            {
+              "name": "Plan por Expediente",
+              "id": "a9030c26-40dd-42e2-9684-ae523a4855f7",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f3/expediente/:expedienteId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f3",
+                    "expediente",
+                    ":expedienteId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Plan",
+              "id": "4c970af2-ad9d-4068-a35b-aa1ef8c70c22",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f3/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f3",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Plan",
+              "id": "d4ee2424-6814-468d-ac41-ce2bcdf3cac9",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f3/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f3",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Cambiar Estatus F3",
+              "id": "e7ef6c8d-bcb9-4359-9ae8-0a3f79a0ed0f",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estatus\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f3/:id/estatus",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f3",
+                    ":id",
+                    "estatus"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin"
+              },
+              "response": []
+            }
+          ],
+          "id": "fb326fb3-32cd-4bf6-a347-3b22ffacb164"
+        },
+        {
+          "name": "F4 - Cédula Inicial",
+          "item": [
+            {
+              "name": "Crear Cédula",
+              "id": "ead9d2c3-51c5-494c-8ff6-d78fdbaeb981",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f4",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f4"
+                  ]
+                },
+                "description": "Roles: Admin"
+              },
+              "response": []
+            },
+            {
+              "name": "Cédula por Expediente",
+              "id": "8e610014-4e58-4ae5-aa25-c14bdc526bb5",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f4/expediente/:expedienteId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f4",
+                    "expediente",
+                    ":expedienteId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Cédula",
+              "id": "2057e1a5-b4ef-4df7-8cf4-5ddc5db34fac",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f4/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f4",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Cédula",
+              "id": "6e7fc1a7-d8a2-4b23-b679-62ca587ef6af",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f4/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f4",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin"
+              },
+              "response": []
+            },
+            {
+              "name": "Cambiar Estatus F4",
+              "id": "8004e4eb-67a7-49d4-b91d-bc001f371cd3",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estatus\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f4/:id/estatus",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f4",
+                    ":id",
+                    "estatus"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin"
+              },
+              "response": []
+            }
+          ],
+          "id": "63f46421-ff5f-43d1-86d3-9e1ecff79e3e"
+        },
+        {
+          "name": "F5 - Seguimiento Psicológico",
+          "item": [
+            {
+              "name": "Crear Seguimiento",
+              "id": "192fb292-e6a6-4315-8d3f-2181298e283f",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f5",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f5"
+                  ]
+                },
+                "description": "Roles: Admin, Psicologo"
+              },
+              "response": []
+            },
+            {
+              "name": "Seguimientos por Expediente",
+              "id": "d3cf17c8-0a4e-4898-8e92-171fee4960ff",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f5/expediente/:expedienteId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f5",
+                    "expediente",
+                    ":expedienteId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Total de Sesiones",
+              "id": "d6b14560-932e-433b-aa31-1b29e85ba63c",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f5/expediente/:expedienteId/total",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f5",
+                    "expediente",
+                    ":expedienteId",
+                    "total"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Sesión por Número",
+              "id": "4d877ff1-ff62-459e-970e-0b2c6d81d9e4",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f5/expediente/:expedienteId/sesion/:num",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f5",
+                    "expediente",
+                    ":expedienteId",
+                    "sesion",
+                    ":num"
+                  ],
+                  "variable": [
+                    {
+                      "key": "expedienteId"
+                    },
+                    {
+                      "key": "num"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Seguimiento",
+              "id": "c1e512e5-060e-4d89-a2bb-530db673c48d",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f5/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f5",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Seguimiento",
+              "id": "3c3b9bd2-8d35-45c0-a893-6cef4427d4a8",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/civico/f5/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "civico",
+                    "f5",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                },
+                "description": "Roles: Admin, Psicologo"
+              },
+              "response": []
+            }
+          ],
+          "id": "74e54cd9-d204-4fb7-bde7-b9294f8b9a26"
+        }
+      ],
+      "id": "57230f57-4571-403b-8879-3396ef197cc8"
+    },
+    {
+      "name": "🤝 Módulo Voluntarios",
+      "item": [
+        {
+          "name": "Personas",
+          "item": [
+            {
+              "name": "Crear Persona",
+              "id": "62fe155a-e53b-492d-ac7a-bbeac80b9a5c",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/voluntarios/personas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "voluntarios",
+                    "personas"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar Personas",
+              "id": "324c8be9-9682-4733-9404-4b0cfff6d788",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/voluntarios/personas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "voluntarios",
+                    "personas"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Persona",
+              "id": "6a1b4e69-30f3-4b15-9a19-c5a143481bbb",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/voluntarios/personas/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "voluntarios",
+                    "personas",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Persona",
+              "id": "552b3c58-f8e8-4c12-b83d-97ce677aa514",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/voluntarios/personas/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "voluntarios",
+                    "personas",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Eliminar Persona",
+              "id": "d58aa3f9-35bd-4ab8-90df-2ac9e47d5fd7",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/voluntarios/personas/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "voluntarios",
+                    "personas",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "d860c9c1-01e5-4415-a688-3b339b9fa2d8"
+        },
+        {
+          "name": "Actividades (Voluntarios)",
+          "item": [
+            {
+              "name": "Crear Actividad Voluntario",
+              "id": "71406494-1547-4cff-8340-1a6c555b28fb",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/voluntarios/actividades",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "voluntarios",
+                    "actividades"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Listar Actividades Voluntario",
+              "id": "7feea69d-043e-45eb-bced-de87093a0c3a",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/voluntarios/actividades",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "voluntarios",
+                    "actividades"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Obtener Actividad Voluntario",
+              "id": "28bf2601-ae44-40d6-831c-57c9180c300b",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/voluntarios/actividades/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "voluntarios",
+                    "actividades",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Actualizar Actividad Voluntario",
+              "id": "beec9c03-93fa-49fe-8f5d-c31941af5455",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/voluntarios/actividades/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "voluntarios",
+                    "actividades",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Eliminar Actividad Voluntario",
+              "id": "3a523cbe-0176-400b-bb9e-c79de282dbdd",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/voluntarios/actividades/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "voluntarios",
+                    "actividades",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "6ffa74a7-edb3-40b8-9f15-d754dffb4661"
+        },
+        {
+          "name": "New Request",
+          "id": "1922dc09-90f5-426d-a467-b00e177a8714",
           "request": {
-            "method": "DELETE",
+            "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/beneficiarios/1",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "beneficiarios",
-                "1"
-              ]
+              "raw": ""
             }
           },
           "response": []
         }
       ],
-      "id": "9f930f9d-3e98-4cca-b0c9-516ac49e3ab4"
+      "id": "bea676bb-7abb-411f-8a5b-9bb252c4d129"
     }
   ],
   "variable": [
     {
-      "id": "898b4659-37fc-4562-8c4f-f07ca53cc07a",
+      "id": "411cb116-943e-4a92-b180-a39b5e64c72e",
       "key": "baseUrl",
       "value": "http://localhost:3000"
+    },
+    {
+      "id": "817948ea-8dee-4e92-90bf-11c398c61c5b",
+      "key": "token",
+      "value": ""
     }
   ]
 }

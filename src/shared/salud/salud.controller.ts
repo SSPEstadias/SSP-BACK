@@ -13,7 +13,9 @@ import {
 import { SaludService } from './salud.service';
 import { CreateSaludDto } from './dto/create-salud.dto';
 import { UpdateSaludDto } from './dto/update-salud.dto';
-
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+@ApiTags('🏥 Salud')
+@ApiBearerAuth('JWT-Auth')
 @Controller('salud')
 export class SaludController {
   constructor(private readonly saludService: SaludService) {}

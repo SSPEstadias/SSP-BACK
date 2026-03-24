@@ -30,6 +30,19 @@ export class Salud {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   nombreEnfermedad!: string | null;
+  // ── Restricciones por categoría de actividad ──────────────────────
+  // Solo aplica cuando esAptoFisico = true pero con limitaciones físicas
+  // Almacena las categorías que NO puede realizar
+  // NULL o [] = sin restricciones, puede hacer todas las categorías
+  // Ejemplo: ["TRABAJO_COMUNITARIO", "PROMOCION_CULTURAL_DEPORTIVA"]
+  // Valores válidos: los del enum ActividadCategoriaEnum en actividad.entity.ts
+  @Column({
+    name: 'restricciones_categorias',
+    type: 'jsonb',
+    nullable: true,
+    default: null,
+  })
+  restriccionesCategorias!: string[] | null;
 
   // ── Consumo de Sustancias ───────────────────────────────────────╮
   @Column({ type: 'boolean', default: false })

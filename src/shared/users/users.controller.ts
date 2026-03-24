@@ -4,6 +4,10 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+
+@ApiTags('👤 Usuarios')
+@ApiBearerAuth('JWT-Auth')
 
 @Controller('users')
 export class UsersController {
