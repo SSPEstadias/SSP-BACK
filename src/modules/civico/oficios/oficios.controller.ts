@@ -14,7 +14,10 @@ import {
   import { TipoDocumentoEnum } from '../enums/civico.enums';
   import { RolesGuard } from '../../../shared/common/guards/roles.guard';
   import { Roles } from '../../../shared/common/decorators/roles.decorator';
-  
+  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+
+  @ApiTags('📨 Oficios')
+@ApiBearerAuth('JWT-Auth')
   @UseGuards(JwtAuthGuard,RolesGuard)
   @Controller('civico/oficios')
   export class OficiosController {

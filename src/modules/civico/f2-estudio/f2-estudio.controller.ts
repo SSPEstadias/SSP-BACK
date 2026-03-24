@@ -15,7 +15,11 @@ import {
   import { FormStatusEnum } from '../enums/civico.enums';
   import { RolesGuard } from '../../../shared/common/guards/roles.guard';
   import { Roles } from '../../../shared/common/decorators/roles.decorator';
+  import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
+
+@ApiTags('🏠 F2 — Estudio')
+@ApiBearerAuth('JWT-Auth')
   @UseGuards(JwtAuthGuard,RolesGuard)
   @Controller('civico/f2')
   export class F2EstudioController {
@@ -24,6 +28,29 @@ import {
     // POST /civico/f2
     @Post()
     @Roles('Admin', 'TrabajoSocial')
+    @ApiBody({
+      description: 'Crear Estudio Socioeconómico (F2) — RF-005',
+      examples: {
+        'Estudio completo': {
+          value: {
+            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            trabajadorSocialId: 4,
+            ingresoMensual: 8500.00,
+            nivelSocioeconomico: 'MEDIO_BAJO',
+            grupoFamiliar: 'FUNCIONAL',
+            huboViolenciaIntrafamiliar: false,
+            diagnosticoSocial: 'Familia nuclear funcional con recursos económicos limitados. Red de apoyo presente.',
+            estatusF2: 'EN_PROCESO',
+          },
+        },
+        'Estudio mínimo': {
+          value: {
+            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            trabajadorSocialId: 4,
+          },
+        },
+      },
+    })
     create(@Body() dto: CreateEstudioSocioeconomicoDto) {
       return this.service.create(dto);
     }
@@ -53,6 +80,23 @@ import {
     // PATCH /civico/f2/:id
     @Patch(':id')
     @Roles('Admin', 'TrabajoSocial')
+    @ApiBody({
+      type: UpdateEstudioSocioeconomicoDto,
+      examples: {
+        'Actualizar datos socioeconómicos': {
+          value: {
+            nivelSocioeconomico: 'MEDIO',
+            grupoFamiliar: 'FUNCIONAL',
+            diagnosticoSocial: 'Familia con recursos económicos limitados pero funcional',
+          },
+        },
+        'Actualizar estatus': {
+          value: {
+            estatusF2: 'EN_PROCESO',
+          },
+        },
+      },
+    })
     update(
       @Param('id', ParseUUIDPipe) id: string,
       @Body() dto: UpdateEstudioSocioeconomicoDto,
@@ -60,13 +104,27 @@ import {
       return this.service.update(id, dto);
     }
   
+  
     // PATCH /civico/f2/:id/estatus
     @Patch(':id/estatus')
     @Roles('Admin', 'TrabajoSocial')
+    @ApiBody({
+      schema: {
+        type: 'object',
+        properties: {
+          estatusF2: {
+            type: 'string',
+            enum: ['PENDIENTE', 'EN_PROCESO', 'COMPLETADO', 'CERRADO'],
+            example: 'COMPLETADO',
+          },
+        },
+        required: ['estatusF2'],
+      },
+    })
     cambiarEstatus(
       @Param('id', ParseUUIDPipe) id: string,
-      @Body('estatus') estatus: FormStatusEnum,
+      @Body('estatusF2') estatusF2: FormStatusEnum,
     ) {
-      return this.service.cambiarEstatus(id, estatus);
+      return this.service.cambiarEstatus(id, estatusF2);
     }
   }
