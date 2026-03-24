@@ -6,6 +6,12 @@ import { SeederModule } from './seeds/seeder.module';
 import { PenalModule } from './modules/penal/penal.module';
 import { CivicoModule } from './modules/civico/civico.module';
 import { VoluntarioModule } from './modules/voluntarios/voluntario.module';
+<<<<<<< HEAD
+=======
+import { PenalModule } from './modules/penal/penal.module';
+import { ValoracionPsicologica } from './modules/penal/valoracion-psicologica/entities/valoracion-psicologica.entity';
+import { EstudioTrabajoSocial } from './modules/penal/estudio-trabajo-social/entities/estudio-trabajo-social.entity';
+>>>>>>> develop
 
 @Module({
   imports: [
@@ -21,20 +27,25 @@ import { VoluntarioModule } from './modules/voluntarios/voluntario.module';
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
-        synchronize:     false,
-        
+        synchronize: false,
+
         // dropSchema:        false,
         migrationsRun: true,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),
     }),
 
-
     SharedModule,
     SeederModule,
     CivicoModule,
     VoluntarioModule,
+<<<<<<< HEAD
     PenalModule,    
+=======
+    PenalModule,
+    ValoracionPsicologica,
+    EstudioTrabajoSocial,
+>>>>>>> develop
   ],
 })
 export class AppModule {}
