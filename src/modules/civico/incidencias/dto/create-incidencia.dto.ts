@@ -24,11 +24,13 @@ import {
     tipo!: IncidenciaTipoEnum;
   
     @IsDateString()
-    fechaIncidencia!: string;
+    @IsOptional()
+    fechaIncidencia?: string;
+  
   
     @IsString()
-    @IsNotEmpty()
-    descripcionHechos!: string;
+    @IsOptional()
+    descripcionHechos?: string;  
   
     // TRUE = suma al conteo de strikes para baja automática (RF-013)
     @IsBoolean()
