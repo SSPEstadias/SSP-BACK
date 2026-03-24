@@ -33,7 +33,7 @@ async function seed() {
 
   const user = repo.create({
     nombre: 'Admin Principal',
-    rol: RolUsuario.Admin,
+    rol: RolUsuario.ADMIN,
     nomUsuario: 'Admin',
     contrasena: hashed,
     estatus: true,
