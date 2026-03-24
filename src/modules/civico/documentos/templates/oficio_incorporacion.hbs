@@ -34,8 +34,7 @@
   <style>
     @page {
       size: Letter;
-      /* Top margin is large enough so content clears the fixed logo header (~3.5cm logo height + gap) */
-      margin: 4cm 2cm 1.5cm 2cm;
+      margin: 2.5cm 2cm 1.5cm 2cm;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -43,24 +42,6 @@
       font-size: 11pt;
       color: #000;
       line-height: 1.5;
-    }
-    /* ── Logo de fondo (aparece en TODAS las páginas, detrás del texto, 100% opacidad) */
-    .page-header-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: -1;          /* detrás del contenido, igual que la marca de agua */
-      pointer-events: none;
-      padding: 0.3cm 0.5cm 0 0.5cm;
-    }
-    .page-header-bg img {
-      width: 100%;
-      height: auto;
-      max-height: 3.2cm;
-      object-fit: contain;
-      object-position: left center;
-      opacity: 1;           /* 100% visible, a diferencia de la marca de agua (0.08) */
     }
     /* ── Marca de agua ─────────────────────────── */
     .watermark-container {
@@ -74,10 +55,22 @@
       pointer-events: none;
     }
     .watermark-img { width: 55%; opacity: 0.08; }
-    /* ── Tabla de folio (en el flujo del documento) */
-    .folio-table { width: 50%; border-collapse: collapse; font-size: 9.5pt; margin-left: auto; margin-bottom: 10pt; }
-    .folio-table .folio-key { font-weight: bold; padding: 2pt 6pt; border: 1px solid #aaa; white-space: nowrap; background-color: #f0f0f0; }
-    .folio-table .folio-val { padding: 2pt 6pt; border: 1px solid #aaa; }
+    /* ── Encabezado ────────────────────────────── */
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 4pt; }
+    .header-logo  { width: 210px; vertical-align: middle; padding-right: 14pt; }
+    .logo-img     { width: 200px; height: auto; }
+    /* Tabla de folio (lado derecho del encabezado) */
+    .header-folio-cell { vertical-align: middle; }
+    .header-folio-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    .header-folio-table .folio-key { font-weight: bold; padding: 2pt 6pt; border: 1px solid #aaa; white-space: nowrap; background-color: #f0f0f0; }
+    .header-folio-table .folio-val { padding: 2pt 6pt; border: 1px solid #aaa; }
+    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
+    /* Modo título (documentos sin folio) */
+    .header-title     { vertical-align: middle; text-align: center; }
+    .header-dep       { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
+    .header-prog      { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
+    .header-sub       { font-size: 9pt; color: #555; }
+    .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
     /* ── Pie de página ─────────────────────────── */
     .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
     .footer-divider { border-top: 1px solid #999; margin-bottom: 3pt; }
@@ -86,7 +79,7 @@
     .footer-center{ text-align: center; }
     .footer-right { text-align: right; }
     /* ── Contenido ──────────────────────────────── */
-    .content { margin-top: 0; }
+    .content { margin-top: 8pt; }
     .ciudad-fecha { margin-bottom: 18pt; }
     .destinatario-block { margin-bottom: 18pt; }
     .destinatario-block p { margin-bottom: 1pt; }
@@ -110,32 +103,9 @@
 
 {{> _watermark}}
 
-<!-- Logo institucional fijo en el fondo de TODAS las páginas (100% opacidad, detrás del texto) -->
-<div class="page-header-bg">
-  <img src="{{logoEncabezado}}" alt="SSPC — Reconecta con la Paz" />
-</div>
+{{> _header numOficio=numOficio asuntoOficio="Informe de incorporación al programa"}}
 
 <div class="content">
-
-  <!-- Tabla de identificación del oficio (en flujo, página 1 únicamente) -->
-  <table class="folio-table">
-    <tr>
-      <td class="folio-key">Dependencia</td>
-      <td class="folio-val">Subsecretaría de Prevención y Reinserción Social</td>
-    </tr>
-    <tr>
-      <td class="folio-key">Sección:</td>
-      <td class="folio-val">Dirección General de Prevención del Delito y Participación Ciudadana</td>
-    </tr>
-    <tr>
-      <td class="folio-key">No. de oficio:</td>
-      <td class="folio-val">{{numOficio}}</td>
-    </tr>
-    <tr>
-      <td class="folio-key">Asunto:</td>
-      <td class="folio-val">Informe de incorporación al programa</td>
-    </tr>
-  </table>
 
   <!-- Ciudad y Fecha -->
   <div class="ciudad-fecha">
