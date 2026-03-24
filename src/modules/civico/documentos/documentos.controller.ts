@@ -24,7 +24,7 @@ import { RolesGuard } from '../../../shared/common/guards/roles.guard';
 import { Roles } from '../../../shared/common/decorators/roles.decorator';
 import { DocumentosService } from './documentos.service';
 
-const EXAMPLE_EXP_ID = '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe';
+const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
 
 /** Envía el buffer PDF como respuesta HTTP con los headers adecuados. */
 function sendPdf(res: Response, buffer: Buffer, filename: string): void {
