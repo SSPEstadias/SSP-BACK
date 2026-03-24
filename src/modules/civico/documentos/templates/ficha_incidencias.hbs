@@ -1,117 +1,131 @@
 {{!-- Ficha Técnica de Incidencias — SSPC Reconecta con la Paz --}}
+{{!--
+  Variables requeridas del contexto (documentos.service.ts → generarFichaIncidencias):
+    numOficio           — No. de oficio institucional
+    fechaGeneracion     — Fecha en formato largo
+    destinatarioNombre  — Nombre del destinatario (ej: "MTRO. DIEGO CALVO LÓPEZ")
+    destinatarioCargo   — Cargo del destinatario (ej: "JEFE DE LA UNIDAD DE MEDIDAS CAUTELARES.")
+    destinatarioOrg     — Organización del destinatario (ej: "UMECA")
+    nombreBeneficiario  — Nombre del beneficiario
+    causaPenal          — Número de expediente
+    folioIncorporacion  — Folio de incorporación
+    horasSentencia      — Horas de sentencia
+    horasCumplidas      — Horas cumplidas
+    estatusProceso      — Estatus actual del expediente
+    totalStrikes        — Número de strikes acumulados (0-3)
+    totalIncidencias    — Total de incidencias
+    incidencias         — Array [{tipo, fechaFormateada, descripcionHechos, esAcumulativa, estatusResolucion, numOficioNotificacion}]
+    firmaNombre         — Nombre del titular firmante
+    firmaCargo1         — Primera línea del cargo
+    firmaCargo2         — Segunda línea del cargo (opcional)
+    firmaIniciales      — Iniciales (ej: "LYPZ/gujl")
+    ccSecretario        — Nombre del Secretario para CC
+    ccSubsecretario     — Nombre del Subsecretario para CC
+
+  Variables opcionales:
+    ciudad              — default "Oaxaca de Juárez, Oaxaca"
+    observaciones       — Observaciones adicionales
+--}}
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Ficha de Incidencias — {{nombreBeneficiario}}</title>
+  <title>Ficha Técnica de Incidencias — {{numOficio}}</title>
   <style>
-    @page { size: Letter; margin: 2cm 2cm 2.5cm 3cm; }
+    @page { size: Letter; margin: 2.5cm 2cm 1.5cm 2cm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.4; }
+    body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.5; }
     .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: flex; align-items: center; justify-content: center; pointer-events: none; }
     .watermark-img { width: 55%; opacity: 0.08; }
-    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
-    .header-logo { width: 220px; vertical-align: middle; padding-right: 12pt; }
-    .logo-img { width: 210px; height: auto; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 4pt; }
+    .header-logo  { width: 210px; vertical-align: middle; padding-right: 14pt; }
+    .logo-img     { width: 200px; height: auto; }
+    .header-folio-cell { vertical-align: middle; }
+    .header-folio-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    .header-folio-table .folio-key { font-weight: bold; padding: 2pt 6pt; border: 1px solid #aaa; white-space: nowrap; background-color: #f0f0f0; }
+    .header-folio-table .folio-val { padding: 2pt 6pt; border: 1px solid #aaa; }
+    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
     .header-title { vertical-align: middle; text-align: center; }
     .header-dep { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
     .header-prog { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
-    .header-sub { font-size: 9pt; color: #555; }
+    .header-sub  { font-size: 9pt; color: #555; }
     .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
-    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
     .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
-    .footer-divider { border-top: 1px solid #999; margin-bottom: 4pt; }
+    .footer-divider { border-top: 1px solid #999; margin-bottom: 3pt; }
     .footer-table { width: 100%; border-collapse: collapse; font-size: 8pt; color: #555; }
-    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
+    .footer-left  { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
     .content { margin-top: 8pt; }
-    .section-title { font-size: 11pt; font-weight: bold; background-color: #1a3a6b; color: #fff; padding: 4pt 8pt; margin: 12pt 0 6pt 0; }
-    .id-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin-bottom: 12pt; }
-    .id-table td { border: 1px solid #ccc; padding: 4pt 8pt; font-size: 10.5pt; }
-    .id-table td:first-child { font-weight: bold; width: 40%; background-color: #f5f5f5; }
-    .strikes-box { text-align: center; padding: 8pt; margin: 12pt 0; border: 2px solid; }
-    .strikes-box.peligro { border-color: #c0392b; background-color: #fdf2f2; }
-    .strikes-box.advertencia { border-color: #e67e22; background-color: #fef9f0; }
-    .strikes-box.normal { border-color: #27ae60; background-color: #f0fdf4; }
-    .strikes-num { font-size: 28pt; font-weight: bold; }
-    .strikes-label { font-size: 10pt; }
-    .incidencias-table { border: 1px solid #999; border-collapse: collapse; width: 100%; margin-bottom: 10pt; font-size: 10pt; }
-    .incidencias-table th { border: 1px solid #999; padding: 4pt 6pt; background-color: #1a3a6b; color: #fff; }
+    .ciudad-fecha { margin-bottom: 18pt; }
+    .destinatario-block { margin-bottom: 18pt; }
+    .destinatario-block p { margin-bottom: 1pt; }
+    .dest-nombre { font-weight: bold; text-transform: uppercase; }
+    .dest-cargo  { font-style: italic; }
+    .cuerpo { text-align: justify; margin-bottom: 12pt; }
+    .incidencias-table { border: 1px solid #999; border-collapse: collapse; width: 100%; margin: 12pt 0; font-size: 10pt; }
+    .incidencias-table th { background-color: #1a3a6b; color: #fff; padding: 3pt 6pt; border: 1px solid #999; }
     .incidencias-table td { border: 1px solid #ccc; padding: 4pt 6pt; vertical-align: top; }
-    .tipo-badge { padding: 1pt 5pt; border-radius: 2px; font-size: 9pt; font-weight: bold; display: inline-block; }
-    .tipo-FALTA_INJUSTIFICADA { background-color: #e74c3c; color: #fff; }
-    .tipo-CONDUCTA_INAPROPIADA { background-color: #e67e22; color: #fff; }
-    .tipo-RETARDO { background-color: #f39c12; color: #fff; }
-    .tipo-INCUMPLIMIENTO_TAREA { background-color: #8e44ad; color: #fff; }
-    .tipo-INASISTENCIA_JUSTIFICADA { background-color: #2980b9; color: #fff; }
-    .tipo-VISITA_DOMICILIARIA { background-color: #16a085; color: #fff; }
-    .tipo-RETIRO_ANTICIPADO { background-color: #d35400; color: #fff; }
-    .tipo-CONVERSATORIO { background-color: #27ae60; color: #fff; }
-    .estatus-PENDIENTE { color: #e74c3c; font-weight: bold; }
-    .estatus-RESUELTA { color: #27ae60; font-weight: bold; }
-    .obs-box { border: 1px solid #ccc; padding: 8pt; min-height: 40pt; font-size: 10.5pt; margin: 8pt 0; }
-    .firma-block { margin-top: 32pt; text-align: center; }
-    .firma-linea { border-top: 1px solid #000; width: 220px; margin: 0 auto; margin-top: 44pt; }
-    .firma-nombre { font-weight: bold; font-size: 10pt; margin-top: 4pt; }
-    .firma-cargo  { font-size: 9.5pt; }
+    .atentamente { margin-top: 24pt; margin-bottom: 2pt; font-weight: bold; }
+    .lema { font-style: italic; margin-bottom: 2pt; }
+    .firma-block { margin-top: 8pt; }
+    .firma-linea { border-top: 1px solid #000; width: 260px; margin-top: 48pt; }
+    .firma-nombre { font-weight: bold; font-size: 10.5pt; margin-top: 4pt; }
+    .firma-cargo  { font-size: 10.5pt; }
+    .cc-block { margin-top: 28pt; font-size: 9pt; border-top: 1px dashed #aaa; padding-top: 6pt; }
+    .cc-block p { margin-bottom: 2pt; }
+    .minutario-row { margin-top: 4pt; font-weight: bold; }
   </style>
 </head>
 <body>
 
 {{> _watermark}}
 
-{{> _header tituloDocumento="FICHA TÉCNICA DE INCIDENCIAS"}}
+{{> _header numOficio=numOficio asuntoOficio="Informe técnico de incidencias"}}
 
 <div class="content">
 
-  <!-- Identificación del expediente -->
-  <div class="section-title">IDENTIFICACIÓN DEL EXPEDIENTE</div>
-  <table class="id-table">
-    <tr><td>Nombre completo:</td><td>{{nombreBeneficiario}}</td></tr>
-    <tr><td>CURP:</td><td>{{curp}}</td></tr>
-    <tr><td>Folio de incorporación:</td><td>{{folioIncorporacion}}</td></tr>
-    <tr><td>Causa penal:</td><td>{{causaPenal}}</td></tr>
-    <tr><td>Horas de sentencia:</td><td>{{horasSentencia}} hrs</td></tr>
-    <tr><td>Horas cumplidas:</td><td>{{horasCumplidas}} hrs</td></tr>
-    <tr><td>Estatus del proceso:</td><td>{{estatusProceso}}</td></tr>
-    <tr><td>Fecha de generación:</td><td>{{fechaGeneracion}}</td></tr>
-  </table>
-
-  <!-- Semáforo de strikes -->
-  <div class="section-title">SEMÁFORO DE INCIDENCIAS ACUMULATIVAS</div>
-  <div class="strikes-box {{#eq totalStrikes 3}}peligro{{else}}{{#eq totalStrikes 2}}advertencia{{else}}normal{{/eq}}{{/eq}}">
-    <div class="strikes-num">{{totalStrikes}} / 3</div>
-    <div class="strikes-label">
-      {{#eq totalStrikes 3}}⛔ BAJA DEFINITIVA POR ACUMULACIÓN DE INCIDENCIAS{{else}}
-      {{#eq totalStrikes 2}}⚠ ADVERTENCIA — UNA INCIDENCIA MÁS GENERA BAJA{{else}}
-      ✅ SIN RIESGO DE BAJA{{/eq}}{{/eq}}
-    </div>
+  <!-- Ciudad y Fecha -->
+  <div class="ciudad-fecha">
+    <p>{{#if ciudad}}{{ciudad}}{{else}}Oaxaca de Juárez, Oaxaca{{/if}}, a {{fechaGeneracion}}</p>
   </div>
 
-  <!-- Listado de incidencias -->
-  <div class="section-title">REGISTRO DE INCIDENCIAS ({{totalIncidencias}} total)</div>
+  <!-- Destinatario -->
+  <div class="destinatario-block">
+    <p class="dest-nombre">{{#if destinatarioNombre}}{{destinatarioNombre}}{{else}}MTRO. DIEGO CALVO LÓPEZ{{/if}}</p>
+    <p class="dest-cargo">{{#if destinatarioCargo}}{{destinatarioCargo}}{{else}}JEFE DE LA UNIDAD DE MEDIDAS CAUTELARES.{{/if}}</p>
+    {{#if destinatarioOrg}}<p>{{destinatarioOrg}}</p>{{else}}<p>UMECA</p>{{/if}}
+    <p>&nbsp;</p>
+    <p><strong>P &nbsp;R &nbsp;E &nbsp;S &nbsp;E &nbsp;N &nbsp;T &nbsp;E</strong></p>
+  </div>
+
+  <!-- Cuerpo párrafo 1 -->
+  <p class="cuerpo">
+    Por medio del presente, me permito informar a usted sobre la situación que guarda la participación
+    del C. <strong>{{nombreBeneficiario}}</strong>, con expediente <strong>{{causaPenal}}</strong>,
+    quien se encuentra adscrito al programa <em>Reconecta con la Paz</em>, dentro del esquema de
+    seguimiento y acompañamiento psicosocial que brinda esta Dirección.
+  </p>
+
+  <!-- Cuerpo párrafo 2 -->
+  <p class="cuerpo">
+    De manera reiterada, el beneficiario ha demostrado una actitud que entorpece su proceso de
+    reintegración y formación. En virtud de lo anterior, se ha procedido a la elaboración de la
+    presente ficha técnica de incidencias, en la cual se reporta lo siguiente:
+  </p>
+
+  <!-- Tabla de incidencias -->
   {{#if incidencias}}
   <table class="incidencias-table">
     <thead>
       <tr>
-        <th style="width:28px;">#</th>
-        <th>Tipo</th>
-        <th>Fecha</th>
-        <th>Descripción de los hechos</th>
-        <th>Acumulativa</th>
-        <th>Estatus</th>
-        <th>Oficio</th>
+        <th>TIPO DE INCIDENCIA</th>
+        <th>DESCRIPCIÓN DE LOS HECHOS</th>
       </tr>
     </thead>
     <tbody>
       {{#each incidencias}}
       <tr>
-        <td style="text-align:center;">{{add @index 1}}</td>
-        <td><span class="tipo-badge tipo-{{tipo}}">{{tipo}}</span></td>
-        <td>{{fechaFormateada}}</td>
+        <td>{{fechaFormateada}} se reporta: {{tipo}}</td>
         <td>{{descripcionHechos}}</td>
-        <td style="text-align:center;">{{#if esAcumulativa}}✓{{else}}—{{/if}}</td>
-        <td><span class="estatus-{{estatusResolucion}}">{{estatusResolucion}}</span></td>
-        <td style="font-size:9pt;">{{numOficioNotificacion}}</td>
       </tr>
       {{/each}}
     </tbody>
@@ -120,15 +134,43 @@
   <p style="padding:8pt; font-style:italic; color:#555;">No se han registrado incidencias para este expediente.</p>
   {{/if}}
 
-  <!-- Observaciones -->
-  <div class="section-title">OBSERVACIONES Y RESOLUCIÓN</div>
-  <div class="obs-box">{{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}</div>
+  <!-- Cuerpo párrafo 3 -->
+  <p class="cuerpo">
+    Dichas incidencias han sido debidamente registradas y serán notificadas. Asimismo, hago constar que
+    se le han brindado diversas oportunidades para reflexionar y rectificar su conducta, sin que hasta
+    la fecha se observe un cambio favorable.
+  </p>
+
+  <!-- Cuerpo párrafo 4 -->
+  <p class="cuerpo">
+    Este documento tiene como finalidad dejar constancia de lo anterior y será integrado al expediente
+    técnico del beneficiario, a fin de que se tomen las medidas pertinentes conforme al apego a los
+    criterios establecidos por la autoridad judicial correspondiente.
+  </p>
+
+  {{#if observaciones}}
+  <p class="cuerpo">{{observaciones}}</p>
+  {{/if}}
+
+  <!-- Atentamente -->
+  <p class="atentamente">A T E N T A M E N T E</p>
+  <p class="lema">"SUFRAGIO EFECTIVO. NO REELECCIÓN"</p>
+  <p class="lema">"EL RESPETO AL DERECHO AJENO ES LA PAZ"</p>
 
   <!-- Firma -->
   <div class="firma-block">
     <div class="firma-linea"></div>
     <p class="firma-nombre">{{firmaNombre}}</p>
-    <p class="firma-cargo">{{firmaCargo}}</p>
+    <p class="firma-cargo">{{firmaCargo1}}</p>
+    {{#if firmaCargo2}}<p class="firma-cargo">{{firmaCargo2}}</p>{{/if}}
+  </div>
+
+  <!-- CC block -->
+  <div class="cc-block">
+    {{#if ccSecretario}}<p>C.c.p. — {{ccSecretario}}. Para su superior conocimiento.</p>{{/if}}
+    {{#if ccSubsecretario}}<p>C.cp. — {{ccSubsecretario}}. Para su superior conocimiento.</p>{{/if}}
+    <p class="minutario-row">Minutario</p>
+    {{#if firmaIniciales}}<p>{{firmaIniciales}}</p>{{/if}}
   </div>
 
 </div>

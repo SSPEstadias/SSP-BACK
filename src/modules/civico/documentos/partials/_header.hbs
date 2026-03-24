@@ -1,18 +1,51 @@
 {{!-- Encabezado institucional reutilizable — SSPC / Reconecta con la Paz --}}
+{{!--
+  Variables opcionales:
+    tituloDocumento  — título centrado bajo el logo (cuando NO se usa tabla de folio)
+    numOficio        — activa la tabla de identificación del oficio (lado derecho)
+    asuntoOficio     — descripción del asunto del oficio
+    dependencia      — si se omite, usa "Subsecretaría de Prevención y Reinserción Social"
+    seccion          — si se omite, usa "Dirección General de Prevención del Delito y Participación Ciudadana"
+--}}
 <header class="doc-header">
   <table class="header-table">
     <tr>
       <td class="header-logo">
         <img src="{{logoEncabezado}}" alt="SSPC — Reconecta con la Paz" class="logo-img" />
       </td>
+      {{#if numOficio}}
+      {{!-- Modo oficio: tabla de identificación institucional en lugar del título centrado --}}
+      <td class="header-folio-cell">
+        <table class="header-folio-table">
+          <tr>
+            <td class="folio-key">Dependencia</td>
+            <td class="folio-val">{{#if dependencia}}{{dependencia}}{{else}}Subsecretaría de Prevención y Reinserción Social{{/if}}</td>
+          </tr>
+          <tr>
+            <td class="folio-key">Sección:</td>
+            <td class="folio-val">{{#if seccion}}{{seccion}}{{else}}Dirección General de Prevención del Delito y Participación Ciudadana{{/if}}</td>
+          </tr>
+          <tr>
+            <td class="folio-key">No. de oficio:</td>
+            <td class="folio-val">{{numOficio}}</td>
+          </tr>
+          <tr>
+            <td class="folio-key">Asunto:</td>
+            <td class="folio-val">{{asuntoOficio}}</td>
+          </tr>
+        </table>
+      </td>
+      {{else}}
+      {{!-- Modo documento: título centrado (formularios, listas, reportes) --}}
       <td class="header-title">
-        <p class="header-dep">SECRETARÍA DE SEGURIDAD PÚBLICA Y CIUDADANA</p>
+        <p class="header-dep">SECRETARÍA DE SEGURIDAD Y PROTECCIÓN CIUDADANA</p>
         <p class="header-prog">PROGRAMA RECONECTA CON LA PAZ</p>
-        <p class="header-sub">SERVICIO CÍVICO COMUNITARIO</p>
+        <p class="header-sub">DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA</p>
         {{#if tituloDocumento}}
         <p class="header-doc-title">{{tituloDocumento}}</p>
         {{/if}}
       </td>
+      {{/if}}
     </tr>
   </table>
   <div class="header-divider"></div>

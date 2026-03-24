@@ -1,129 +1,132 @@
 {{!-- Informe de Baja Definitiva — SSPC Reconecta con la Paz --}}
+{{!--
+  Variables requeridas del contexto (documentos.service.ts → generarInformeBaja):
+    numOficio           — No. de oficio institucional
+    fechaGeneracion     — Fecha en formato largo
+    juezNombre          — Nombre completo del juez
+    juezCargoCompleto   — Cargo completo del juez
+    nombreBeneficiario  — Nombre del beneficiario
+    causaPenal          — Número de expediente
+    horasCumplidas      — Horas cumplidas hasta la baja
+    horasSentencia      — Horas ordenadas
+    fechaBaja           — Fecha de baja (default = fechaGeneracion)
+    motivoBaja          — Motivo de la baja (literal del enum o descripción)
+    incidencias         — Array [{tipo, fechaFormateada, descripcionHechos, esAcumulativa, estatusResolucion}]
+    totalIncidencias    — Total de incidencias registradas
+    firmaNombre         — Nombre del titular firmante
+    firmaCargo1         — Primera línea del cargo
+    firmaCargo2         — Segunda línea del cargo (opcional)
+    firmaIniciales      — Iniciales (ej: "LYPZ/gujl")
+    ccSecretario        — Nombre del Secretario para CC
+    ccSubsecretario     — Nombre del Subsecretario para CC
+
+  Variables opcionales:
+    ciudad              — default "Oaxaca de Juárez, Oaxaca"
+    coordinadorNombre
+    coordinadorTelefono
+    coordinadorEmail
+--}}
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Informe de Baja Definitiva — {{folioOficio}}</title>
+  <title>Informe de Baja Definitiva — {{numOficio}}</title>
   <style>
-    @page { size: Letter; margin: 2cm 2cm 2.5cm 3cm; }
+    @page { size: Letter; margin: 2.5cm 2cm 1.5cm 2cm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.4; }
+    body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.5; }
     .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: flex; align-items: center; justify-content: center; pointer-events: none; }
     .watermark-img { width: 55%; opacity: 0.08; }
-    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
-    .header-logo { width: 220px; vertical-align: middle; padding-right: 12pt; }
-    .logo-img { width: 210px; height: auto; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 4pt; }
+    .header-logo  { width: 210px; vertical-align: middle; padding-right: 14pt; }
+    .logo-img     { width: 200px; height: auto; }
+    .header-folio-cell { vertical-align: middle; }
+    .header-folio-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    .header-folio-table .folio-key { font-weight: bold; padding: 2pt 6pt; border: 1px solid #aaa; white-space: nowrap; background-color: #f0f0f0; }
+    .header-folio-table .folio-val { padding: 2pt 6pt; border: 1px solid #aaa; }
+    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
     .header-title { vertical-align: middle; text-align: center; }
     .header-dep { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
     .header-prog { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
-    .header-sub { font-size: 9pt; color: #555; }
+    .header-sub  { font-size: 9pt; color: #555; }
     .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
-    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
     .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
-    .footer-divider { border-top: 1px solid #999; margin-bottom: 4pt; }
+    .footer-divider { border-top: 1px solid #999; margin-bottom: 3pt; }
     .footer-table { width: 100%; border-collapse: collapse; font-size: 8pt; color: #555; }
-    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
+    .footer-left  { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
     .content { margin-top: 8pt; }
-    .folio-row { text-align: right; font-size: 10pt; margin-bottom: 14pt; }
     .ciudad-fecha { margin-bottom: 18pt; }
     .destinatario-block { margin-bottom: 18pt; }
-    .dest-cargo { font-weight: bold; text-transform: uppercase; }
-    .asunto-block { margin-bottom: 18pt; }
-    .asunto-label { font-weight: bold; text-decoration: underline; }
+    .destinatario-block p { margin-bottom: 1pt; }
+    .dest-nombre { font-weight: bold; text-transform: uppercase; }
+    .dest-cargo  { font-style: italic; }
     .cuerpo { text-align: justify; margin-bottom: 12pt; }
-    .alerta-baja { background-color: #fff3cd; border: 1px solid #ffc107; padding: 8pt; margin: 12pt 0; border-radius: 3px; font-weight: bold; text-align: center; }
-    .datos-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin: 14pt 0; }
-    .datos-table th, .datos-table td { border: 1px solid #ccc; padding: 4pt 7pt; font-size: 10pt; }
-    .datos-table th { background-color: #c0392b; color: #fff; text-align: left; }
-    .incidencias-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin: 14pt 0; }
-    .incidencias-table th, .incidencias-table td { border: 1px solid #ccc; padding: 4pt 7pt; font-size: 10pt; }
-    .incidencias-table th { background-color: #1a3a6b; color: #fff; }
-    .firma-block { margin-top: 40pt; }
-    .firma-linea { border-top: 1px solid #000; width: 240px; margin: 0 auto; margin-top: 48pt; }
-    .firma-nombre { text-align: center; font-weight: bold; font-size: 10pt; margin-top: 4pt; }
-    .firma-cargo  { text-align: center; font-size: 9.5pt; }
-    .firma-sello  { text-align: center; font-style: italic; font-size: 9pt; color: #666; }
+    .incidencias-table { border: 1px solid #999; border-collapse: collapse; width: 100%; margin: 12pt 0; font-size: 10pt; }
+    .incidencias-table th { background-color: #1a3a6b; color: #fff; padding: 3pt 6pt; border: 1px solid #999; }
+    .incidencias-table td { border: 1px solid #ccc; padding: 4pt 6pt; vertical-align: top; }
+    .atentamente { margin-top: 24pt; margin-bottom: 2pt; font-weight: bold; }
+    .lema { font-style: italic; margin-bottom: 2pt; }
+    .firma-block { margin-top: 8pt; }
+    .firma-linea { border-top: 1px solid #000; width: 260px; margin-top: 48pt; }
+    .firma-nombre { font-weight: bold; font-size: 10.5pt; margin-top: 4pt; }
+    .firma-cargo  { font-size: 10.5pt; }
+    .cc-block { margin-top: 28pt; font-size: 9pt; border-top: 1px dashed #aaa; padding-top: 6pt; }
+    .cc-block p { margin-bottom: 2pt; }
+    .minutario-row { margin-top: 4pt; font-weight: bold; }
   </style>
 </head>
 <body>
 
 {{> _watermark}}
 
-{{> _header tituloDocumento="INFORME DE BAJA DEFINITIVA"}}
+{{> _header numOficio=numOficio asuntoOficio="Informe de baja definitiva del programa"}}
 
 <div class="content">
 
-  <div class="folio-row">
-    <span style="font-weight:bold;">FOLIO:</span> {{folioOficio}}
-  </div>
-
+  <!-- Ciudad y Fecha -->
   <div class="ciudad-fecha">
-    <p>{{ciudad}}, {{fechaGeneracion}}</p>
+    <p>{{#if ciudad}}{{ciudad}}{{else}}Oaxaca de Juárez, Oaxaca{{/if}}, a {{fechaGeneracion}}</p>
   </div>
 
+  <!-- Destinatario -->
   <div class="destinatario-block">
-    <p class="dest-cargo">{{juezNombre}}</p>
-    <p>{{juezCargo}}</p>
-    <p>{{juzgadoNombre}}</p>
-    <p><strong>P R E S E N T E</strong></p>
+    <p class="dest-nombre">{{juezNombre}}</p>
+    <p class="dest-cargo">{{#if juezCargoCompleto}}{{juezCargoCompleto}}{{else}}Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria{{/if}}</p>
+    <p>&nbsp;</p>
+    <p><strong>P &nbsp;R &nbsp;E &nbsp;S &nbsp;E &nbsp;N &nbsp;T &nbsp;E</strong></p>
   </div>
 
-  <div class="asunto-block">
-    <p><span class="asunto-label">ASUNTO:</span> Baja definitiva del Programa Reconecta con la Paz del C. {{nombreBeneficiario}} — {{motivoBaja}}.</p>
-  </div>
-
-  <div class="alerta-baja">
-    ⚠ BAJA DEFINITIVA — MOTIVO: {{motivoBaja}}
-  </div>
-
+  <!-- Cuerpo párrafo 1 -->
   <p class="cuerpo">
-    Por medio del presente, hago de su conocimiento que el ciudadano <strong>{{nombreBeneficiario}}</strong>,
-    con CURP <strong>{{curp}}</strong>, sujeto a la causa penal <strong>{{causaPenal}}</strong>, ha sido
-    dado de <strong>baja definitiva</strong> del Programa <em>Reconecta con la Paz</em> con fecha
-    <strong>{{fechaBaja}}</strong>, por el motivo siguiente:
+    Por medio del presente, y con fundamento en las disposiciones internas que rigen la operación del
+    Programa <em>Reconecta con la Paz</em>, me permito hacer de su conocimiento que, derivado del
+    incumplimiento a lo establecido en el reglamento interno del programa, mismo que fue debidamente
+    explicado, aceptado y firmado durante el proceso de ingreso y recepción inicial, se ha determinado
+    la baja definitiva del C. <strong>{{nombreBeneficiario}}</strong>, con expediente
+    <strong>{{causaPenal}}</strong>, a partir de la fecha del presente oficio.
   </p>
 
-  <p class="cuerpo" style="text-align:center; font-weight:bold; font-size:11pt;">
-    {{motivoBaja}}
-  </p>
-
+  <!-- Cuerpo párrafo 2 -->
   <p class="cuerpo">
-    Al momento de la baja, el beneficiario había cumplido <strong>{{horasCumplidas}} horas</strong>
-    de las <strong>{{horasSentencia}} horas</strong> ordenadas por su autoridad, registrando
-    {{totalIncidencias}} incidencia(s) acumulativa(s) durante su estancia en el programa.
+    Lo anterior se sustenta en los reportes y registros administrativos generados por el área operativa
+    del programa, en los cuales se documenta el incumplimiento a las obligaciones y lineamientos
+    establecidos para las y los participantes, contraviniendo los compromisos asumidos al momento
+    de su incorporación.
   </p>
-
-  <!-- Datos del expediente -->
-  <table class="datos-table">
-    <tr><th colspan="2">DATOS DEL EXPEDIENTE</th></tr>
-    <tr><td><strong>Nombre completo:</strong></td><td>{{nombreBeneficiario}}</td></tr>
-    <tr><td><strong>CURP:</strong></td><td>{{curp}}</td></tr>
-    <tr><td><strong>Folio de incorporación:</strong></td><td>{{folioIncorporacion}}</td></tr>
-    <tr><td><strong>Causa penal:</strong></td><td>{{causaPenal}}</td></tr>
-    <tr><td><strong>Horas ordenadas:</strong></td><td>{{horasSentencia}} hrs</td></tr>
-    <tr><td><strong>Horas cumplidas al momento de baja:</strong></td><td>{{horasCumplidas}} hrs</td></tr>
-    <tr><td><strong>Fecha de incorporación:</strong></td><td>{{fechaIncorporacion}}</td></tr>
-    <tr><td><strong>Fecha de baja:</strong></td><td>{{fechaBaja}}</td></tr>
-    <tr><td><strong>Motivo de baja:</strong></td><td>{{motivoBaja}}</td></tr>
-  </table>
 
   <!-- Incidencias registradas -->
   {{#if incidencias}}
   <table class="incidencias-table">
     <thead>
       <tr>
-        <th>N°</th>
-        <th>Tipo de incidencia</th>
-        <th>Fecha</th>
-        <th>Descripción</th>
+        <th>TIPO DE INCIDENCIA</th>
+        <th>DESCRIPCIÓN DE LOS HECHOS</th>
       </tr>
     </thead>
     <tbody>
       {{#each incidencias}}
       <tr>
-        <td>{{add @index 1}}</td>
-        <td>{{tipo}}</td>
-        <td>{{fechaFormateada}}</td>
+        <td>{{fechaFormateada}} se reporta: {{tipo}}</td>
         <td>{{descripcionHechos}}</td>
       </tr>
       {{/each}}
@@ -131,19 +134,49 @@
   </table>
   {{/if}}
 
+  <!-- Cuerpo párrafo 3 -->
   <p class="cuerpo">
-    En virtud de lo anterior, se solicita a su autoridad proceda conforme a derecho corresponda respecto a la
-    causa penal en trámite, toda vez que el beneficiario no concluyó la medida ordenada.
+    En virtud de lo anterior, se le informa que a partir de esta fecha queda sin efectos su participación
+    en las actividades, beneficios y acompañamiento institucional proporcionado por el programa.
+    La presente determinación será notificada a las instancias correspondientes para los efectos
+    administrativos y legales conducentes.
   </p>
 
-  <p class="cuerpo"><strong>ATENTAMENTE</strong></p>
-  <p class="cuerpo"><em>"Por la Seguridad y la Paz Social"</em></p>
+  <!-- Cuerpo párrafo 4 -->
+  <p class="cuerpo">
+    Sin otro particular, le reitero que el Programa <em>Reconecta con la Paz</em> tiene como finalidad
+    fomentar procesos de desarrollo personal, responsabilidad social y construcción de paz, por lo que
+    el cumplimiento de su normativa interna es indispensable para la permanencia en el mismo.
+  </p>
 
+  <!-- Contacto -->
+  <p class="cuerpo">
+    Para cualquier duda o aclaración, favor de comunicarse con el
+    <strong>{{#if coordinadorNombre}}{{coordinadorNombre}}{{else}}Coordinador del programa "Reconecta con la Paz"{{/if}}</strong>,
+    al número {{#if coordinadorTelefono}}{{coordinadorTelefono}}{{else}}951 2241899{{/if}}
+    o al correo electrónico {{#if coordinadorEmail}}{{coordinadorEmail}}{{else}}dgp.dypc@sspo.gob.mx{{/if}}.
+    Sin otro particular, quedo a su disposición.
+  </p>
+
+  <!-- Atentamente -->
+  <p class="atentamente">A T E N T A M E N T E</p>
+  <p class="lema">"SUFRAGIO EFECTIVO. NO REELECCIÓN"</p>
+  <p class="lema">"EL RESPETO AL DERECHO AJENO ES LA PAZ"</p>
+
+  <!-- Firma -->
   <div class="firma-block">
     <div class="firma-linea"></div>
     <p class="firma-nombre">{{firmaNombre}}</p>
-    <p class="firma-cargo">{{firmaCargo}}</p>
-    <p class="firma-sello">Secretaría de Seguridad Pública y Ciudadana del Estado de Oaxaca</p>
+    <p class="firma-cargo">{{firmaCargo1}}</p>
+    {{#if firmaCargo2}}<p class="firma-cargo">{{firmaCargo2}}</p>{{/if}}
+  </div>
+
+  <!-- CC block -->
+  <div class="cc-block">
+    {{#if ccSecretario}}<p>C.c.p. — {{ccSecretario}}. Para su superior conocimiento.</p>{{/if}}
+    {{#if ccSubsecretario}}<p>C.cp. — {{ccSubsecretario}}. Para su superior conocimiento.</p>{{/if}}
+    <p class="minutario-row">Minutario</p>
+    {{#if firmaIniciales}}<p>{{firmaIniciales}}</p>{{/if}}
   </div>
 
 </div>
