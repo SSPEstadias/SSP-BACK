@@ -7,6 +7,7 @@ import { CivicoModule } from './modules/civico/civico.module';
 import { VoluntarioModule } from './modules/voluntarios/voluntario.module';
 import { PenalModule } from './modules/penal/penal.module';
 import { ValoracionPsicologica } from './modules/penal/valoracion-psicologica/entities/valoracion-psicologica.entity';
+import { EstudioTrabajoSocial } from './modules/penal/estudio-trabajo-social/entities/estudio-trabajo-social.entity';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ValoracionPsicologica } from './modules/penal/valoracion-psicologica/en
     VoluntarioModule,
     PenalModule,
     ValoracionPsicologica,
+    EstudioTrabajoSocial,
   ],
 })
 export class AppModule {}
