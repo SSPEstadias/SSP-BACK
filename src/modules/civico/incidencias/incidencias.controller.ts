@@ -31,7 +31,7 @@ export class IncidenciasController {
     examples: {
       'Falta no justificada': {
         value: {
-          expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+          expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
           guiaId: 3,
           tipo: 'FALTA_INJUSTIFICADA',
           descripcionHechos: 'No se presentó a ninguna actividad sin aviso previo',
@@ -40,7 +40,7 @@ export class IncidenciasController {
       },
       'Retardo injustificado': {
         value: {
-          expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+          expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
           guiaId: 3,
           tipo: 'RETARDO',
           descripcionHechos: 'Llegó 30 minutos tarde a la actividad asignada',

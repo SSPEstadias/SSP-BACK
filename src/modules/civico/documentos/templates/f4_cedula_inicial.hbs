@@ -1,0 +1,155 @@
+{{!-- F4 — Cédula Inicial de Seguimiento — SSPC Reconecta con la Paz --}}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>F4 — Cédula Inicial — {{nombreBeneficiario}}</title>
+  <style>
+    @page { size: Letter; margin: 2cm 2cm 2.5cm 3cm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.4; }
+    .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .watermark-img { width: 55%; opacity: 0.08; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+    .header-logo { width: 220px; vertical-align: middle; padding-right: 12pt; }
+    .logo-img { width: 210px; height: auto; }
+    .header-title { vertical-align: middle; text-align: center; }
+    .header-dep { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
+    .header-prog { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
+    .header-sub { font-size: 9pt; color: #555; }
+    .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
+    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
+    .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
+    .footer-divider { border-top: 1px solid #999; margin-bottom: 4pt; }
+    .footer-table { width: 100%; border-collapse: collapse; font-size: 8pt; color: #555; }
+    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
+    .content { margin-top: 8pt; }
+    .section-title { font-size: 11pt; font-weight: bold; background-color: #1a3a6b; color: #fff; padding: 4pt 8pt; margin: 12pt 0 6pt 0; }
+    .id-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin-bottom: 10pt; }
+    .id-table td { border: 1px solid #ccc; padding: 4pt 8pt; font-size: 10.5pt; }
+    .id-table td:first-child { font-weight: bold; width: 40%; background-color: #f5f5f5; }
+    .seguimiento-table { border: 1px solid #999; border-collapse: collapse; width: 100%; margin-bottom: 12pt; font-size: 10pt; }
+    .seguimiento-table th { background-color: #1a3a6b; color: #fff; padding: 4pt 6pt; border: 1px solid #999; }
+    .seguimiento-table td { border: 1px solid #ccc; padding: 4pt 6pt; vertical-align: top; }
+    .categorias-table { border: 1px solid #999; border-collapse: collapse; width: 100%; margin-bottom: 12pt; font-size: 10pt; }
+    .categorias-table th { background-color: #2c5282; color: #fff; padding: 4pt 6pt; border: 1px solid #999; }
+    .categorias-table td { border: 1px solid #ccc; padding: 4pt 6pt; vertical-align: top; }
+    .categorias-table .area-col { font-weight: bold; background-color: #eef2f9; }
+    .obs-box { border: 1px solid #ccc; padding: 6pt 8pt; min-height: 50pt; font-size: 10.5pt; margin-bottom: 10pt; }
+    .firmas-row { display: flex; justify-content: space-around; margin-top: 36pt; }
+    .firma-col { text-align: center; width: 45%; }
+    .firma-linea { border-top: 1px solid #000; margin-top: 44pt; }
+    .firma-nombre { font-weight: bold; font-size: 10pt; margin-top: 4pt; }
+    .firma-cargo { font-size: 9.5pt; }
+  </style>
+</head>
+<body>
+
+{{> _watermark}}
+
+{{> _header tituloDocumento="F4 — CÉDULA INICIAL DE SEGUIMIENTO"}}
+
+<div class="content">
+
+  <!-- Identificación -->
+  <div class="section-title">DATOS GENERALES</div>
+  <table class="id-table">
+    <tr><td>Nombre completo:</td><td>{{nombreBeneficiario}}</td></tr>
+    <tr><td>CURP:</td><td>{{curp}}</td></tr>
+    <tr><td>Folio de incorporación:</td><td>{{folioIncorporacion}}</td></tr>
+    <tr><td>Causa penal:</td><td>{{causaPenal}}</td></tr>
+    <tr><td>Coordinador:</td><td>{{nombreCoordinador}}</td></tr>
+    <tr><td>Horas a cubrir:</td><td>{{horasACubrir}} hrs</td></tr>
+    <tr><td>Modalidad de falta:</td><td>{{modalidadFalta}}</td></tr>
+  </table>
+
+  <!-- Proceso de ingreso -->
+  {{#if procesoIngreso}}
+  <div class="section-title">PROCESO DE INGRESO</div>
+  <table class="id-table">
+    {{#each procesoIngreso}}
+    <tr><td style="font-weight:bold; background-color:#f5f5f5; width:35%;">{{@key}}</td><td>{{this}}</td></tr>
+    {{/each}}
+  </table>
+  {{/if}}
+
+  <!-- Seguimiento de actividades por categoría -->
+  {{#if seguimientoActividades}}
+  <div class="section-title">SEGUIMIENTO DE ACTIVIDADES (5 CATEGORÍAS)</div>
+  <table class="seguimiento-table">
+    <thead>
+      <tr>
+        <th>Categoría</th>
+        <th>Descripción</th>
+        <th>Responsable</th>
+        <th>Horario</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each seguimientoActividades}}
+      <tr>
+        <td><strong>{{categoria}}</strong></td>
+        <td>{{descripcion}}</td>
+        <td>{{responsable}}</td>
+        <td>{{horario}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  <!-- Tabla de seguimiento detallado (8 categorías) -->
+  {{#if tablaSeguimientoDetallado}}
+  <div class="section-title">TABLA DE SEGUIMIENTO DETALLADO (8 ÁREAS)</div>
+  <table class="categorias-table">
+    <thead>
+      <tr>
+        <th>Área</th>
+        <th>Objetivo</th>
+        <th>Estatus</th>
+        <th>Cumplimiento</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each tablaSeguimientoDetallado}}
+      <tr>
+        <td class="area-col">{{@key}}</td>
+        <td>{{this.objetivo}}</td>
+        <td style="text-align:center;">{{this.estatus}}</td>
+        <td>{{this.cumplimiento}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  <!-- Proyecto de vida -->
+  {{#if proyectoVidaF4}}
+  <div class="section-title">PROYECTO DE VIDA</div>
+  <table class="id-table">
+    {{#each proyectoVidaF4}}
+    <tr><td style="font-weight:bold; background-color:#f5f5f5; width:30%;">{{@key}}</td><td>{{this}}</td></tr>
+    {{/each}}
+  </table>
+  {{/if}}
+
+  <!-- Firmas -->
+  <div class="firmas-row">
+    <div class="firma-col">
+      <div class="firma-linea"></div>
+      <p class="firma-nombre">{{nombreBeneficiario}}</p>
+      <p class="firma-cargo">Beneficiario</p>
+    </div>
+    <div class="firma-col">
+      <div class="firma-linea"></div>
+      <p class="firma-nombre">{{nombreCoordinador}}</p>
+      <p class="firma-cargo">Coordinador del Programa</p>
+    </div>
+  </div>
+
+</div>
+
+{{> _footer}}
+
+</body>
+</html>

@@ -1,0 +1,19 @@
+{{!-- Encabezado institucional reutilizable — SSPC / Reconecta con la Paz --}}
+<header class="doc-header">
+  <table class="header-table">
+    <tr>
+      <td class="header-logo">
+        <img src="{{logoEncabezado}}" alt="SSPC — Reconecta con la Paz" class="logo-img" />
+      </td>
+      <td class="header-title">
+        <p class="header-dep">SECRETARÍA DE SEGURIDAD PÚBLICA Y CIUDADANA</p>
+        <p class="header-prog">PROGRAMA RECONECTA CON LA PAZ</p>
+        <p class="header-sub">SERVICIO CÍVICO COMUNITARIO</p>
+        {{#if tituloDocumento}}
+        <p class="header-doc-title">{{tituloDocumento}}</p>
+        {{/if}}
+      </td>
+    </tr>
+  </table>
+  <div class="header-divider"></div>
+</header>

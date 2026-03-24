@@ -1,0 +1,123 @@
+{{!-- Plan de Vida Individualizada — SSPC Reconecta con la Paz --}}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Plan de Vida Individualizada — {{nombreBeneficiario}}</title>
+  <style>
+    @page { size: Letter; margin: 2cm 2cm 2.5cm 3cm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.5; }
+    .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .watermark-img { width: 55%; opacity: 0.08; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+    .header-logo { width: 220px; vertical-align: middle; padding-right: 12pt; }
+    .logo-img { width: 210px; height: auto; }
+    .header-title { vertical-align: middle; text-align: center; }
+    .header-dep { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
+    .header-prog { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
+    .header-sub { font-size: 9pt; color: #555; }
+    .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
+    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
+    .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
+    .footer-divider { border-top: 1px solid #999; margin-bottom: 4pt; }
+    .footer-table { width: 100%; border-collapse: collapse; font-size: 8pt; color: #555; }
+    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
+    .content { margin-top: 8pt; }
+    .section-title { font-size: 11pt; font-weight: bold; background-color: #1a3a6b; color: #fff; padding: 4pt 8pt; margin: 14pt 0 6pt 0; }
+    .id-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin-bottom: 12pt; }
+    .id-table td { border: 1px solid #ccc; padding: 4pt 8pt; font-size: 10.5pt; }
+    .id-table td:first-child { font-weight: bold; width: 40%; background-color: #f5f5f5; }
+    .area-title { font-size: 10.5pt; font-weight: bold; color: #1a3a6b; border-bottom: 1px solid #1a3a6b; padding-bottom: 2pt; margin: 10pt 0 4pt 0; }
+    .text-area-box { border: 1px solid #ccc; padding: 6pt 8pt; min-height: 50pt; font-size: 10.5pt; margin-bottom: 8pt; text-align: justify; }
+    .plan-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin-bottom: 12pt; }
+    .plan-table th { background-color: #1a3a6b; color: #fff; padding: 4pt 6pt; font-size: 10pt; border: 1px solid #ccc; }
+    .plan-table td { border: 1px solid #ccc; padding: 4pt 6pt; font-size: 10pt; vertical-align: top; }
+    .area-badge { padding: 1pt 5pt; border-radius: 2px; font-size: 9pt; font-weight: bold; }
+    .firma-block { margin-top: 32pt; text-align: center; }
+    .firma-linea { border-top: 1px solid #000; width: 220px; margin: 0 auto; margin-top: 44pt; }
+    .firma-nombre { font-weight: bold; font-size: 10pt; margin-top: 4pt; }
+    .firma-cargo { font-size: 9.5pt; }
+  </style>
+</head>
+<body>
+
+{{> _watermark}}
+
+{{> _header tituloDocumento="PLAN DE VIDA INDIVIDUALIZADA"}}
+
+<div class="content">
+
+  <!-- Identificación -->
+  <div class="section-title">DATOS DE IDENTIFICACIÓN</div>
+  <table class="id-table">
+    <tr><td>Nombre completo:</td><td>{{nombreBeneficiario}}</td></tr>
+    <tr><td>CURP:</td><td>{{curp}}</td></tr>
+    <tr><td>Folio de incorporación:</td><td>{{folioIncorporacion}}</td></tr>
+    <tr><td>Fecha de elaboración:</td><td>{{fechaElaboracion}}</td></tr>
+    <tr><td>Psicólogo elaborador:</td><td>{{nombrePsicologo}}</td></tr>
+  </table>
+
+  <!-- Proyecto de vida por áreas -->
+  <div class="section-title">PROYECTO DE VIDA POR ÁREAS</div>
+
+  <div class="area-title">🎯 Área Personal</div>
+  <div class="text-area-box">{{proyectoVida.personal}}</div>
+
+  <div class="area-title">👨‍👩‍👦 Área Familiar</div>
+  <div class="text-area-box">{{proyectoVida.familiar}}</div>
+
+  <div class="area-title">💼 Área Laboral</div>
+  <div class="text-area-box">{{proyectoVida.laboral}}</div>
+
+  <div class="area-title">🎓 Área Académica</div>
+  <div class="text-area-box">{{proyectoVida.academico}}</div>
+
+  <div class="area-title">🤝 Área Social</div>
+  <div class="text-area-box">{{proyectoVida.social}}</div>
+
+  <div class="area-title">✝ Área Espiritual</div>
+  <div class="text-area-box">{{proyectoVida.espiritual}}</div>
+
+  <!-- Plan de actividades por categoría -->
+  <div class="section-title">PLAN DE ACTIVIDADES Y METAS</div>
+  {{#if actividadesPlan}}
+  <table class="plan-table">
+    <thead>
+      <tr>
+        <th>Categoría</th>
+        <th>Objetivo</th>
+        <th>Estatus</th>
+        <th>Cumplimiento</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each actividadesPlan}}
+      <tr>
+        <td><strong>{{@key}}</strong></td>
+        <td>{{this.objetivo}}</td>
+        <td>{{this.estatus}}</td>
+        <td>{{this.cumplimiento}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  <!-- Observaciones generales -->
+  <div class="section-title">OBSERVACIONES DEL ESPECIALISTA</div>
+  <div class="text-area-box">{{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}</div>
+
+  <!-- Firmas -->
+  <div class="firma-block">
+    <div class="firma-linea"></div>
+    <p class="firma-nombre">{{nombrePsicologo}}</p>
+    <p class="firma-cargo">Psicólogo — Programa Reconecta con la Paz</p>
+  </div>
+
+</div>
+
+{{> _footer}}
+
+</body>
+</html>

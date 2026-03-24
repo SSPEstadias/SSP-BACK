@@ -1,0 +1,106 @@
+{{!-- Hoja de Presentación — SSPC Reconecta con la Paz --}}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hoja de Presentación — {{folioIncorporacion}}</title>
+  <style>
+    @page { size: Letter; margin: 2cm 2cm 2.5cm 3cm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.5; }
+    .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .watermark-img { width: 55%; opacity: 0.08; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+    .header-logo { width: 220px; vertical-align: middle; padding-right: 12pt; }
+    .logo-img { width: 210px; height: auto; }
+    .header-title { vertical-align: middle; text-align: center; }
+    .header-dep { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
+    .header-prog { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
+    .header-sub { font-size: 9pt; color: #555; }
+    .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
+    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
+    .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
+    .footer-divider { border-top: 1px solid #999; margin-bottom: 4pt; }
+    .footer-table { width: 100%; border-collapse: collapse; font-size: 8pt; color: #555; }
+    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
+    .content { margin-top: 10pt; }
+    .section-title { font-size: 11pt; font-weight: bold; background-color: #1a3a6b; color: #fff; padding: 4pt 8pt; margin: 14pt 0 6pt 0; }
+    .data-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin-bottom: 10pt; }
+    .data-table td { border: 1px solid #ccc; padding: 4pt 8pt; font-size: 10.5pt; }
+    .data-table td:first-child { font-weight: bold; width: 45%; background-color: #f5f5f5; }
+    .obs-box { border: 1px solid #ccc; padding: 8pt; min-height: 50pt; font-size: 10.5pt; margin-bottom: 10pt; }
+    .firmas-row { display: flex; justify-content: space-around; margin-top: 40pt; }
+    .firma-col { text-align: center; width: 45%; }
+    .firma-linea { border-top: 1px solid #000; margin-top: 48pt; }
+    .firma-nombre { font-weight: bold; font-size: 10pt; margin-top: 4pt; }
+    .firma-cargo  { font-size: 9.5pt; }
+  </style>
+</head>
+<body>
+
+{{> _watermark}}
+
+{{> _header tituloDocumento="HOJA DE PRESENTACIÓN AL PROGRAMA"}}
+
+<div class="content">
+
+  <div class="section-title">DATOS PERSONALES DEL BENEFICIARIO</div>
+  <table class="data-table">
+    <tr><td>Nombre completo:</td><td>{{nombreBeneficiario}}</td></tr>
+    <tr><td>CURP:</td><td>{{curp}}</td></tr>
+    <tr><td>Fecha de nacimiento:</td><td>{{fechaNacimiento}}</td></tr>
+    <tr><td>Edad:</td><td>{{edad}} años</td></tr>
+    <tr><td>Género:</td><td>{{genero}}</td></tr>
+    <tr><td>Estado civil:</td><td>{{estadoCivil}}</td></tr>
+    <tr><td>Domicilio:</td><td>{{domicilio}}</td></tr>
+    <tr><td>Municipio:</td><td>{{municipio}}</td></tr>
+    <tr><td>Teléfono de contacto:</td><td>{{telefono}}</td></tr>
+    <tr><td>Escolaridad:</td><td>{{escolaridad}}</td></tr>
+    <tr><td>Ocupación:</td><td>{{ocupacion}}</td></tr>
+    {{#if lenguaIndigena}}<tr><td>Lengua indígena:</td><td>{{lenguaIndigena}}</td></tr>{{/if}}
+    {{#if religion}}<tr><td>Religión:</td><td>{{religion}}</td></tr>{{/if}}
+  </table>
+
+  <div class="section-title">DATOS LEGALES</div>
+  <table class="data-table">
+    <tr><td>Folio de incorporación:</td><td>{{folioIncorporacion}}</td></tr>
+    <tr><td>Causa penal:</td><td>{{causaPenal}}</td></tr>
+    <tr><td>Juzgado cívico:</td><td>{{juzgadoNombre}}</td></tr>
+    <tr><td>Juez de control:</td><td>{{juezControl}}</td></tr>
+    <tr><td>Delito imputado:</td><td>{{delitoImputado}}</td></tr>
+    <tr><td>Modalidad de falta:</td><td>{{modalidadFalta}}</td></tr>
+    <tr><td>Oficio de canalización:</td><td>{{oficioCanalizacion}}</td></tr>
+    <tr><td>Horas de sentencia:</td><td>{{horasSentencia}} hrs</td></tr>
+    <tr><td>Fecha de incorporación:</td><td>{{fechaIncorporacion}}</td></tr>
+  </table>
+
+  <div class="section-title">DATOS DE CONTACTO FAMILIAR</div>
+  <table class="data-table">
+    {{#if contactoPadre}}<tr><td>Padre:</td><td>{{contactoPadre.nombre}} — Tel: {{contactoPadre.telefono}}</td></tr>{{/if}}
+    {{#if contactoMadre}}<tr><td>Madre:</td><td>{{contactoMadre.nombre}} — Tel: {{contactoMadre.telefono}}</td></tr>{{/if}}
+    {{#if contactoTutor}}<tr><td>Tutor/Responsable:</td><td>{{contactoTutor.nombre}} — Tel: {{contactoTutor.telefono}}</td></tr>{{/if}}
+  </table>
+
+  <div class="section-title">OBSERVACIONES</div>
+  <div class="obs-box">{{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}</div>
+
+  <!-- Firmas -->
+  <div class="firmas-row">
+    <div class="firma-col">
+      <div class="firma-linea"></div>
+      <p class="firma-nombre">{{nombreBeneficiario}}</p>
+      <p class="firma-cargo">Beneficiario</p>
+    </div>
+    <div class="firma-col">
+      <div class="firma-linea"></div>
+      <p class="firma-nombre">{{firmaNombre}}</p>
+      <p class="firma-cargo">{{firmaCargo}}</p>
+    </div>
+  </div>
+
+</div>
+
+{{> _footer}}
+
+</body>
+</html>

@@ -30,7 +30,7 @@ import {
       examples: {
         'Asistencia completa': {
           value: {
-            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
             guiaId: 5,
             fechaActividad: '2026-04-07',
             actividadId: 3,
@@ -41,7 +41,7 @@ import {
         },
         'Asistencia parcial con incidencia': {
           value: {
-            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
             guiaId: 5,
             fechaActividad: '2026-04-08',
             actividadId: 3,
@@ -54,7 +54,7 @@ import {
         },
         'Falta injustificada': {
           value: {
-            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
             guiaId: 5,
             fechaActividad: '2026-04-09',
             horasCubiertas: 0,
@@ -66,7 +66,7 @@ import {
         },
         'Tercera incidencia (genera BAJA automática)': {
           value: {
-            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
             guiaId: 5,
             fechaActividad: '2026-04-10',
             actividadId: 3,

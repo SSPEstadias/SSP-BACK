@@ -32,7 +32,7 @@ export class F1EntrevistaController {
     examples: {
       'Entrevista completa': {
         value: {
-          expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+          expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
           psicologoId: 2,
           fechaEntrevista: '2026-03-24',
           consentimientoInformado: true,
@@ -49,7 +49,7 @@ export class F1EntrevistaController {
       },
       'Entrevista mínima': {
         value: {
-          expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+          expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
           psicologoId: 2,
           fechaEntrevista: '2026-03-24',
           consentimientoInformado: true,
