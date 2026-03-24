@@ -182,9 +182,18 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
   // Método central: compila el template HBS y genera el PDF en Buffer.
   async generarPdf(tipoDocumento: string, datos: Record<string, unknown>): Promise<Buffer> {
-    const rutaTemplate = path.join(resolveDocumentosRoot(), 'templates', `${tipoDocumento}.hbs`);
+    // Busca el template primero en dist/ (producción) y luego en src/ (respaldo para dev
+    // o cuando dist/ tiene el directorio templates/ pero le faltan archivos recién añadidos).
+    const distPath = path.join(__dirname, 'templates', `${tipoDocumento}.hbs`);
+    const srcPath  = path.join(
+      process.cwd(), 'src', 'modules', 'civico', 'documentos',
+      'templates', `${tipoDocumento}.hbs`,
+    );
+    const rutaTemplate = fs.existsSync(distPath) ? distPath
+                       : fs.existsSync(srcPath)  ? srcPath
+                       : null;
 
-    if (!fs.existsSync(rutaTemplate)) {
+    if (!rutaTemplate) {
       throw new InternalServerErrorException(`Template no encontrado: ${tipoDocumento}.hbs`);
     }
 
