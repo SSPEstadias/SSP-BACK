@@ -6,12 +6,8 @@ import { SeederModule } from './seeds/seeder.module';
 import { PenalModule } from './modules/penal/penal.module';
 import { CivicoModule } from './modules/civico/civico.module';
 import { VoluntarioModule } from './modules/voluntarios/voluntario.module';
-<<<<<<< HEAD
-=======
-import { PenalModule } from './modules/penal/penal.module';
-import { ValoracionPsicologica } from './modules/penal/valoracion-psicologica/entities/valoracion-psicologica.entity';
 import { EstudioTrabajoSocial } from './modules/penal/estudio-trabajo-social/entities/estudio-trabajo-social.entity';
->>>>>>> develop
+import { ValoracionPsicologica } from './modules/penal/valoracion-psicologica/entities/valoracion-psicologica.entity';
 
 @Module({
   imports: [
@@ -39,13 +35,9 @@ import { EstudioTrabajoSocial } from './modules/penal/estudio-trabajo-social/ent
     SeederModule,
     CivicoModule,
     VoluntarioModule,
-<<<<<<< HEAD
-    PenalModule,    
-=======
     PenalModule,
     ValoracionPsicologica,
     EstudioTrabajoSocial,
->>>>>>> develop
   ],
 })
 export class AppModule {}
