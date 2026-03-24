@@ -2,6 +2,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,46 +22,38 @@ import { BitacoraCivica } from '../bitacora/bitacora-civica.entity';
 import { User } from '../../../shared/users/entities/user.entity';
 import { AsistenciaEnum } from '../enums/civico.enums';
 
-/**
- * Resuelve el directorio raíz del módulo de documentos.
- * Prueba primero `__dirname` (dist/ tras nest build) y luego la ruta fuente
- * (src/) como respaldo, de modo que la aplicación funcione con cualquier
- * variante de inicio (nest start, nest start:dev, start:prod).
- */
+// Busca el directorio raíz del módulo de documentos.
+// Primero intenta __dirname (dist/ después de nest build),
+// luego cae a src/ para cuando dist/ no tiene los assets copiados.
 function resolveDocumentosRoot(): string {
-  // En producción __dirname apunta a dist/modules/civico/documentos
   if (fs.existsSync(path.join(__dirname, 'templates'))) {
     return __dirname;
   }
-  // Respaldo: busca desde la raíz del proyecto hacia src/
   const srcRoot = path.join(process.cwd(), 'src', 'modules', 'civico', 'documentos');
   if (fs.existsSync(path.join(srcRoot, 'templates'))) {
     return srcRoot;
   }
-  // Último recurso: usar __dirname (lanzará el error descriptivo si no existe)
   return __dirname;
 }
 
-/** Convierte una ruta de archivo local a data URI base64. */
+// Convierte un archivo de imagen a data URI base64 para embeber en el HTML.
 function toDataUri(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
   const mime = ext === '.png' ? 'image/png' : 'image/jpeg';
-  const data = fs.readFileSync(filePath);
-  return `data:${mime};base64,${data.toString('base64')}`;
+  return `data:${mime};base64,${fs.readFileSync(filePath).toString('base64')}`;
 }
 
-/** Formatea Date o string de fecha a dd/mm/yyyy */
+// Formatea una fecha a dd/mm/yyyy.
 function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '—';
   const d = typeof value === 'string' ? new Date(value) : value;
   if (isNaN(d.getTime())) return String(value);
   const dd = String(d.getDate()).padStart(2, '0');
   const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
+  return `${dd}/${mm}/${d.getFullYear()}`;
 }
 
-/** Ciudad y fecha larga en español */
+// Devuelve la fecha actual en formato largo en español (ej: "24 de marzo de 2026").
 function fechaLarga(): string {
   return new Date().toLocaleDateString('es-MX', {
     day: 'numeric',
@@ -70,11 +63,23 @@ function fechaLarga(): string {
   });
 }
 
+// Calcula la edad en años a partir de una fecha de nacimiento.
+function calcularEdad(fechaNacimiento: Date | string | null): number {
+  if (!fechaNacimiento) return 0;
+  const nac = typeof fechaNacimiento === 'string' ? new Date(fechaNacimiento) : fechaNacimiento;
+  if (isNaN(nac.getTime())) return 0;
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - nac.getFullYear();
+  const m = hoy.getMonth() - nac.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+  return edad;
+}
+
 @Injectable()
-export class DocumentosService implements OnModuleInit {
-  // ── Logos precargados como data URI ────────────────────────────────
+export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   private logoEncabezado!: string;
   private marcaAgua!: string;
+  private browser!: puppeteer.Browser;
 
   constructor(
     @InjectRepository(ExpedienteCivico)
@@ -102,80 +107,59 @@ export class DocumentosService implements OnModuleInit {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  // ── Inicialización: logos + partials + helpers ──────────────────────
-  onModuleInit(): void {
+  async onModuleInit(): Promise<void> {
     const docRoot = resolveDocumentosRoot();
+
+    // Cargar logos como data URI (sin tirar error si no existen en el entorno)
     const assetsDir = path.join(docRoot, 'assets');
-
-    // Cargar logos — los nombres de archivo se mantienen tal como están en el repo.
-    // Fallback a string vacío si el archivo no existe en el entorno de despliegue.
-    const logoPath = path.normalize(path.join(
-      assetsDir,
-      'logoencabezado_con_margen_derecho(junto 1 sola imagen).png',
-    ));
-    const marcaPath = path.normalize(path.join(
-      assetsDir,
-      'LOGO_RECONECTACONLAPAZ_MARCADE AGUA FONDO EN TODOS LOS ARCHIVOS.jpg',
-    ));
-
+    const logoPath = path.normalize(path.join(assetsDir, 'logoencabezado_con_margen_derecho(junto 1 sola imagen).png'));
+    const marcaPath = path.normalize(path.join(assetsDir, 'LOGO_RECONECTACONLAPAZ_MARCADE AGUA FONDO EN TODOS LOS ARCHIVOS.jpg'));
     this.logoEncabezado = fs.existsSync(logoPath) ? toDataUri(logoPath) : '';
     this.marcaAgua = fs.existsSync(marcaPath) ? toDataUri(marcaPath) : '';
 
-    // Registrar partials HBS
+    // Registrar partials de Handlebars (_header, _footer, _watermark, etc.)
     const partialsDir = path.join(docRoot, 'partials');
     if (fs.existsSync(partialsDir)) {
       for (const file of fs.readdirSync(partialsDir)) {
         if (file.endsWith('.hbs')) {
           const name = path.basename(file, '.hbs');
-          const content = fs.readFileSync(path.join(partialsDir, file), 'utf-8');
-          Handlebars.registerPartial(name, content);
+          Handlebars.registerPartial(name, fs.readFileSync(path.join(partialsDir, file), 'utf-8'));
         }
       }
     }
 
-    // ── Helpers de Handlebars ─────────────────────────────────────────
-
-    // {{formatDate value}} → dd/mm/yyyy
+    // Helpers de Handlebars
     if (!Handlebars.helpers['formatDate']) {
-      Handlebars.registerHelper('formatDate', (value: unknown) =>
-        formatDate(value as Date | string | null),
-      );
+      Handlebars.registerHelper('formatDate', (v: unknown) => formatDate(v as Date | string | null));
     }
-
-    // {{add @index 1}} → incrementa números en #each
     if (!Handlebars.helpers['add']) {
       Handlebars.registerHelper('add', (a: number, b: number) => a + b);
     }
-
-    // {{eq a b}} → comparación de igualdad para #if
     if (!Handlebars.helpers['eq']) {
-      Handlebars.registerHelper('eq', function (
-        this: unknown,
-        a: unknown,
-        b: unknown,
-        options: Handlebars.HelperOptions,
-      ) {
-        return a === b ? options.fn(this) : options.inverse(this);
+      Handlebars.registerHelper('eq', function (this: unknown, a: unknown, b: unknown, opts: Handlebars.HelperOptions) {
+        return a === b ? opts.fn(this) : opts.inverse(this);
+      });
+    }
+    if (!Handlebars.helpers['times']) {
+      Handlebars.registerHelper('times', function (this: unknown, n: number, opts: Handlebars.HelperOptions) {
+        let out = '';
+        for (let i = 0; i < n; i++) out += opts.fn(this);
+        return out;
       });
     }
 
-    // {{times n}} → repite un bloque n veces
-    if (!Handlebars.helpers['times']) {
-      Handlebars.registerHelper('times', function (
-        this: unknown,
-        n: number,
-        options: Handlebars.HelperOptions,
-      ) {
-        let result = '';
-        for (let i = 0; i < n; i++) {
-          result += options.fn(this);
-        }
-        return result;
-      });
-    }
+    // Lanzar el browser una sola vez para reutilizarlo en todas las peticiones
+    this.browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
   }
 
-  // ── Contexto base con logos (se mezcla en cada template) ───────────
+  async onModuleDestroy(): Promise<void> {
+    await this.browser?.close();
+  }
+
+  // Datos que se mezclan en todos los templates (logos, ciudad, firma).
   private baseContext(): Record<string, string> {
     return {
       logoEncabezado: this.logoEncabezado,
@@ -186,69 +170,41 @@ export class DocumentosService implements OnModuleInit {
     };
   }
 
-  // ══════════════════════════════════════════════════════════════════
-  // ── Método central: template → PDF en Buffer ──────────────────────
-  // ══════════════════════════════════════════════════════════════════
-
-  /**
-   * Compila el template HBS indicado con `datos` y genera un PDF.
-   * @param tipoDocumento nombre del archivo sin extensión (ej: 'oficio_incorporacion')
-   * @param datos         contexto para el template
-   */
-  async generarPdf(
-    tipoDocumento: string,
-    datos: Record<string, unknown>,
-  ): Promise<Buffer> {
-    const rutaTemplate = path.join(
-      resolveDocumentosRoot(),
-      'templates',
-      `${tipoDocumento}.hbs`,
-    );
+  // Método central: compila el template HBS y genera el PDF en Buffer.
+  async generarPdf(tipoDocumento: string, datos: Record<string, unknown>): Promise<Buffer> {
+    const rutaTemplate = path.join(resolveDocumentosRoot(), 'templates', `${tipoDocumento}.hbs`);
 
     if (!fs.existsSync(rutaTemplate)) {
-      throw new InternalServerErrorException(
-        `Template no encontrado: ${tipoDocumento}.hbs`,
-      );
+      throw new InternalServerErrorException(`Template no encontrado: ${tipoDocumento}.hbs`);
     }
 
-    const templateStr = fs.readFileSync(rutaTemplate, 'utf-8');
-    const template = Handlebars.compile(templateStr);
-    const htmlFinal = template({ ...this.baseContext(), ...datos });
-
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    const html = Handlebars.compile(fs.readFileSync(rutaTemplate, 'utf-8'))({
+      ...this.baseContext(),
+      ...datos,
     });
 
+    // Reusamos el browser y solo abrimos/cerramos una pestaña por petición
+    const page = await this.browser.newPage();
     try {
-      const page = await browser.newPage();
-      await page.setContent(htmlFinal, { waitUntil: 'networkidle0' });
-
-      const pdfBuffer = await page.pdf({
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      const pdf = await page.pdf({
         format: 'Letter',
         printBackground: true,
         margin: { top: '0', bottom: '0', left: '0', right: '0' },
       });
-
-      return Buffer.from(pdfBuffer);
+      return Buffer.from(pdf);
     } finally {
-      await browser.close();
+      await page.close();
     }
   }
 
-  // ══════════════════════════════════════════════════════════════════
-  // ── Métodos específicos por tipo de documento ─────────────────────
-  // ══════════════════════════════════════════════════════════════════
+  // ── Métodos específicos por tipo de documento ──────────────────────
 
-  /** Oficio de Incorporación al Programa */
-  async generarOficioIncorporacion(
-    expedienteId: string,
-    extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  async generarOficioIncorporacion(expedienteId: string, extras: Record<string, unknown> = {}): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
 
-    const datos: Record<string, unknown> = {
+    return this.generarPdf('oficio_incorporacion', {
       folioOficio: extras['folioOficio'] ?? `OFC-INCORP-${Date.now()}`,
       fechaGeneracion: fechaLarga(),
       nombreBeneficiario: ben.nombre,
@@ -266,23 +222,15 @@ export class DocumentosService implements OnModuleInit {
       modalidadFalta: exp.modalidadFalta ?? '—',
       tituloDocumento: 'OFICIO DE INCORPORACIÓN AL PROGRAMA',
       ...extras,
-    };
-
-    return this.generarPdf('oficio_incorporacion', datos);
+    });
   }
 
-  /** Oficio de Conclusión / Culminación */
-  async generarOficioConclusion(
-    expedienteId: string,
-    extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  async generarOficioConclusion(expedienteId: string, extras: Record<string, unknown> = {}): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
-
-    // Calcular horas cumplidas desde bitácora
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
 
-    const datos: Record<string, unknown> = {
+    return this.generarPdf('oficio_conclusion', {
       folioOficio: extras['folioOficio'] ?? `OFC-CONCL-${Date.now()}`,
       fechaGeneracion: fechaLarga(),
       nombreBeneficiario: ben.nombre,
@@ -299,26 +247,19 @@ export class DocumentosService implements OnModuleInit {
       tituloDocumento: 'OFICIO DE CONCLUSIÓN DEL PROGRAMA',
       actividades: extras['actividades'] ?? [],
       ...extras,
-    };
-
-    return this.generarPdf('oficio_conclusion', datos);
+    });
   }
 
-  /** Informe de Baja Definitiva */
-  async generarInformeBaja(
-    expedienteId: string,
-    extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  async generarInformeBaja(expedienteId: string, extras: Record<string, unknown> = {}): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
-
     const incidencias = await this.incidenciaRepo.find({
       where: { expedienteId },
       order: { fechaIncidencia: 'ASC' },
     });
 
-    const datos: Record<string, unknown> = {
+    return this.generarPdf('oficio_baja_definitiva', {
       folioOficio: extras['folioOficio'] ?? `OFC-BAJA-${Date.now()}`,
       fechaGeneracion: fechaLarga(),
       nombreBeneficiario: ben.nombre,
@@ -344,22 +285,15 @@ export class DocumentosService implements OnModuleInit {
         numOficioNotificacion: i.numOficioNotificacion ?? '—',
       })),
       ...extras,
-    };
-
-    return this.generarPdf('oficio_baja_definitiva', datos);
+    });
   }
 
-  /** Hoja de Presentación al Programa */
-  async generarHojaPresentacion(
-    expedienteId: string,
-    extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  async generarHojaPresentacion(expedienteId: string, extras: Record<string, unknown> = {}): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
-
     const contactos = exp.contactosFamiliares as Record<string, { nombre: string; telefono: string }> | null;
 
-    const datos: Record<string, unknown> = {
+    return this.generarPdf('hoja_presentacion', {
       nombreBeneficiario: ben.nombre,
       curp: exp.curp,
       fechaNacimiento: formatDate(exp.fechaNacimiento),
@@ -387,28 +321,19 @@ export class DocumentosService implements OnModuleInit {
       contactoTutor: contactos?.['tutor'],
       tituloDocumento: 'HOJA DE PRESENTACIÓN AL PROGRAMA',
       ...extras,
-    };
-
-    return this.generarPdf('hoja_presentacion', datos);
+    });
   }
 
-  /** Ficha Técnica de Incidencias */
-  async generarFichaIncidencias(
-    expedienteId: string,
-    extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  async generarFichaIncidencias(expedienteId: string, extras: Record<string, unknown> = {}): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
-
     const incidencias = await this.incidenciaRepo.find({
       where: { expedienteId },
       order: { fechaIncidencia: 'ASC' },
     });
 
-    const totalStrikes = incidencias.filter((i) => i.esAcumulativa).length;
-
-    const datos: Record<string, unknown> = {
+    return this.generarPdf('ficha_incidencias', {
       nombreBeneficiario: ben.nombre,
       curp: exp.curp,
       folioIncorporacion: exp.folioIncorporacion,
@@ -417,7 +342,7 @@ export class DocumentosService implements OnModuleInit {
       horasCumplidas,
       estatusProceso: exp.estatusProceso,
       fechaGeneracion: fechaLarga(),
-      totalStrikes,
+      totalStrikes: incidencias.filter((i) => i.esAcumulativa).length,
       totalIncidencias: incidencias.length,
       tituloDocumento: 'FICHA TÉCNICA DE INCIDENCIAS',
       incidencias: incidencias.map((i) => ({
@@ -429,31 +354,18 @@ export class DocumentosService implements OnModuleInit {
         numOficioNotificacion: i.numOficioNotificacion ?? '—',
       })),
       ...extras,
-    };
-
-    return this.generarPdf('ficha_incidencias', datos);
+    });
   }
 
-  /** F3 — Plan de Trabajo Individual */
-  async generarF3PlanTrabajo(
-    expedienteId: string,
-    extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  async generarF3PlanTrabajo(expedienteId: string, extras: Record<string, unknown> = {}): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const f3 = await this.f3Repo.findOne({ where: { expedienteId } });
+    if (!f3) throw new NotFoundException(`No existe un F3 (Plan de Trabajo) para el expediente ${expedienteId}`);
 
-    if (!f3) {
-      throw new NotFoundException(
-        `No existe un F3 (Plan de Trabajo) para el expediente ${expedienteId}`,
-      );
-    }
+    const coordinador = await this.userRepo.findOne({ where: { id: f3.coordinadorId } });
 
-    const coordinador = await this.userRepo.findOne({
-      where: { id: f3.coordinadorId },
-    });
-
-    const datos: Record<string, unknown> = {
+    return this.generarPdf('f3_plan_trabajo', {
       nombreBeneficiario: ben.nombre,
       curp: exp.curp,
       folioIncorporacion: exp.folioIncorporacion,
@@ -469,31 +381,18 @@ export class DocumentosService implements OnModuleInit {
       observaciones: f3.observacionesPlan,
       tituloDocumento: 'F3 — PLAN DE TRABAJO INDIVIDUAL',
       ...extras,
-    };
-
-    return this.generarPdf('f3_plan_trabajo', datos);
+    });
   }
 
-  /** F4 — Cédula Inicial de Seguimiento */
-  async generarF4CedulaInicial(
-    expedienteId: string,
-    extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  async generarF4CedulaInicial(expedienteId: string, extras: Record<string, unknown> = {}): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const f4 = await this.f4Repo.findOne({ where: { expedienteId } });
+    if (!f4) throw new NotFoundException(`No existe un F4 (Cédula Inicial) para el expediente ${expedienteId}`);
 
-    if (!f4) {
-      throw new NotFoundException(
-        `No existe un F4 (Cédula Inicial) para el expediente ${expedienteId}`,
-      );
-    }
+    const coordinador = await this.userRepo.findOne({ where: { id: f4.coordinadorId } });
 
-    const coordinador = await this.userRepo.findOne({
-      where: { id: f4.coordinadorId },
-    });
-
-    const datos: Record<string, unknown> = {
+    return this.generarPdf('f4_cedula_inicial', {
       nombreBeneficiario: ben.nombre,
       curp: exp.curp,
       folioIncorporacion: exp.folioIncorporacion,
@@ -507,31 +406,18 @@ export class DocumentosService implements OnModuleInit {
       proyectoVidaF4: f4.proyectoVidaF4,
       tituloDocumento: 'F4 — CÉDULA INICIAL DE SEGUIMIENTO',
       ...extras,
-    };
-
-    return this.generarPdf('f4_cedula_inicial', datos);
+    });
   }
 
-  /** Plan de Vida Individualizada (desde F1) */
-  async generarPlanVida(
-    expedienteId: string,
-    extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  async generarPlanVida(expedienteId: string, extras: Record<string, unknown> = {}): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const f1 = await this.f1Repo.findOne({ where: { expedienteId } });
+    if (!f1) throw new NotFoundException(`No existe un F1 (Entrevista) para el expediente ${expedienteId}`);
 
-    if (!f1) {
-      throw new NotFoundException(
-        `No existe un F1 (Entrevista) para el expediente ${expedienteId}`,
-      );
-    }
+    const psicologo = await this.userRepo.findOne({ where: { id: f1.psicologoId } });
 
-    const psicologo = await this.userRepo.findOne({
-      where: { id: f1.psicologoId },
-    });
-
-    const datos: Record<string, unknown> = {
+    return this.generarPdf('plan_vida', {
       nombreBeneficiario: ben.nombre,
       curp: exp.curp,
       folioIncorporacion: exp.folioIncorporacion,
@@ -541,15 +427,10 @@ export class DocumentosService implements OnModuleInit {
       observaciones: f1.impresionDiagnostica,
       tituloDocumento: 'PLAN DE VIDA INDIVIDUALIZADA',
       ...extras,
-    };
-
-    return this.generarPdf('plan_vida', datos);
+    });
   }
 
-  /** Lista de Asistencia */
-  async generarListaAsistencia(
-    datos: Record<string, unknown>,
-  ): Promise<Buffer> {
+  async generarListaAsistencia(datos: Record<string, unknown>): Promise<Buffer> {
     return this.generarPdf('lista_asistencia', {
       tituloDocumento: 'LISTA DE ASISTENCIA',
       fecha: fechaLarga(),
@@ -557,39 +438,24 @@ export class DocumentosService implements OnModuleInit {
     });
   }
 
-  /** Reporte Semanal */
-  async generarReporteSemanal(
-    datos: Record<string, unknown>,
-  ): Promise<Buffer> {
+  async generarReporteSemanal(datos: Record<string, unknown>): Promise<Buffer> {
     return this.generarPdf('reporte_semanal', {
       tituloDocumento: 'REPORTE SEMANAL — CONTROL DE ASISTENCIA',
       ...datos,
     });
   }
 
-  // ── Helpers internos ───────────────────────────────────────────────
+  // ── Helpers privados ───────────────────────────────────────────────
 
   private async getExpediente(expedienteId: string): Promise<ExpedienteCivico> {
-    const exp = await this.expedienteRepo.findOne({
-      where: { idUUID: expedienteId },
-    });
-    if (!exp) {
-      throw new NotFoundException(
-        `Expediente ${expedienteId} no encontrado`,
-      );
-    }
+    const exp = await this.expedienteRepo.findOne({ where: { idUUID: expedienteId } });
+    if (!exp) throw new NotFoundException(`Expediente ${expedienteId} no encontrado`);
     return exp;
   }
 
   private async getBeneficiario(beneficiarioId: number): Promise<Beneficiario> {
-    const ben = await this.beneficiarioRepo.findOne({
-      where: { id: beneficiarioId },
-    });
-    if (!ben) {
-      throw new NotFoundException(
-        `Beneficiario ${beneficiarioId} no encontrado`,
-      );
-    }
+    const ben = await this.beneficiarioRepo.findOne({ where: { id: beneficiarioId } });
+    if (!ben) throw new NotFoundException(`Beneficiario ${beneficiarioId} no encontrado`);
     return ben;
   }
 
@@ -602,21 +468,6 @@ export class DocumentosService implements OnModuleInit {
         tipos: [AsistenciaEnum.PRESENTE, AsistenciaEnum.PRESENTE_PARCIAL],
       })
       .getRawOne<{ total: string }>();
-
     return parseFloat(result?.total ?? '0');
   }
-}
-
-/** Calcula edad en años a partir de una fecha de nacimiento */
-function calcularEdad(fechaNacimiento: Date | string | null): number {
-  if (!fechaNacimiento) return 0;
-  const hoy = new Date();
-  const nac = typeof fechaNacimiento === 'string'
-    ? new Date(fechaNacimiento)
-    : fechaNacimiento;
-  if (isNaN(nac.getTime())) return 0;
-  let edad = hoy.getFullYear() - nac.getFullYear();
-  const m = hoy.getMonth() - nac.getMonth();
-  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
-  return edad;
 }
