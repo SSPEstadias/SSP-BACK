@@ -1,0 +1,137 @@
+{{!-- Reporte Semanal de Guía — SSPC Reconecta con la Paz --}}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reporte Semanal — Semana {{semanaNumero}}</title>
+  <style>
+    @page { size: Letter; margin: 1.5cm 2cm 2.5cm 2.5cm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', Times, serif; font-size: 10.5pt; color: #000; line-height: 1.4; }
+    .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .watermark-img { width: 55%; opacity: 0.08; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+    .header-logo { width: 220px; vertical-align: middle; padding-right: 12pt; }
+    .logo-img { width: 210px; height: auto; }
+    .header-title { vertical-align: middle; text-align: center; }
+    .header-dep { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
+    .header-prog { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
+    .header-sub { font-size: 9pt; color: #555; }
+    .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
+    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
+    .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
+    .footer-divider { border-top: 1px solid #999; margin-bottom: 4pt; }
+    .footer-table { width: 100%; border-collapse: collapse; font-size: 8pt; color: #555; }
+    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
+    .content { margin-top: 8pt; }
+    .meta-row { display: flex; gap: 12pt; margin-bottom: 10pt; flex-wrap: wrap; }
+    .meta-item { flex: 1; min-width: 140pt; border: 1px solid #ccc; padding: 4pt 8pt; background-color: #f9f9f9; }
+    .meta-label { font-size: 8.5pt; font-weight: bold; color: #555; }
+    .meta-value { font-size: 10.5pt; }
+    .section-title { font-size: 10.5pt; font-weight: bold; background-color: #1a3a6b; color: #fff; padding: 3pt 8pt; margin: 10pt 0 5pt 0; }
+    .bitacora-table { border: 1px solid #999; border-collapse: collapse; width: 100%; margin-bottom: 10pt; font-size: 10pt; }
+    .bitacora-table th { border: 1px solid #999; padding: 3pt 6pt; background-color: #2c4d7e; color: #fff; text-align: center; }
+    .bitacora-table td { border: 1px solid #ccc; padding: 3pt 6pt; }
+    .bitacora-table .total-row td { background-color: #e8f0fb; font-weight: bold; }
+    .incidencia-badge { background-color: #e74c3c; color: #fff; padding: 1pt 4pt; border-radius: 2px; font-size: 9pt; }
+    .presente-badge { background-color: #27ae60; color: #fff; padding: 1pt 4pt; border-radius: 2px; font-size: 9pt; }
+    .obs-box { border: 1px solid #ccc; padding: 6pt 8pt; min-height: 40pt; font-size: 10.5pt; margin-bottom: 8pt; }
+    .firma-block { margin-top: 30pt; text-align: center; }
+    .firma-linea { border-top: 1px solid #000; width: 200px; margin: 0 auto; margin-top: 40pt; }
+    .firma-nombre { font-weight: bold; font-size: 10pt; margin-top: 4pt; }
+    .firma-cargo  { font-size: 9.5pt; }
+  </style>
+</head>
+<body>
+
+{{> _watermark}}
+
+{{> _header tituloDocumento="REPORTE SEMANAL — CONTROL DE ASISTENCIA"}}
+
+<div class="content">
+
+  <!-- Metadatos del reporte -->
+  <div class="meta-row">
+    <div class="meta-item">
+      <div class="meta-label">Guía responsable</div>
+      <div class="meta-value">{{nombreGuia}}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Semana N°</div>
+      <div class="meta-value">{{semanaNumero}}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Período</div>
+      <div class="meta-value">{{fechaInicio}} al {{fechaFin}}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Actividad(es)</div>
+      <div class="meta-value">{{actividades}}</div>
+    </div>
+  </div>
+
+  <!-- Bitácora de asistencia -->
+  <div class="section-title">REGISTRO DE ASISTENCIA SEMANAL</div>
+  <table class="bitacora-table">
+    <thead>
+      <tr>
+        <th>N°</th>
+        <th>Nombre del Beneficiario</th>
+        <th>CURP</th>
+        <th>Lun</th>
+        <th>Mar</th>
+        <th>Miér</th>
+        <th>Jue</th>
+        <th>Vie</th>
+        <th>Horas<br/>Semana</th>
+        <th>Horas<br/>Acum.</th>
+        <th>Incidencias</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each beneficiarios}}
+      <tr>
+        <td style="text-align:center;">{{add @index 1}}</td>
+        <td>{{nombre}}</td>
+        <td style="font-size:9pt;">{{curp}}</td>
+        <td style="text-align:center;">{{lun}}</td>
+        <td style="text-align:center;">{{mar}}</td>
+        <td style="text-align:center;">{{mie}}</td>
+        <td style="text-align:center;">{{jue}}</td>
+        <td style="text-align:center;">{{vie}}</td>
+        <td style="text-align:center; font-weight:bold;">{{horasSemana}}</td>
+        <td style="text-align:center;">{{horasAcum}}</td>
+        <td style="text-align:center;">{{#if incidencias}}<span class="incidencia-badge">{{incidencias}}</span>{{else}}—{{/if}}</td>
+      </tr>
+      {{/each}}
+      <tr class="total-row">
+        <td colspan="8" style="text-align:right;">TOTALES:</td>
+        <td style="text-align:center;">{{totalHorasSemana}}</td>
+        <td colspan="2"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Observaciones -->
+  <div class="section-title">OBSERVACIONES GENERALES DE LA SEMANA</div>
+  <div class="obs-box">{{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}</div>
+
+  <!-- Leyenda -->
+  <p style="font-size:9pt; margin-bottom:8pt;">
+    <strong>Leyenda:</strong> P = Presente &nbsp;|&nbsp; F = Falta injustificada &nbsp;|&nbsp;
+    FJ = Falta justificada &nbsp;|&nbsp; PP = Presente parcial &nbsp;|&nbsp; N/A = No aplica
+  </p>
+
+  <!-- Firma -->
+  <div class="firma-block">
+    <div class="firma-linea"></div>
+    <p class="firma-nombre">{{nombreGuia}}</p>
+    <p class="firma-cargo">Guía — Programa Reconecta con la Paz</p>
+  </div>
+
+</div>
+
+{{> _footer}}
+
+</body>
+</html>

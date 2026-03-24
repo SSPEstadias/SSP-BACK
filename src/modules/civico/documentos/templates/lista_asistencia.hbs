@@ -1,0 +1,140 @@
+{{!-- Lista de Asistencia — SSPC Reconecta con la Paz --}}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lista de Asistencia — {{nombreActividad}}</title>
+  <style>
+    @page { size: Letter landscape; margin: 1.5cm 2cm 2.5cm 2cm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', Times, serif; font-size: 10.5pt; color: #000; line-height: 1.4; }
+    .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .watermark-img { width: 55%; opacity: 0.07; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+    .header-logo { width: 200px; vertical-align: middle; padding-right: 10pt; }
+    .logo-img { width: 190px; height: auto; }
+    .header-title { vertical-align: middle; text-align: center; }
+    .header-dep { font-size: 10pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
+    .header-prog { font-size: 9.5pt; font-weight: bold; color: #1a3a6b; }
+    .header-sub { font-size: 8.5pt; color: #555; }
+    .header-doc-title { font-size: 9.5pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
+    .header-divider { border-top: 2px solid #1a3a6b; margin: 4pt 0 8pt 0; }
+    .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
+    .footer-divider { border-top: 1px solid #999; margin-bottom: 3pt; }
+    .footer-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; color: #555; }
+    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
+    .content { margin-top: 6pt; }
+    .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8pt; margin-bottom: 10pt; }
+    .meta-item { border: 1px solid #ccc; padding: 3pt 7pt; background-color: #f9f9f9; }
+    .meta-label { font-size: 8pt; font-weight: bold; color: #555; }
+    .meta-value { font-size: 10pt; }
+    .asistencia-table { border: 1px solid #999; border-collapse: collapse; width: 100%; font-size: 9.5pt; }
+    .asistencia-table th { background-color: #1a3a6b; color: #fff; padding: 3pt 5pt; border: 1px solid #999; text-align: center; }
+    .asistencia-table td { border: 1px solid #ccc; padding: 3pt 5pt; }
+    .asistencia-table .firma-cel { width: 80pt; }
+    .asistencia-table .num-cel { width: 24pt; text-align: center; }
+    .pie-firma { display: flex; justify-content: flex-end; margin-top: 28pt; }
+    .firma-linea { border-top: 1px solid #000; width: 200px; text-align: center; margin-top: 38pt; }
+    .firma-nombre { font-weight: bold; font-size: 9.5pt; margin-top: 3pt; }
+    .firma-cargo  { font-size: 9pt; }
+  </style>
+</head>
+<body>
+
+{{> _watermark}}
+
+{{> _header tituloDocumento="LISTA DE ASISTENCIA"}}
+
+<div class="content">
+
+  <!-- Metadatos -->
+  <div class="meta-grid">
+    <div class="meta-item">
+      <div class="meta-label">Actividad</div>
+      <div class="meta-value">{{nombreActividad}}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Fecha</div>
+      <div class="meta-value">{{fecha}}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Horario</div>
+      <div class="meta-value">{{horario}}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Guía responsable</div>
+      <div class="meta-value">{{nombreGuia}}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Lugar</div>
+      <div class="meta-value">{{lugar}}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Total de beneficiarios</div>
+      <div class="meta-value">{{totalBeneficiarios}}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Horas por jornada</div>
+      <div class="meta-value">{{horasPorJornada}} hrs</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Categoría de actividad</div>
+      <div class="meta-value">{{categoriaActividad}}</div>
+    </div>
+  </div>
+
+  <!-- Lista de asistencia -->
+  <table class="asistencia-table">
+    <thead>
+      <tr>
+        <th class="num-cel">#</th>
+        <th>Nombre completo</th>
+        <th>CURP</th>
+        <th>Folio</th>
+        <th>Horas<br/>Sentencia</th>
+        <th>Horas<br/>Acum.</th>
+        <th>Asistencia<br/>(P/F/FJ/PP)</th>
+        <th>Horas<br/>Cubiertas</th>
+        <th>Incidencia</th>
+        <th class="firma-cel">Firma / Huella</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each beneficiarios}}
+      <tr>
+        <td class="num-cel">{{add @index 1}}</td>
+        <td>{{nombre}}</td>
+        <td style="font-size:8.5pt;">{{curp}}</td>
+        <td style="font-size:8.5pt;">{{folio}}</td>
+        <td style="text-align:center;">{{horasSentencia}}</td>
+        <td style="text-align:center;">{{horasAcum}}</td>
+        <td style="text-align:center; font-weight:bold;">{{asistencia}}</td>
+        <td style="text-align:center;">{{horasCubiertas}}</td>
+        <td style="font-size:8.5pt;">{{incidencia}}</td>
+        <td class="firma-cel">&nbsp;</td>
+      </tr>
+      {{/each}}
+      {{!-- Filas vacías para llenar a mano si hay menos beneficiarios --}}
+      {{#times filasVacias}}
+      <tr style="height:22pt;">
+        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      {{/times}}
+    </tbody>
+  </table>
+
+  <!-- Pie de firma del guía -->
+  <div class="pie-firma">
+    <div>
+      <div class="firma-linea"></div>
+      <p class="firma-nombre">{{nombreGuia}}</p>
+      <p class="firma-cargo">Guía Responsable — Programa Reconecta con la Paz</p>
+    </div>
+  </div>
+
+</div>
+
+{{> _footer}}
+
+</body>
+</html>

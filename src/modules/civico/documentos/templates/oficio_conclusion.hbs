@@ -1,0 +1,150 @@
+{{!-- Oficio de Conclusión del Programa — SSPC Reconecta con la Paz --}}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Oficio de Conclusión — {{folioOficio}}</title>
+  <style>
+    @page { size: Letter; margin: 2cm 2cm 2.5cm 3cm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.4; }
+    .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .watermark-img { width: 55%; opacity: 0.08; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+    .header-logo { width: 220px; vertical-align: middle; padding-right: 12pt; }
+    .logo-img { width: 210px; height: auto; }
+    .header-title { vertical-align: middle; text-align: center; }
+    .header-dep { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
+    .header-prog { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
+    .header-sub { font-size: 9pt; color: #555; }
+    .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
+    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
+    .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
+    .footer-divider { border-top: 1px solid #999; margin-bottom: 4pt; }
+    .footer-table { width: 100%; border-collapse: collapse; font-size: 8pt; color: #555; }
+    .footer-left { text-align: left; }
+    .footer-center { text-align: center; }
+    .footer-right { text-align: right; }
+    .content { margin-top: 8pt; }
+    .folio-row { text-align: right; font-size: 10pt; margin-bottom: 14pt; }
+    .folio-label { font-weight: bold; }
+    .ciudad-fecha { margin-bottom: 18pt; }
+    .destinatario-block { margin-bottom: 18pt; }
+    .dest-cargo { font-weight: bold; text-transform: uppercase; }
+    .asunto-block { margin-bottom: 18pt; }
+    .asunto-label { font-weight: bold; text-decoration: underline; }
+    .cuerpo { text-align: justify; margin-bottom: 12pt; }
+    .actividades-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin: 14pt 0; }
+    .actividades-table th, .actividades-table td { border: 1px solid #ccc; padding: 4pt 7pt; font-size: 10pt; }
+    .actividades-table th { background-color: #1a3a6b; color: #fff; text-align: left; }
+    .datos-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin: 14pt 0; }
+    .datos-table th, .datos-table td { border: 1px solid #ccc; padding: 4pt 7pt; font-size: 10pt; }
+    .datos-table th { background-color: #1a3a6b; color: #fff; text-align: left; }
+    .firma-block { margin-top: 40pt; }
+    .firma-linea { border-top: 1px solid #000; width: 240px; margin: 0 auto; margin-top: 48pt; }
+    .firma-nombre { text-align: center; font-weight: bold; font-size: 10pt; margin-top: 4pt; }
+    .firma-cargo  { text-align: center; font-size: 9.5pt; }
+    .firma-sello  { text-align: center; font-style: italic; font-size: 9pt; color: #666; }
+  </style>
+</head>
+<body>
+
+{{> _watermark}}
+
+{{> _header tituloDocumento="OFICIO DE CONCLUSIÓN DEL PROGRAMA"}}
+
+<div class="content">
+
+  <div class="folio-row">
+    <span class="folio-label">FOLIO:</span> {{folioOficio}}
+  </div>
+
+  <div class="ciudad-fecha">
+    <p>{{ciudad}}, {{fechaGeneracion}}</p>
+  </div>
+
+  <div class="destinatario-block">
+    <p class="dest-cargo">{{juezNombre}}</p>
+    <p>{{juezCargo}}</p>
+    <p>{{juzgadoNombre}}</p>
+    <p><strong>P R E S E N T E</strong></p>
+  </div>
+
+  <div class="asunto-block">
+    <p><span class="asunto-label">ASUNTO:</span> Conclusión satisfactoria del Programa Reconecta con la Paz
+    del C. {{nombreBeneficiario}}.</p>
+  </div>
+
+  <p class="cuerpo">
+    Por medio del presente, me dirijo a usted con la finalidad de informarle que el ciudadano
+    <strong>{{nombreBeneficiario}}</strong>, con CURP <strong>{{curp}}</strong>, sujeto a la causa penal
+    <strong>{{causaPenal}}</strong>, ha <strong>concluido satisfactoriamente</strong> las
+    <strong>{{horasSentencia}} horas</strong> de servicio cívico comunitario establecidas por su autoridad,
+    acumulando un total de <strong>{{horasCumplidas}} horas efectivas</strong> en el Programa
+    <em>Reconecta con la Paz</em>.
+  </p>
+
+  <p class="cuerpo">
+    Durante su participación, el ciudadano demostró compromiso, responsabilidad y disposición para el trabajo
+    comunitario, cumpliendo con todas las actividades asignadas dentro del programa.
+  </p>
+
+  <!-- Datos del cumplimiento -->
+  <table class="datos-table">
+    <tr><th colspan="2">RESUMEN DE CUMPLIMIENTO</th></tr>
+    <tr><td><strong>Nombre completo:</strong></td><td>{{nombreBeneficiario}}</td></tr>
+    <tr><td><strong>CURP:</strong></td><td>{{curp}}</td></tr>
+    <tr><td><strong>Folio de incorporación:</strong></td><td>{{folioIncorporacion}}</td></tr>
+    <tr><td><strong>Causa penal:</strong></td><td>{{causaPenal}}</td></tr>
+    <tr><td><strong>Horas ordenadas:</strong></td><td>{{horasSentencia}} hrs</td></tr>
+    <tr><td><strong>Horas cumplidas:</strong></td><td>{{horasCumplidas}} hrs</td></tr>
+    <tr><td><strong>Fecha de inicio:</strong></td><td>{{fechaInicio}}</td></tr>
+    <tr><td><strong>Fecha de conclusión:</strong></td><td>{{fechaConclusion}}</td></tr>
+  </table>
+
+  <!-- Actividades realizadas -->
+  {{#if actividades}}
+  <table class="actividades-table">
+    <thead>
+      <tr>
+        <th>N°</th>
+        <th>Actividad</th>
+        <th>Fecha</th>
+        <th>Horas</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each actividades}}
+      <tr>
+        <td>{{add @index 1}}</td>
+        <td>{{descripcion}}</td>
+        <td>{{fecha}}</td>
+        <td>{{horas}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  <p class="cuerpo">
+    En razón de lo anterior, se solicita respetuosamente a su autoridad tenga a bien emitir la resolución
+    correspondiente que acredite el total cumplimiento de la medida impuesta, y en su caso, disponga lo
+    conducente para la conclusión del proceso penal en favor del ciudadano referido.
+  </p>
+
+  <p class="cuerpo"><strong>ATENTAMENTE</strong></p>
+  <p class="cuerpo"><em>"Por la Seguridad y la Paz Social"</em></p>
+
+  <div class="firma-block">
+    <div class="firma-linea"></div>
+    <p class="firma-nombre">{{firmaNombre}}</p>
+    <p class="firma-cargo">{{firmaCargo}}</p>
+    <p class="firma-sello">Secretaría de Seguridad Pública y Ciudadana del Estado de Oaxaca</p>
+  </div>
+
+</div>
+
+{{> _footer}}
+
+</body>
+</html>

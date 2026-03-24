@@ -34,6 +34,9 @@ import { F4CedulaController }           from './f4-cedula/f4-cedula.controller';
 import { F5SeguimientoController }      from './f5-seguimiento/f5-seguimiento.controller';
 import { OficiosController }            from './oficios/oficios.controller';
 
+// ── Documentos PDF (Handlebars + Puppeteer) ───────────────────────────
+import { DocumentosModule } from './documentos/documentos.module';
+
 // ── Núcleo compartido ─────────────────────────────────────────────────
 import { SharedModule } from '../../shared/shared.module';
 // ── Entidades compartidas que BitacoraService necesita leer ──────────
@@ -53,11 +56,12 @@ import { Beneficiario } from 'src/shared/beneficiarios/beneficiario.entity';
       CedulaInicial,
       SeguimientoPsicologico,
       OficioGenerado,
-      Beneficiario,  
+      Beneficiario,
       Salud,
       Actividad,
     ]),
     SharedModule,
+    DocumentosModule,
   ],
   controllers: [
     ExpedientesCivicoController,

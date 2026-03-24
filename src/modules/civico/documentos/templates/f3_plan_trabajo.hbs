@@ -1,0 +1,129 @@
+{{!-- F3 — Plan de Trabajo Individual — SSPC Reconecta con la Paz --}}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>F3 — Plan de Trabajo — {{nombreBeneficiario}}</title>
+  <style>
+    @page { size: Letter; margin: 2cm 2cm 2.5cm 3cm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.4; }
+    .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .watermark-img { width: 55%; opacity: 0.08; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+    .header-logo { width: 220px; vertical-align: middle; padding-right: 12pt; }
+    .logo-img { width: 210px; height: auto; }
+    .header-title { vertical-align: middle; text-align: center; }
+    .header-dep { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
+    .header-prog { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
+    .header-sub { font-size: 9pt; color: #555; }
+    .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
+    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
+    .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
+    .footer-divider { border-top: 1px solid #999; margin-bottom: 4pt; }
+    .footer-table { width: 100%; border-collapse: collapse; font-size: 8pt; color: #555; }
+    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
+    .content { margin-top: 8pt; }
+    .section-title { font-size: 11pt; font-weight: bold; background-color: #1a3a6b; color: #fff; padding: 4pt 8pt; margin: 12pt 0 6pt 0; }
+    .id-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin-bottom: 10pt; }
+    .id-table td { border: 1px solid #ccc; padding: 4pt 8pt; font-size: 10.5pt; }
+    .id-table td:first-child { font-weight: bold; width: 40%; background-color: #f5f5f5; }
+    .plan-table { border: 1px solid #999; border-collapse: collapse; width: 100%; margin-bottom: 12pt; font-size: 10pt; }
+    .plan-table th { background-color: #1a3a6b; color: #fff; padding: 4pt 6pt; border: 1px solid #999; text-align: center; }
+    .plan-table td { border: 1px solid #ccc; padding: 4pt 6pt; vertical-align: top; }
+    .plan-table .area-name { font-weight: bold; background-color: #eef2f9; }
+    .obs-box { border: 1px solid #ccc; padding: 6pt 8pt; min-height: 50pt; font-size: 10.5pt; margin-bottom: 10pt; }
+    .fecha-row { display: flex; gap: 20pt; margin: 8pt 0; }
+    .fecha-item { flex: 1; }
+    .firmas-row { display: flex; justify-content: space-around; margin-top: 36pt; }
+    .firma-col { text-align: center; width: 45%; }
+    .firma-linea { border-top: 1px solid #000; margin-top: 44pt; }
+    .firma-nombre { font-weight: bold; font-size: 10pt; margin-top: 4pt; }
+    .firma-cargo { font-size: 9.5pt; }
+  </style>
+</head>
+<body>
+
+{{> _watermark}}
+
+{{> _header tituloDocumento="F3 — PLAN DE TRABAJO INDIVIDUAL"}}
+
+<div class="content">
+
+  <!-- Identificación -->
+  <div class="section-title">DATOS GENERALES</div>
+  <table class="id-table">
+    <tr><td>Nombre completo:</td><td>{{nombreBeneficiario}}</td></tr>
+    <tr><td>CURP:</td><td>{{curp}}</td></tr>
+    <tr><td>Folio de incorporación:</td><td>{{folioIncorporacion}}</td></tr>
+    <tr><td>Causa penal:</td><td>{{causaPenal}}</td></tr>
+    <tr><td>Coordinador elaborador:</td><td>{{nombreCoordinador}}</td></tr>
+    <tr><td>Horas de sentencia:</td><td>{{horasSentencia}} hrs</td></tr>
+    <tr><td>Fecha de inicio estimada:</td><td>{{fechaInicio}}</td></tr>
+    <tr><td>Fecha de término estimada:</td><td>{{fechaTermino}}</td></tr>
+    <tr><td>Días asignados:</td><td>{{diasAsignados}}</td></tr>
+  </table>
+
+  <!-- Metas del programa -->
+  {{#if metasPrograma}}
+  <div class="section-title">METAS DEL PROGRAMA</div>
+  <div class="obs-box">{{metasPrograma}}</div>
+  {{/if}}
+
+  <!-- Actividades por categoría -->
+  <div class="section-title">PLAN DE ACTIVIDADES POR CATEGORÍA</div>
+  <table class="plan-table">
+    <thead>
+      <tr>
+        <th style="width:120pt;">Categoría</th>
+        <th>Objetivo</th>
+        <th style="width:90pt;">Estatus</th>
+        <th style="width:110pt;">Cumplimiento</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each actividadesPlan}}
+      <tr>
+        <td class="area-name">{{@key}}</td>
+        <td>{{this.objetivo}}</td>
+        <td style="text-align:center;">{{this.estatus}}</td>
+        <td>{{this.cumplimiento}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <!-- Proyecto de vida -->
+  {{#if proyectoVida}}
+  <div class="section-title">PROYECTO DE VIDA</div>
+  <table class="id-table">
+    {{#each proyectoVida}}
+    <tr><td style="font-weight:bold; background-color:#f5f5f5; width:30%;">{{@key}}</td><td>{{this}}</td></tr>
+    {{/each}}
+  </table>
+  {{/if}}
+
+  <!-- Observaciones -->
+  <div class="section-title">OBSERVACIONES</div>
+  <div class="obs-box">{{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}</div>
+
+  <!-- Firmas -->
+  <div class="firmas-row">
+    <div class="firma-col">
+      <div class="firma-linea"></div>
+      <p class="firma-nombre">{{nombreBeneficiario}}</p>
+      <p class="firma-cargo">Beneficiario</p>
+    </div>
+    <div class="firma-col">
+      <div class="firma-linea"></div>
+      <p class="firma-nombre">{{nombreCoordinador}}</p>
+      <p class="firma-cargo">Coordinador del Programa</p>
+    </div>
+  </div>
+
+</div>
+
+{{> _footer}}
+
+</body>
+</html>
