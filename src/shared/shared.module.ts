@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { BeneficiariosModule } from './beneficiarios/beneficiarios.module';
-import { ActividadesModule }   from './actividades/actividades.module';
-import { SaludModule }         from './salud/salud.module';
-import { UsersModule }         from './users/users.module';  
-import { AuthModule }          from './auth/auth.module';    
-import { Admin } from 'typeorm';
+import { ActividadesModule } from './actividades/actividades.module';
+import { SaludModule } from './salud/salud.module';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -13,7 +12,6 @@ import { Admin } from 'typeorm';
     SaludModule,
     UsersModule,
     AuthModule,
-    
   ],
   exports: [
     BeneficiariosModule,
@@ -27,4 +25,5 @@ import { Admin } from 'typeorm';
   ],
 })
 export class SharedModule {}
+
 
