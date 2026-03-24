@@ -27,6 +27,32 @@ import {
     // POST /civico/f4
     @Post()
     @Roles('Admin')
+    @ApiBody({
+      description: 'Crear Cédula Inicial (F4) — RF-009',
+      examples: {
+        'Cédula completa': {
+          value: {
+            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            coordinadorId: 1,
+            horasACubrir: 40,
+            modalidadFalta: 'Falta administrativa por alteración al orden público',
+            procesoIngreso: {
+              fechaIngreso: '2026-04-01',
+              lugarAsignado: 'Centro Comunitario Norte',
+              observaciones: 'Ingresa en condiciones adecuadas',
+            },
+            estatusF4: 'EN_PROCESO',
+          },
+        },
+        'Cédula mínima': {
+          value: {
+            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            coordinadorId: 1,
+            horasACubrir: 40,
+          },
+        },
+      },
+    })
     create(@Body() dto: CreateCedulaInicialDto) {
       return this.service.create(dto);
     }

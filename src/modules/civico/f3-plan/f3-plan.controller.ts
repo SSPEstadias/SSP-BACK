@@ -28,6 +28,37 @@ import {
     // POST /civico/f3  — falla si F1 o F2 no están COMPLETADOS (RF-008)
     @Post()
     @Roles('Admin')
+    @ApiBody({
+      description: 'Crear Plan de Trabajo (F3) — RF-006. Requiere F1 y F2 COMPLETADOS.',
+      examples: {
+        'Plan completo': {
+          value: {
+            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            coordinadorId: 1,
+            fechaInicioEstimada: '2026-04-01',
+            fechaTerminoEstimada: '2026-06-01',
+            diasAsignados: 'Lunes, Miércoles, Viernes',
+            metasPrograma: 'Cumplir con las 40 horas de servicio comunitario asignadas por el juzgado',
+            actividadesPlan: {
+              EDUCATIVA: { estatus: 'PENDIENTE', objetivo: 'Participar en talleres de educación cívica', cumplimiento: '' },
+              LABORAL: { estatus: 'PENDIENTE', objetivo: 'Realizar actividades de mantenimiento comunitario', cumplimiento: '' },
+            },
+            estatusF3: 'EN_PROCESO',
+          },
+        },
+        'Plan mínimo': {
+          value: {
+            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            coordinadorId: 1,
+            fechaInicioEstimada: '2026-04-01',
+            fechaTerminoEstimada: '2026-06-01',
+            actividadesPlan: {
+              EDUCATIVA: { estatus: 'PENDIENTE', objetivo: 'Talleres cívicos', cumplimiento: '' },
+            },
+          },
+        },
+      },
+    })
     create(@Body() dto: CreatePlanTrabajoDto) {
       return this.service.create(dto);
     }

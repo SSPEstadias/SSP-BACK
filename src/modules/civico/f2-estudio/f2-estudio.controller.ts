@@ -28,6 +28,29 @@ import {
     // POST /civico/f2
     @Post()
     @Roles('Admin', 'TrabajoSocial')
+    @ApiBody({
+      description: 'Crear Estudio Socioeconómico (F2) — RF-005',
+      examples: {
+        'Estudio completo': {
+          value: {
+            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            trabajadorSocialId: 4,
+            ingresoMensual: 8500.00,
+            nivelSocioeconomico: 'MEDIO_BAJO',
+            grupoFamiliar: 'FUNCIONAL',
+            huboViolenciaIntrafamiliar: false,
+            diagnosticoSocial: 'Familia nuclear funcional con recursos económicos limitados. Red de apoyo presente.',
+            estatusF2: 'EN_PROCESO',
+          },
+        },
+        'Estudio mínimo': {
+          value: {
+            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            trabajadorSocialId: 4,
+          },
+        },
+      },
+    })
     create(@Body() dto: CreateEstudioSocioeconomicoDto) {
       return this.service.create(dto);
     }
