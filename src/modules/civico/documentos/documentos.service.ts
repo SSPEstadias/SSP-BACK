@@ -158,22 +158,42 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     await this.browser?.close();
   }
 
-  // Datos que se mezclan en todos los templates (logos, ciudad, firma).
+  // Datos que se mezclan en todos los templates (logos, ciudad, firma, CC).
+  // Ajustar estos valores cuando cambie el titular o las autoridades firmantes.
   private baseContext(): Record<string, string> {
     return {
-      logoEncabezado: this.logoEncabezado,
-      marcaAgua:      this.marcaAgua,
-      ciudad:         'Oaxaca de Juárez, Oaxaca',
-      firmaNombre:    'LIC. NOMBRE DEL TITULAR',
-      firmaCargo:     'Coordinador del Programa Reconecta con la Paz',
+      logoEncabezado:     this.logoEncabezado,
+      marcaAgua:          this.marcaAgua,
+      ciudad:             'Oaxaca de Juárez, Oaxaca',
+      // Firma del titular — actualizar cuando cambie el cargo
+      firmaNombre:        'MTRA. LII YIO PÉREZ ZÁRATE',
+      firmaCargo1:        'DIRECTORA GENERAL DE PREVENCIÓN DEL DELITO',
+      firmaCargo2:        'Y PARTICIPACIÓN CIUDADANA',
+      firmaIniciales:     'LYPZ/gujl',
+      // CC estándar para oficios
+      ccSecretario:       'Almirante I.Mp Dem. Ret. Félix Quiroz Javier, Secretario de Seguridad y Protección Ciudadana del Estado de Oaxaca',
+      ccSubsecretario:    'Dr. Roberto Claudio Castillo Rámirez, Subsecretario de Prevención y Reinserción Social',
+      // Coordinador del programa — para contacto en el cuerpo de los oficios
+      coordinadorNombre:  'Lic. Gandhi Ulises Juárez López, Coordinador del programa "Reconecta con la Paz"',
+      coordinadorTelefono:'951 224 1899',
+      coordinadorEmail:   'dgp.dypc@sspo.gob.mx',
     };
   }
 
   // Método central: compila el template HBS y genera el PDF en Buffer.
   async generarPdf(tipoDocumento: string, datos: Record<string, unknown>): Promise<Buffer> {
-    const rutaTemplate = path.join(resolveDocumentosRoot(), 'templates', `${tipoDocumento}.hbs`);
+    // Busca el template primero en dist/ (producción) y luego en src/ (respaldo para dev
+    // o cuando dist/ tiene el directorio templates/ pero le faltan archivos recién añadidos).
+    const distPath = path.join(__dirname, 'templates', `${tipoDocumento}.hbs`);
+    const srcPath  = path.join(
+      process.cwd(), 'src', 'modules', 'civico', 'documentos',
+      'templates', `${tipoDocumento}.hbs`,
+    );
+    const rutaTemplate = fs.existsSync(distPath) ? distPath
+                       : fs.existsSync(srcPath)  ? srcPath
+                       : null;
 
-    if (!fs.existsSync(rutaTemplate)) {
+    if (!rutaTemplate) {
       throw new InternalServerErrorException(`Template no encontrado: ${tipoDocumento}.hbs`);
     }
 
@@ -225,7 +245,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const folio = String(extras['folioOficio'] ?? `OFC-INCORP-${Date.now()}`);
 
     const buffer = await this.generarPdf('oficio_incorporacion', {
-      folioOficio:        folio,
+      numOficio:          folio,
       fechaGeneracion:    fechaLarga(),
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
@@ -235,12 +255,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       folioIncorporacion: exp.folioIncorporacion,
       fechaIncorporacion: formatDate(ben.fechaIngreso),
       juzgadoNombre:      exp.numJuzgadoCivico ?? 'Juzgado Cívico',
-      juezControl:        exp.juezControl ?? '—',
       juezNombre:         exp.juezControl ?? 'C. JUEZ DE CONTROL',
-      juezCargo:          'Juez Cívico',
+      juezCargoCompleto:  'Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria',
       oficioCanalizacion: exp.oficioCanalizacion ?? '—',
       modalidadFalta:     exp.modalidadFalta ?? '—',
-      tituloDocumento:    'OFICIO DE INCORPORACIÓN AL PROGRAMA',
       ...extras,
     });
 
@@ -267,7 +285,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const folio = String(extras['folioOficio'] ?? `OFC-CONCL-${Date.now()}`);
 
     const buffer = await this.generarPdf('oficio_conclusion', {
-      folioOficio:        folio,
+      numOficio:          folio,
       fechaGeneracion:    fechaLarga(),
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
@@ -279,8 +297,8 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       fechaConclusion:    fechaLarga(),
       juzgadoNombre:      exp.numJuzgadoCivico ?? 'Juzgado Cívico',
       juezNombre:         exp.juezControl ?? 'C. JUEZ DE CONTROL',
-      juezCargo:          'Juez Cívico',
-      tituloDocumento:    'OFICIO DE CONCLUSIÓN DEL PROGRAMA',
+      juezCargoCompleto:  'Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria',
+      oficioCanalizacion: exp.oficioCanalizacion ?? exp.causaPenal,
       actividades:        extras['actividades'] ?? [],
       ...extras,
     });
@@ -313,7 +331,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     });
 
     const buffer = await this.generarPdf('oficio_baja_definitiva', {
-      folioOficio:        folio,
+      numOficio:          folio,
       fechaGeneracion:    fechaLarga(),
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
@@ -327,8 +345,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       totalIncidencias:   incidencias.length,
       juzgadoNombre:      exp.numJuzgadoCivico ?? 'Juzgado Cívico',
       juezNombre:         exp.juezControl ?? 'C. JUEZ DE CONTROL',
-      juezCargo:          'Juez Cívico',
-      tituloDocumento:    'INFORME DE BAJA DEFINITIVA',
+      juezCargoCompleto:  'Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria',
       incidencias: incidencias.map((i) => ({
         tipo:                  i.tipo,
         fechaFormateada:       formatDate(i.fechaIncidencia),
@@ -359,35 +376,14 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   ): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
-    const contactos = exp.contactosFamiliares as Record<string, { nombre: string; telefono: string }> | null;
 
     const buffer = await this.generarPdf('hoja_presentacion', {
       nombreBeneficiario: ben.nombre,
-      curp:               exp.curp,
-      fechaNacimiento:    formatDate(exp.fechaNacimiento),
-      edad:               calcularEdad(exp.fechaNacimiento),
-      genero:             exp.genero ?? '—',
-      estadoCivil:        exp.estadoCivil ?? '—',
-      domicilio:          exp.domicilioCompleto,
-      municipio:          exp.municipio ?? '—',
-      telefono:           exp.telefonoContacto ?? '—',
-      escolaridad:        exp.escolaridadActual ?? '—',
-      ocupacion:          exp.ocupacionActual ?? '—',
-      lenguaIndigena:     exp.lenguaIndigena,
-      religion:           exp.religion,
-      folioIncorporacion: exp.folioIncorporacion,
-      causaPenal:         exp.causaPenal,
-      juzgadoNombre:      exp.numJuzgadoCivico ?? '—',
-      juezControl:        exp.juezControl ?? '—',
-      delitoImputado:     exp.delitoImputado ?? '—',
-      modalidadFalta:     exp.modalidadFalta ?? '—',
-      oficioCanalizacion: exp.oficioCanalizacion ?? '—',
-      horasSentencia:     exp.horasSentencia,
-      fechaIncorporacion: formatDate(ben.fechaIngreso),
-      contactoPadre:      contactos?.['padre'],
-      contactoMadre:      contactos?.['madre'],
-      contactoTutor:      contactos?.['tutor'],
-      tituloDocumento:    'HOJA DE PRESENTACIÓN AL PROGRAMA',
+      fechaHoja:          formatDate(new Date()),
+      actividades:        (extras['actividades'] as unknown[]) ?? [],
+      filasVacias:        (extras['filasVacias'] as number) ?? 5,
+      observaciones:      extras['observaciones'],
+      nombreGuia:         extras['nombreGuia'],
       ...extras,
     });
 
@@ -417,6 +413,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     });
 
     const buffer = await this.generarPdf('ficha_incidencias', {
+      numOficio:          `FICHA-INC-${expedienteId.substring(0, 8).toUpperCase()}`,
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
       folioIncorporacion: exp.folioIncorporacion,
@@ -427,7 +424,6 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       fechaGeneracion:    fechaLarga(),
       totalStrikes:       incidencias.filter((i) => i.esAcumulativa).length,
       totalIncidencias:   incidencias.length,
-      tituloDocumento:    'FICHA TÉCNICA DE INCIDENCIAS',
       incidencias: incidencias.map((i) => ({
         tipo:                  i.tipo,
         fechaFormateada:       formatDate(i.fechaIncidencia),
@@ -549,11 +545,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
       folioIncorporacion: exp.folioIncorporacion,
-      fechaElaboracion:   fechaLarga(),
-      nombrePsicologo:    psicologo?.nombre ?? '—',
-      proyectoVida:       f1.proyectoVida,
-      observaciones:      f1.impresionDiagnostica,
-      tituloDocumento:    'PLAN DE VIDA INDIVIDUALIZADA',
+      fechaIngreso:       formatDate(ben.fechaIngreso).toUpperCase(),
+      nombreGuia:         extras['nombreGuia'] ?? psicologo?.nombre ?? '—',
+      fechaTemporalidad:  extras['fechaTemporalidad'],
+      ejes:               extras['ejes'] ?? [],
       ...extras,
     });
 
