@@ -111,13 +111,27 @@ import {
     @Column({ name: 'horas_sentencia', type: 'int' })
     horasSentencia!: number;
   
-    // ── Días y horario dictados por el Juez (JSONB) ──────────────────
-    // { "dias":["2025-08-02",...], "horas_por_dia":4, "horario":"mañana" }
-    @Column({ name: 'dias_asignados_juzgado', type: 'jsonb', nullable: true })
-    diasAsignadosJuzgado!: object | null;
+    // ── Días asignados por el Juez (solo fechas) ──────────────────────
+    // Ej: ["2025-08-02", "2025-08-03"]
+    @Column({ name: 'dias_asignados_juzgado', type: 'text', array: true, nullable: true })
+    diasAsignadosJuzgado!: string[] | null;
   
     @Column({ name: 'horas_por_dia', type: 'int', nullable: true })
     horasPorDia!: number | null;
+  
+    // ── Fechas del beneficio (oficio de incorporación) ─────────────────
+    @Column({ name: 'fecha_inicio_beneficio', type: 'date', nullable: true })
+    fechaInicioBeneficio!: Date | null;
+  
+    @Column({ name: 'fecha_termino_beneficio', type: 'date', nullable: true })
+    fechaTerminoBeneficio!: Date | null;
+  
+    @Column({ name: 'fecha_oficio_canalizacion', type: 'date', nullable: true })
+    fechaOficioCanalizacion!: Date | null;
+  
+    // "M" = masculino, "F" = femenino — para decidir Lcdo./Lcda. en oficios
+    @Column({ name: 'genero_juez', type: 'varchar', length: 1, nullable: true })
+    generoJuez!: string | null;
   
     // ── Control ──────────────────────────────────────────────────────
     @Column({

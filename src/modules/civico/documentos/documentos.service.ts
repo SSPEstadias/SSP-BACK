@@ -59,6 +59,61 @@ function fechaLarga(): string {
   });
 }
 
+// Convierte una fecha cualquiera a formato largo con día de la semana
+// Ej: "domingo 22 de marzo de 2026"
+function fechaLargaDesde(value: Date | string | null | undefined): string {
+  if (!value) return '—';
+  const d = typeof value === 'string' ? new Date(value) : value;
+  if (isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString('es-MX', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'America/Mexico_City',
+  });
+}
+
+// Convierte una fecha a formato largo SIN día de la semana
+// Ej: "22 de marzo de 2026"
+function fechaLargaSinDia(value: Date | string | null | undefined): string {
+  if (!value) return '—';
+  const d = typeof value === 'string' ? new Date(value) : value;
+  if (isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString('es-MX', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'America/Mexico_City',
+  });
+}
+
+// Extrae los días del array diasAsignadosJuzgado y los formatea como texto legible
+// Ej: "5 y 12 de abril" a partir de ["2026-04-05","2026-04-12"]
+function formatDiasProgramados(dias: string[] | null): string {
+  if (!dias || !Array.isArray(dias) || dias.length === 0) return '';
+  
+  const meses = ['enero','febrero','marzo','abril','mayo','junio',
+                 'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  
+  // Parsear manualmente para evitar desfase UTC
+  const parsed = dias
+    .map(d => {
+      const [y, m, dd] = d.split('-').map(Number);
+      if (!y || !m || !dd) return null;
+      return { dia: dd, mes: m, year: y, mesNombre: meses[m - 1] };
+    })
+    .filter(x => x !== null)
+    .sort((a, b) => (a!.year - b!.year) || (a!.mes - b!.mes) || (a!.dia - b!.dia));
+  
+  if (parsed.length === 0) return '';
+  
+  const partes = parsed.map(f => `${f!.dia} de ${f!.mesNombre}`);
+  
+  if (partes.length === 1) return partes[0];
+  return partes.slice(0, -1).join(', ') + ' y ' + partes[partes.length - 1];
+}
+
 // Calcula la edad en años a partir de una fecha de nacimiento.
 function calcularEdad(fechaNacimiento: Date | string | null): number {
   if (!fechaNacimiento) return 0;
@@ -111,7 +166,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
     // Cargar logos como data URI (sin error si no existen en el entorno)
     const assetsDir = path.join(docRoot, 'assets');
-    const logoPath = path.normalize(path.join(assetsDir, 'logoencabezado_con_margen_derecho(junto 1 sola imagen).png'));
+    const logoPath = path.normalize(path.join(assetsDir, 'logoencabezado_con_margen_derecho.png'));
     const marcaPath = path.normalize(path.join(assetsDir, 'LOGO_RECONECTACONLAPAZ_MARCADE AGUA FONDO EN TODOS LOS ARCHIVOS.jpg'));
     this.logoEncabezado = fs.existsSync(logoPath) ? toDataUri(logoPath) : '';
     this.marcaAgua      = fs.existsSync(marcaPath) ? toDataUri(marcaPath) : '';
@@ -244,6 +299,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const folio = String(extras['folioOficio'] ?? `OFC-INCORP-${Date.now()}`);
 
+    // Determinar género del juez para el template
+    const esJuezFemenino = (exp.generoJuez ?? '').toUpperCase() === 'F';
+
     const buffer = await this.generarPdf('oficio_incorporacion', {
       numOficio:          folio,
       fechaGeneracion:    fechaLarga(),
@@ -253,12 +311,20 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       delitoImputado:     exp.delitoImputado ?? '—',
       horasSentencia:     exp.horasSentencia,
       folioIncorporacion: exp.folioIncorporacion,
-      fechaIncorporacion: formatDate(ben.fechaIngreso),
+      // Fecha de incorporación en formato largo con día de semana
+      fechaIncorporacion: fechaLargaDesde(ben.fechaIngreso),
+      // Fecha de conclusión del beneficio
+      fechaConclusion:    fechaLargaSinDia(exp.fechaTerminoBeneficio),
+      // Fecha del oficio de canalización
+      fechaCanalizacion:  fechaLargaSinDia(exp.fechaOficioCanalizacion),
+      // Días programados de tequios
+      diasProgramados:    formatDiasProgramados(exp.diasAsignadosJuzgado),
       juzgadoNombre:      exp.numJuzgadoCivico ?? 'Juzgado Cívico',
       juezNombre:         exp.juezControl ?? 'C. JUEZ DE CONTROL',
       juezCargoCompleto:  'Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria',
       oficioCanalizacion: exp.oficioCanalizacion ?? '—',
       modalidadFalta:     exp.modalidadFalta ?? '—',
+      esJuezFemenino,
       ...extras,
     });
 
