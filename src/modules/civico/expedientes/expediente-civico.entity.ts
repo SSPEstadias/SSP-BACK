@@ -81,8 +81,8 @@ import {
     contactosFamiliares!: object | null;
   
     // ── Datos Legales ────────────────────────────────────────────────
-    @Column({ name: 'folio_incorporacion', type: 'varchar', length: 50, unique: true })
-    folioIncorporacion!: string;
+    @Column({ name: 'folio_expediente', type: 'varchar', length: 50, unique: true })
+    folioExpediente!: string;
   
     @Column({ name: 'num_juzgado_civico', type: 'varchar', length: 50, nullable: true })
     numJuzgadoCivico!: string | null;

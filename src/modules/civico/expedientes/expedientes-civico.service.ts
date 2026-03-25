@@ -31,7 +31,7 @@ export class ExpedientesCivicoService {
   // ── Listar todos ──────────────────────────────────────────────────
   async findAll(): Promise<ExpedienteCivico[]> {
     return this.expedienteRepo.find({
-      order: { folioIncorporacion: 'DESC' },
+      order: { folioExpediente: 'DESC' },
     });
   }
 
@@ -88,7 +88,7 @@ export class ExpedientesCivicoService {
       .select([
         // Campos del expediente
         'exp.idUUID              AS "expedienteId"',
-        'exp.folioIncorporacion  AS "folioIncorporacion"',
+        'exp.folioExpediente  AS "folioExpediente"',
         'exp.causaPenal          AS "causaPenal"',
         'exp.aliasSobrenombre    AS "aliasSobrenombre"',
         'exp.numJuzgadoCivico    AS "numJuzgadoCivico"',
@@ -124,7 +124,7 @@ export class ExpedientesCivicoService {
       )
       .select([
         'exp.idUUID              AS "expedienteId"',
-        'exp.folioIncorporacion  AS "folioIncorporacion"',
+        'exp.folioExpediente  AS "folioExpediente"',
         'exp.causaPenal          AS "causaPenal"',
         'exp.aliasSobrenombre    AS "aliasSobrenombre"',
         'exp.numJuzgadoCivico    AS "numJuzgadoCivico"',

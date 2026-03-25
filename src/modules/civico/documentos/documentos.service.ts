@@ -130,6 +130,8 @@ function calcularEdad(fechaNacimiento: Date | string | null): number {
 export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   private logoEncabezado!: string;
   private marcaAgua!: string;
+  private logoPresentacion1!: string;
+  private logoPresentacion2!: string;
   private browser!: puppeteer.Browser;
 
   constructor(
@@ -168,8 +170,13 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const assetsDir = path.join(docRoot, 'assets');
     const logoPath = path.normalize(path.join(assetsDir, 'logoencabezado_con_margen_derecho.png'));
     const marcaPath = path.normalize(path.join(assetsDir, 'LOGO_RECONECTACONLAPAZ_MARCADE AGUA FONDO EN TODOS LOS ARCHIVOS.jpg'));
+    const logoPres1Path = path.normalize(path.join(assetsDir, 'Logo_encabezado_expediente.jpg'));
+    const logoPres2Path = path.normalize(path.join(assetsDir, 'LOGO_RECONECTACONLAPAZ.jpg'));
+    
     this.logoEncabezado = fs.existsSync(logoPath) ? toDataUri(logoPath) : '';
     this.marcaAgua      = fs.existsSync(marcaPath) ? toDataUri(marcaPath) : '';
+    this.logoPresentacion1 = fs.existsSync(logoPres1Path) ? toDataUri(logoPres1Path) : '';
+    this.logoPresentacion2 = fs.existsSync(logoPres2Path) ? toDataUri(logoPres2Path) : '';
 
     // Registrar partials HBS (_header, _footer, _watermark, etc.)
     const partialsDir = path.join(docRoot, 'partials');
@@ -191,7 +198,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     }
     if (!Handlebars.helpers['eq']) {
       Handlebars.registerHelper('eq', function (this: unknown, a: unknown, b: unknown, opts: Handlebars.HelperOptions) {
-        return a === b ? opts.fn(this) : opts.inverse(this);
+        if (opts && typeof opts.fn === 'function') {
+          return a === b ? opts.fn(this) : opts.inverse(this);
+        }
+        return a === b;
       });
     }
     if (!Handlebars.helpers['times']) {
@@ -219,6 +229,8 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     return {
       logoEncabezado:     this.logoEncabezado,
       marcaAgua:          this.marcaAgua,
+      logoPresentacion1:  this.logoPresentacion1,
+      logoPresentacion2:  this.logoPresentacion2,
       ciudad:             'Oaxaca de Juárez, Oaxaca',
       // Firma del titular — actualizar cuando cambie el cargo
       firmaNombre:        'MTRA. LII YIO PÉREZ ZÁRATE',
@@ -288,6 +300,38 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  // Genera el folio consecutivo SSyPC/SPRS/DGPDyPC/0000/YYYY
+  private async obtenerFolioConsecutivo(extras: Record<string, unknown>): Promise<string> {
+    if (extras['folioOficio']) return String(extras['folioOficio']);
+
+    const year = new Date().getFullYear();
+    const prefix = `SSyPC/SPRS/DGPDyPC/`;
+    const suffix = `/${year}`;
+
+    // Buscar el último folio del año actual
+    const lastOficio = await this.oficioRepo
+      .createQueryBuilder('o')
+      .where('o.folioOficio LIKE :pattern', { pattern: `${prefix}%${suffix}` })
+      .orderBy('o.fechaGeneracion', 'DESC')
+      .getOne();
+
+    let nextNum = 20;
+    if (lastOficio) {
+      const parts = lastOficio.folioOficio.split('/');
+      // SSyPC / SPRS / DGPDyPC / 0045 / 2026
+      if (parts.length >= 5) {
+        const numStr = parts[parts.length - 2];
+        const parsed = parseInt(numStr, 10);
+        if (!isNaN(parsed)) {
+          nextNum = parsed + 1;
+        }
+      }
+    }
+
+    const numPadded = String(nextNum).padStart(4, '0');
+    return `${prefix}${numPadded}${suffix}`;
+  }
+
   // ── Métodos específicos por tipo de documento ──────────────────────
 
   async generarOficioIncorporacion(
@@ -297,7 +341,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   ): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
-    const folio = String(extras['folioOficio'] ?? `OFC-INCORP-${Date.now()}`);
+    const folio = await this.obtenerFolioConsecutivo(extras);
 
     // Determinar género del juez para el template
     const esJuezFemenino = (exp.generoJuez ?? '').toUpperCase() === 'F';
@@ -310,9 +354,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       causaPenal:         exp.causaPenal,
       delitoImputado:     exp.delitoImputado ?? '—',
       horasSentencia:     exp.horasSentencia,
-      folioIncorporacion: exp.folioIncorporacion,
+      folioExpediente: exp.folioExpediente,
       // Fecha de incorporación en formato largo con día de semana
-      fechaIncorporacion: fechaLargaDesde(ben.fechaIngreso),
+      fechaIncorporacion: fechaLargaDesde(exp.fechaInicioBeneficio ?? ben.fechaIngreso),
       // Fecha de conclusión del beneficio
       fechaConclusion:    fechaLargaSinDia(exp.fechaTerminoBeneficio),
       // Fecha del oficio de canalización
@@ -322,7 +366,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       juzgadoNombre:      exp.numJuzgadoCivico ?? 'Juzgado Cívico',
       juezNombre:         exp.juezControl ?? 'C. JUEZ DE CONTROL',
       juezCargoCompleto:  'Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria',
-      oficioCanalizacion: exp.oficioCanalizacion ?? '—',
+      oficioCanalizacion: exp.numJuzgadoCivico ? `ExFac. ${exp.numJuzgadoCivico}` : (exp.oficioCanalizacion ?? '—'),
       modalidadFalta:     exp.modalidadFalta ?? '—',
       esJuezFemenino,
       ...extras,
@@ -348,7 +392,45 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
-    const folio = String(extras['folioOficio'] ?? `OFC-CONCL-${Date.now()}`);
+    const folio = await this.obtenerFolioConsecutivo(extras);
+    const esJuezFemenino = (exp.generoJuez ?? '').toUpperCase() === 'F';
+
+    // Traer actividades realizadas desde la bitácora (con nombre de actividad)
+    const bitacoraRows = await this.bitacoraRepo
+      .createQueryBuilder('b')
+      .leftJoin('actividades', 'a', 'a.id = b.actividad_id')
+      .select(['b.fecha_actividad AS fecha', 'a.nombre AS nombre', 'b.observaciones AS observaciones'])
+      .where('b.expediente_id = :expedienteId', { expedienteId })
+      .andWhere('b.asistencia IN (:...tipos)', {
+        tipos: [AsistenciaEnum.PRESENTE, AsistenciaEnum.PRESENTE_PARCIAL],
+      })
+      .orderBy('b.fecha_actividad', 'ASC')
+      .getRawMany<{ fecha: string; nombre: string | null; observaciones: string | null }>();
+
+    const actividades = bitacoraRows.map(r => {
+      let desc = (r.nombre ?? r.observaciones ?? 'actividad del programa').trim();
+      const lowerDesc = desc.toLowerCase();
+      
+      const verbosAccion = [
+        'participó', 'participo', 'impartió', 'impartio', 'asistió', 'asistio', 
+        'realizó', 'realizo', 'apoyó', 'apoyo', 'colaboró', 'colaboro', 'coordinó', 'coordino'
+      ];
+      const tieneVerbo = verbosAccion.some(v => lowerDesc.startsWith(v));
+      
+      if (!tieneVerbo) {
+        desc = `Participó en ${desc.charAt(0).toLowerCase() + desc.slice(1)}`;
+      }
+
+      let strFecha = fechaLargaDesde(r.fecha);
+      if (strFecha.startsWith('el ')) {
+        strFecha = strFecha.substring(3); // Removemos 'el ' para que no se duplique en el template
+      }
+
+      return {
+        descripcion: desc,
+        fecha: strFecha,
+      };
+    });
 
     const buffer = await this.generarPdf('oficio_conclusion', {
       numOficio:          folio,
@@ -356,16 +438,18 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
       causaPenal:         exp.causaPenal,
-      folioIncorporacion: exp.folioIncorporacion,
+      folioExpediente: exp.folioExpediente,
       horasSentencia:     exp.horasSentencia,
       horasCumplidas,
-      fechaInicio:        formatDate(ben.fechaIngreso),
+      fechaInicio:        fechaLargaSinDia(ben.fechaIngreso),
       fechaConclusion:    fechaLarga(),
+      fechaCanalizacion:  fechaLargaSinDia(exp.fechaOficioCanalizacion),
       juzgadoNombre:      exp.numJuzgadoCivico ?? 'Juzgado Cívico',
       juezNombre:         exp.juezControl ?? 'C. JUEZ DE CONTROL',
       juezCargoCompleto:  'Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria',
-      oficioCanalizacion: exp.oficioCanalizacion ?? exp.causaPenal,
-      actividades:        extras['actividades'] ?? [],
+      oficioCanalizacion: exp.numJuzgadoCivico ? `ExFac. ${exp.numJuzgadoCivico}` : (exp.oficioCanalizacion ?? exp.causaPenal),
+      actividades,
+      esJuezFemenino,
       ...extras,
     });
 
@@ -389,7 +473,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
-    const folio = String(extras['folioOficio'] ?? `OFC-BAJA-${Date.now()}`);
+    const folio = await this.obtenerFolioConsecutivo(extras);
 
     const incidencias = await this.incidenciaRepo.find({
       where: { expedienteId },
@@ -402,7 +486,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
       causaPenal:         exp.causaPenal,
-      folioIncorporacion: exp.folioIncorporacion,
+      folioExpediente: exp.folioExpediente,
       horasSentencia:     exp.horasSentencia,
       horasCumplidas,
       fechaIncorporacion: formatDate(ben.fechaIngreso),
@@ -447,7 +531,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       nombreBeneficiario: ben.nombre,
       fechaHoja:          formatDate(new Date()),
       actividades:        (extras['actividades'] as unknown[]) ?? [],
-      filasVacias:        (extras['filasVacias'] as number) ?? 5,
+      filasVacias:        (extras['filasVacias'] as number) ?? 3,
       observaciones:      extras['observaciones'],
       nombreGuia:         extras['nombreGuia'],
       ...extras,
@@ -472,6 +556,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   ): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
+    const folio = await this.obtenerFolioConsecutivo(extras);
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
     const incidencias = await this.incidenciaRepo.find({
       where: { expedienteId },
@@ -479,25 +564,31 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     });
 
     const buffer = await this.generarPdf('ficha_incidencias', {
-      numOficio:          `FICHA-INC-${expedienteId.substring(0, 8).toUpperCase()}`,
+      numOficio:          folio,
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
-      folioIncorporacion: exp.folioIncorporacion,
+      folioExpediente: exp.folioExpediente,
       causaPenal:         exp.causaPenal,
       horasSentencia:     exp.horasSentencia,
       horasCumplidas,
       estatusProceso:     exp.estatusProceso,
-      fechaGeneracion:    fechaLarga(),
+      fechaGeneracion:    fechaLargaSinDia(new Date()),
       totalStrikes:       incidencias.filter((i) => i.esAcumulativa).length,
       totalIncidencias:   incidencias.length,
-      incidencias: incidencias.map((i) => ({
-        tipo:                  i.tipo,
-        fechaFormateada:       formatDate(i.fechaIncidencia),
-        descripcionHechos:     i.descripcionHechos,
-        esAcumulativa:         i.esAcumulativa,
-        estatusResolucion:     i.estatusResolucion,
-        numOficioNotificacion: i.numOficioNotificacion ?? '—',
-      })),
+      paginarTabla:       incidencias.length > 2,
+      incidencias: incidencias.map((i) => {
+        let ft = fechaLargaDesde(i.fechaIncidencia);
+        ft = ft.charAt(0).toUpperCase() + ft.slice(1); // "El martes, 7 de abril de 2026"
+        return {
+          tipo:                  i.tipo,
+          fechaFormateada:       formatDate(i.fechaIncidencia),
+          fechaLarga:            ft,
+          descripcionHechos:     i.descripcionHechos,
+          esAcumulativa:         i.esAcumulativa,
+          estatusResolucion:     i.estatusResolucion,
+          numOficioNotificacion: i.numOficioNotificacion ?? '—',
+        };
+      }),
       ...extras,
     });
 
@@ -505,7 +596,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.INFORME_INCIDENCIAS,
-      folioOficio:          `FICHA-INC-${expedienteId}-${Date.now()}`,
+      folioOficio:          folio,
       urlArchivo:           `/civico/documentos/ficha-incidencias/${expedienteId}`,
       nombreArchivoFederal: `${exp.curp}_FICHA_INCIDENCIAS.pdf`,
     });
@@ -528,7 +619,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const buffer = await this.generarPdf('f3_plan_trabajo', {
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
-      folioIncorporacion: exp.folioIncorporacion,
+      folioExpediente: exp.folioExpediente,
       causaPenal:         exp.causaPenal,
       horasSentencia:     exp.horasSentencia,
       nombreCoordinador:  coordinador?.nombre ?? '—',
@@ -570,7 +661,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const buffer = await this.generarPdf('f4_cedula_inicial', {
       nombreBeneficiario:          ben.nombre,
       curp:                        exp.curp,
-      folioIncorporacion:          exp.folioIncorporacion,
+      folioExpediente:          exp.folioExpediente,
       causaPenal:                  exp.causaPenal,
       nombreCoordinador:           coordinador?.nombre ?? '—',
       horasACubrir:                f4.horasACubrir,
@@ -610,7 +701,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const buffer = await this.generarPdf('plan_vida', {
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
-      folioIncorporacion: exp.folioIncorporacion,
+      folioExpediente: exp.folioExpediente,
       fechaIngreso:       formatDate(ben.fechaIngreso).toUpperCase(),
       nombreGuia:         extras['nombreGuia'] ?? psicologo?.nombre ?? '—',
       fechaTemporalidad:  extras['fechaTemporalidad'],

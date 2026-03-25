@@ -99,7 +99,7 @@ import {
     @IsString()
     @IsNotEmpty()
     @MaxLength(50)
-    folioIncorporacion!: string;
+    folioExpediente!: string;
   
     @IsString()
     @IsOptional()
