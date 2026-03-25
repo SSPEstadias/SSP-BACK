@@ -1,129 +1,282 @@
-{{!-- F3 — Plan de Trabajo Individual — SSPC Reconecta con la Paz --}}
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>F3 — Plan de Trabajo — {{nombreBeneficiario}}</title>
+  <title>F3 — Plan de Trabajo</title>
   <style>
-    @page { size: Letter; margin: 2cm 2cm 2.5cm 3cm; }
+    @page {
+      size: Letter;
+      margin: 1.5cm 2cm 2.5cm 2cm;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Times New Roman', Times, serif; font-size: 11pt; color: #000; line-height: 1.4; }
-    .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
-    .watermark-img { width: 100%; height: 100%; object-fit: fill; opacity: 0.12; }
-    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
-    .header-logo { width: 220px; vertical-align: middle; padding-right: 12pt; }
-    .logo-img { width: 210px; height: auto; }
-    .header-title { vertical-align: middle; text-align: center; }
-    .header-dep { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
-    .header-prog { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
-    .header-sub { font-size: 9pt; color: #555; }
-    .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
-    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
-    .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
-    .footer-divider { border-top: 1px solid #999; margin-bottom: 4pt; }
-    .footer-table { width: 100%; border-collapse: collapse; font-size: 8pt; color: #555; }
-    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
-    .content { margin-top: 8pt; }
-    .section-title { font-size: 11pt; font-weight: bold; background-color: #1a3a6b; color: #fff; padding: 4pt 8pt; margin: 12pt 0 6pt 0; }
-    .id-table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin-bottom: 10pt; }
-    .id-table td { border: 1px solid #ccc; padding: 4pt 8pt; font-size: 10.5pt; }
-    .id-table td:first-child { font-weight: bold; width: 40%; background-color: #f5f5f5; }
-    .plan-table { border: 1px solid #999; border-collapse: collapse; width: 100%; margin-bottom: 12pt; font-size: 10pt; }
-    .plan-table th { background-color: #1a3a6b; color: #fff; padding: 4pt 6pt; border: 1px solid #999; text-align: center; }
-    .plan-table td { border: 1px solid #ccc; padding: 4pt 6pt; vertical-align: top; }
-    .plan-table .area-name { font-weight: bold; background-color: #eef2f9; }
-    .obs-box { border: 1px solid #ccc; padding: 6pt 8pt; min-height: 50pt; font-size: 10.5pt; margin-bottom: 10pt; }
-    .fecha-row { display: flex; gap: 20pt; margin: 8pt 0; }
-    .fecha-item { flex: 1; }
-    .firmas-row { display: flex; justify-content: space-around; margin-top: 36pt; }
-    .firma-col { text-align: center; width: 45%; }
-    .firma-linea { border-top: 1px solid #000; margin-top: 44pt; }
-    .firma-nombre { font-weight: bold; font-size: 10pt; margin-top: 4pt; }
-    .firma-cargo { font-size: 9.5pt; }
+    html, body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 11pt;
+      color: #000;
+      line-height: 1.4;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ── Marca de agua a toda página ── */
+    .fondo-pagina {
+      position: fixed;
+      top: -1.5cm; 
+      left: -2cm;
+      width: 21.59cm; 
+      height: 27.94cm;
+      z-index: -10;
+      pointer-events: none;
+      opacity: 0.25;
+    }
+    .fondo-pagina img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+    }
+
+    /* ── Header Logos ── */
+    .header-logos {
+      text-align: left;
+      margin-bottom: 25pt;
+    }
+    .img-logo-1 {
+      height: 70px;
+      width: auto;
+    }
+
+    /* ── Titles ── */
+    .titles-container {
+      text-align: center;
+      margin-bottom: 20pt;
+    }
+    .titles-container p {
+      font-size: 11.5pt;
+      font-weight: bold;
+      margin-bottom: 4pt;
+    }
+    .plan-title {
+      font-size: 13pt;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 15pt;
+    }
+
+    /* ── Contenedor de la Tabla ── */
+    .table-container {
+      width: 100%;
+      margin-bottom: 20pt;
+      page-break-inside: auto;
+    }
+
+    /* ── Table ── */
+    .plan-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 10.5pt;
+      background: transparent !important;
+      page-break-inside: auto;
+    }
+    .plan-table th, .plan-table td {
+      border: 1px solid #000;
+      padding: 6pt;
+      background: transparent;
+    }
+    .plan-table th {
+      font-weight: bold;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    /* ── TRAMPA PARA SALTO DE PÁGINA (P2 NO ESTÉ TAN ARRIBA) ── */
+    .page-spacer-wrapper {
+      width: 100%;
+      border-collapse: collapse;
+      border: none;
+      margin-top: -3cm; /* Compensa el espacio en la página 1 */
+    }
+    .page-spacer-wrapper > thead > tr > td {
+      height: 3cm; /* Genera un margen TOP en la página 2 hacia adelante */
+      padding: 0; border: none;
+    }
+    .page-spacer-wrapper > tbody > tr > td {
+      padding: 0; border: none; vertical-align: top;
+    }
+
+    /* ── Fondos grises SOLO para las cabeceras ── */
+    .gray-header th {
+      background-color: #d9d9d9 !important;
+    }
+
+    /* ── Celdas Proyecto de Vida ── */
+    .pv-cat {
+      font-weight: bold;
+      text-align: center;
+      width: 20%;
+    }
+    .pv-val {
+      text-align: left;
+      text-transform: uppercase;
+    }
+    
+    /* ── Celdas Actividades ── */
+    .act-cat {
+      font-weight: bold;
+      text-align: center;
+      width: 22%;
+      font-size: 9.5pt;
+    }
+    .act-val {
+      text-align: center;
+      vertical-align: middle;
+      text-transform: uppercase;
+      font-size: 9.5pt;
+    }
+
   </style>
 </head>
 <body>
 
-{{> _watermark}}
-
-{{> _header tituloDocumento="F3 — PLAN DE TRABAJO INDIVIDUAL"}}
-
-<div class="content">
-
-  <!-- Identificación -->
-  <div class="section-title">DATOS GENERALES</div>
-  <table class="id-table">
-    <tr><td>Nombre completo:</td><td>{{nombreBeneficiario}}</td></tr>
-    <tr><td>CURP:</td><td>{{curp}}</td></tr>
-    <tr><td>Folio de incorporación:</td><td>{{folioExpediente}}</td></tr>
-    <tr><td>Causa penal:</td><td>{{causaPenal}}</td></tr>
-    <tr><td>Coordinador elaborador:</td><td>{{nombreCoordinador}}</td></tr>
-    <tr><td>Horas de sentencia:</td><td>{{horasSentencia}} hrs</td></tr>
-    <tr><td>Fecha de inicio estimada:</td><td>{{fechaInicio}}</td></tr>
-    <tr><td>Fecha de término estimada:</td><td>{{fechaTermino}}</td></tr>
-    <tr><td>Días asignados:</td><td>{{diasAsignados}}</td></tr>
-  </table>
-
-  <!-- Metas del programa -->
-  {{#if metasPrograma}}
-  <div class="section-title">METAS DEL PROGRAMA</div>
-  <div class="obs-box">{{metasPrograma}}</div>
-  {{/if}}
-
-  <!-- Actividades por categoría -->
-  <div class="section-title">PLAN DE ACTIVIDADES POR CATEGORÍA</div>
-  <table class="plan-table">
-    <thead>
-      <tr>
-        <th style="width:120pt;">Categoría</th>
-        <th>Objetivo</th>
-        <th style="width:90pt;">Estatus</th>
-        <th style="width:110pt;">Cumplimiento</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each actividadesPlan}}
-      <tr>
-        <td class="area-name">{{@key}}</td>
-        <td>{{this.objetivo}}</td>
-        <td style="text-align:center;">{{this.estatus}}</td>
-        <td>{{this.cumplimiento}}</td>
-      </tr>
-      {{/each}}
-    </tbody>
-  </table>
-
-  <!-- Proyecto de vida -->
-  {{#if proyectoVida}}
-  <div class="section-title">PROYECTO DE VIDA</div>
-  <table class="id-table">
-    {{#each proyectoVida}}
-    <tr><td style="font-weight:bold; background-color:#f5f5f5; width:30%;">{{@key}}</td><td>{{this}}</td></tr>
-    {{/each}}
-  </table>
-  {{/if}}
-
-  <!-- Observaciones -->
-  <div class="section-title">OBSERVACIONES</div>
-  <div class="obs-box">{{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}</div>
-
-  <!-- Firmas -->
-  <div class="firmas-row">
-    <div class="firma-col">
-      <div class="firma-linea"></div>
-      <p class="firma-nombre">{{nombreBeneficiario}}</p>
-      <p class="firma-cargo">Beneficiario</p>
-    </div>
-    <div class="firma-col">
-      <div class="firma-linea"></div>
-      <p class="firma-nombre">{{nombreCoordinador}}</p>
-      <p class="firma-cargo">Coordinador del Programa</p>
-    </div>
+  <!-- Marca de Agua (Abarcando físicamente toda la página) -->
+  <div class="fondo-pagina">
+    {{#if logoPresentacion2}}
+    <img src="{{logoPresentacion2}}" alt="Reconecta con la Paz" />
+    {{/if}}
   </div>
 
-</div>
+  <!-- HACK CSS para páginas secundarias -->
+  <table class="page-spacer-wrapper">
+    <thead><tr><td></td></tr></thead>
+    <tbody><tr><td>
 
-{{> _footer}}
+  <!-- Logo esquina superior izquierda -->
+  <div class="header-logos">
+    {{#if logoPresentacion1}}
+    <img src="{{logoPresentacion1}}" class="img-logo-1" alt="Secretaría" />
+    {{/if}}
+  </div>
+
+  <!-- Títulos Centrales -->
+  <div class="titles-container">
+    <p>SUBSECRETARIA DE PREVENCIÓN Y REINSERCIÓN SOCIAL</p>
+    <p>DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA</p>
+    <p>VALORACIÓN CLÍNICA PSICOLÓGICA.</p>
+  </div>
+
+  <!-- Subtítulo de Tabla -->
+  <div class="plan-title">
+    PLAN DE TRABAJO INDIVIDUAL
+  </div>
+
+  <!-- TABLA 1: PROYECTO DE VIDA -->
+  <div class="table-container">
+    <table class="plan-table">
+      <thead>
+        <tr class="gray-header">
+          <th colspan="2" style="font-size: 12pt;">PROYECTO DE VIDA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="pv-cat">PERSONAL</td>
+          <td class="pv-val">{{proyectoVida.personal}}</td>
+        </tr>
+        <tr>
+          <td class="pv-cat">FAMILIAR</td>
+          <td class="pv-val">{{proyectoVida.familiar}}</td>
+        </tr>
+        <tr>
+          <td class="pv-cat">SOCIAL</td>
+          <td class="pv-val">{{proyectoVida.social}}</td>
+        </tr>
+        <tr class="gray-header">
+          <th colspan="2" style="font-size: 11pt;">METAS POR CUMPLIR CON EL PROGRAMA:</th>
+        </tr>
+        <tr>
+          <td colspan="2" class="pv-val" style="height: 45pt; text-align: justify; vertical-align: top;">
+            {{metasPrograma}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TABLA 2: PROCESO DE SEGUIMIENTO -->
+  <div class="table-container">
+    <table class="plan-table">
+      <thead>
+        <tr class="gray-header">
+          <th colspan="4" style="font-size: 11pt;"> PROCESO DE SEGUIMIENTO DE ACTIVIDADES DEL PROGRAMA "RECONECTA CON LA PAZ." </th>
+        </tr>
+        <tr class="gray-header">
+          <th class="act-cat">ACTIVIDAD</th>
+          <th style="width: 25%;">STATUS</th>
+          <th style="width: 28%;">OBJETIVO</th>
+          <th style="width: 25%;">CUMPLIMIENTO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="act-cat">EDUCATIVA</td>
+          <td class="act-val">{{actividadesPlan.EDUCATIVA.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.EDUCATIVA.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.EDUCATIVA.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">PSICOSOCIAL<br>RED DE APOYO</td>
+          <td class="act-val">{{actividadesPlan.PSICOSOCIAL.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.PSICOSOCIAL.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.PSICOSOCIAL.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">PSICOLÓGICA</td>
+          <td class="act-val">{{actividadesPlan.PSICOLOGICA.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.PSICOLOGICA.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.PSICOLOGICA.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">ADICCIONES</td>
+          <td class="act-val">{{actividadesPlan.ADICCIONES.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.ADICCIONES.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.ADICCIONES.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">FAMILIAR</td>
+          <td class="act-val">{{actividadesPlan.FAMILIAR.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.FAMILIAR.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.FAMILIAR.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">LABORAL</td>
+          <td class="act-val">{{actividadesPlan.LABORAL.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.LABORAL.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.LABORAL.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">DEPORTIVA</td>
+          <td class="act-val">{{actividadesPlan.DEPORTIVA.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.DEPORTIVA.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.DEPORTIVA.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">CULTURAL</td>
+          <td class="act-val">{{actividadesPlan.CULTURAL.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.CULTURAL.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.CULTURAL.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat" style="vertical-align: middle;">OBSERVACIONES</td>
+          <td colspan="3" class="pv-val" style="height: 50pt; text-align: justify; vertical-align: top; padding: 6pt;">
+            {{#if observaciones}}{{observaciones}}{{else}}{{observaciones_plan}}{{/if}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+    </td></tr></tbody>
+  </table>
 
 </body>
 </html>

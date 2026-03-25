@@ -6,7 +6,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm';
 import * as Handlebars from 'handlebars';
 import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
@@ -19,6 +19,7 @@ import { PlanTrabajo }      from '../f3-plan/plan-trabajo.entity';
 import { CedulaInicial }    from '../f4-cedula/cedula-inicial';
 import { Incidencia }       from '../incidencias/incidencia.entity';
 import { BitacoraCivica }   from '../bitacora/bitacora-civica.entity';
+import { SeguimientoPsicologico } from '../f5-seguimiento/seguimiento-psicologico.entity';
 import { User }             from '../../../shared/users/entities/user.entity';
 import { OficioGenerado }   from '../oficios/oficio-generado.entity';
 import { AsistenciaEnum, TipoDocumentoEnum } from '../enums/civico.enums';
@@ -47,6 +48,24 @@ function formatDate(value: Date | string | null | undefined): string {
   const dd = String(d.getDate()).padStart(2, '0');
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+// Devuelve la fecha en formato largo español (ej: "22 DE MARZO DEL 2026").
+function fechaLargaFormat(value: Date | string | null | undefined): string {
+  if (!value) return '—';
+  const d = typeof value === 'string' ? new Date(value) : value;
+  if (isNaN(d.getTime())) return String(value);
+  
+  const meses = [
+    'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+    'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+  ];
+  
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = meses[d.getMonth()];
+  const yyyy = d.getFullYear();
+  
+  return `${dd} DE ${mm} DEL ${yyyy}`;
 }
 
 // Devuelve la fecha actual en formato largo español (ej: "24 de marzo de 2026").
@@ -128,11 +147,13 @@ function calcularEdad(fechaNacimiento: Date | string | null): number {
 
 @Injectable()
 export class DocumentosService implements OnModuleInit, OnModuleDestroy {
-  private logoEncabezado!: string;
-  private marcaAgua!: string;
-  private logoPresentacion1!: string;
-  private logoPresentacion2!: string;
-  private browser!: puppeteer.Browser;
+    private logoEncabezado: string = '';
+    private marcaAgua: string = '';
+    private logoPresentacion1: string = '';
+    private logoPresentacion2: string = '';
+    private logoGrecas: string = '';
+    private logoEncabezadoSspc: string = '';
+    private browser!: puppeteer.Browser;
 
   constructor(
     @InjectRepository(ExpedienteCivico)
@@ -161,6 +182,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
     @InjectRepository(OficioGenerado)
     private readonly oficioRepo: Repository<OficioGenerado>,
+
+    @InjectRepository(SeguimientoPsicologico)
+    private readonly seguimientoRepo: Repository<SeguimientoPsicologico>,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -172,11 +196,15 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const marcaPath = path.normalize(path.join(assetsDir, 'LOGO_RECONECTACONLAPAZ_MARCADE AGUA FONDO EN TODOS LOS ARCHIVOS.jpg'));
     const logoPres1Path = path.normalize(path.join(assetsDir, 'Logo_encabezado_expediente.jpg'));
     const logoPres2Path = path.normalize(path.join(assetsDir, 'LOGO_RECONECTACONLAPAZ.jpg'));
+    const grecasPath = path.normalize(path.join(assetsDir, 'grecas_oaxaca.png'));
+    const sspcPath = path.normalize(path.join(assetsDir, 'Logo_EncabezadoSSPC.png'));
     
-    this.logoEncabezado = fs.existsSync(logoPath) ? toDataUri(logoPath) : '';
-    this.marcaAgua      = fs.existsSync(marcaPath) ? toDataUri(marcaPath) : '';
-    this.logoPresentacion1 = fs.existsSync(logoPres1Path) ? toDataUri(logoPres1Path) : '';
-    this.logoPresentacion2 = fs.existsSync(logoPres2Path) ? toDataUri(logoPres2Path) : '';
+    this.logoEncabezado     = fs.existsSync(logoPath) ? toDataUri(logoPath) : '';
+    this.marcaAgua          = fs.existsSync(marcaPath) ? toDataUri(marcaPath) : '';
+    this.logoPresentacion1  = fs.existsSync(logoPres1Path) ? toDataUri(logoPres1Path) : '';
+    this.logoPresentacion2  = fs.existsSync(logoPres2Path) ? toDataUri(logoPres2Path) : '';
+    this.logoGrecas         = fs.existsSync(grecasPath) ? toDataUri(grecasPath) : '';
+    this.logoEncabezadoSspc = fs.existsSync(sspcPath) ? toDataUri(sspcPath) : '';
 
     // Registrar partials HBS (_header, _footer, _watermark, etc.)
     const partialsDir = path.join(docRoot, 'partials');
@@ -300,6 +328,18 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  // Busca si el expediente ya tiene un folio asignado para ese tipo de documento.
+  private async buscarFolioExistente(
+    expedienteId: string,
+    tipoDocumento: TipoDocumentoEnum,
+  ): Promise<string | null> {
+    const oficio = await this.oficioRepo.findOne({
+      where: { expedienteId, tipoDocumento },
+      order: { fechaGeneracion: 'DESC' },
+    });
+    return oficio ? oficio.folioOficio : null;
+  }
+
   // Genera el folio consecutivo SSyPC/SPRS/DGPDyPC/0000/YYYY
   private async obtenerFolioConsecutivo(extras: Record<string, unknown>): Promise<string> {
     if (extras['folioOficio']) return String(extras['folioOficio']);
@@ -341,7 +381,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   ): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
-    const folio = await this.obtenerFolioConsecutivo(extras);
+    
+    // Re-uso de folio si ya existe
+    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.OFICIO_INCORPORACION);
+    const folio = folioExistente ?? (await this.obtenerFolioConsecutivo(extras));
 
     // Determinar género del juez para el template
     const esJuezFemenino = (exp.generoJuez ?? '').toUpperCase() === 'F';
@@ -392,7 +435,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
-    const folio = await this.obtenerFolioConsecutivo(extras);
+    
+    // Re-uso de folio
+    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.OFICIO_CONCLUSION);
+    const folio = folioExistente ?? (await this.obtenerFolioConsecutivo(extras));
     const esJuezFemenino = (exp.generoJuez ?? '').toUpperCase() === 'F';
 
     // Traer actividades realizadas desde la bitácora (con nombre de actividad)
@@ -473,7 +519,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
-    const folio = await this.obtenerFolioConsecutivo(extras);
+    
+    // Re-uso de folio
+    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.OFICIO_BAJA_DEFINITIVA);
+    const folio = folioExistente ?? (await this.obtenerFolioConsecutivo(extras));
 
     const incidencias = await this.incidenciaRepo.find({
       where: { expedienteId },
@@ -556,7 +605,11 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   ): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
-    const folio = await this.obtenerFolioConsecutivo(extras);
+    
+    // Re-uso de folio
+    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.INFORME_INCIDENCIAS);
+    const folio = folioExistente ?? (await this.obtenerFolioConsecutivo(extras));
+    
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
     const incidencias = await this.incidenciaRepo.find({
       where: { expedienteId },
@@ -616,7 +669,12 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
     const coordinador = await this.userRepo.findOne({ where: { id: f3.coordinadorId } });
 
+    // Re-uso de folio
+    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.F3_PLAN_TRABAJO);
+    const folio = folioExistente ?? `F3-${expedienteId.slice(0, 8).toUpperCase()}`;
+
     const buffer = await this.generarPdf('f3_plan_trabajo', {
+      numOficio:          folio,
       nombreBeneficiario: ben.nombre,
       curp:               exp.curp,
       folioExpediente: exp.folioExpediente,
@@ -638,7 +696,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.F3_PLAN_TRABAJO,
-      folioOficio:          `F3-${expedienteId}-${Date.now()}`,
+      folioOficio:          folio,
       urlArchivo:           `/civico/documentos/f3-plan-trabajo/${expedienteId}`,
       nombreArchivoFederal: `${exp.curp}_F3_PLAN_TRABAJO.pdf`,
     });
@@ -653,24 +711,61 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   ): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
+    
+    // F4 Data
     const f4  = await this.f4Repo.findOne({ where: { expedienteId } });
     if (!f4) throw new NotFoundException(`No existe un F4 (Cédula Inicial) para el expediente ${expedienteId}`);
 
-    const coordinador = await this.userRepo.findOne({ where: { id: f4.coordinadorId } });
+    // La Ficha 4 hereda los planes e intenciones documentados en F3
+    const f3  = await this.f3Repo.findOne({ where: { expedienteId } });
+    
+    // Calculamos edad
+    const fn = new Date(exp.fechaNacimiento);
+    const ageDiffMs = Date.now() - fn.getTime();
+    const ageDate = new Date(ageDiffMs);
+    const edad = Math.abs(ageDate.getUTCFullYear() - 1970);
 
+    // Re-uso de folio
+    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.F4_CEDULA_INICIAL);
+    const folio = folioExistente ?? (await this.obtenerFolioConsecutivo({ ...extras, tipoFirma: 'F4' }));
+
+    // Armamos el payload completo
     const buffer = await this.generarPdf('f4_cedula_inicial', {
-      nombreBeneficiario:          ben.nombre,
-      curp:                        exp.curp,
-      folioExpediente:          exp.folioExpediente,
-      causaPenal:                  exp.causaPenal,
-      nombreCoordinador:           coordinador?.nombre ?? '—',
-      horasACubrir:                f4.horasACubrir,
-      modalidadFalta:              f4.modalidadFalta ?? '—',
-      procesoIngreso:              f4.procesoIngreso,
-      seguimientoActividades:      f4.seguimientoActividades,
-      tablaSeguimientoDetallado:   f4.tablaSeguimientoDetallado,
-      proyectoVidaF4:              f4.proyectoVidaF4,
-      tituloDocumento:             'F4 — CÉDULA INICIAL DE SEGUIMIENTO',
+      numOficio:          folio,
+      nombreBeneficiario: ben.nombre,
+      edad:               edad,
+      curp:               exp.curp,
+      estadoCivil:        exp.estadoCivil ?? '—',
+      domicilioCompleto:  exp.domicilioCompleto,
+      codigoPostal:       exp.codigoPostal ?? '—',
+      municipio:          exp.municipio ?? '—',
+      ocupacionActual:    exp.ocupacionActual ?? '—',
+      fechaIngreso:       formatDate(ben.fechaIngreso),
+      telefonoContacto:   exp.telefonoContacto ?? '—',
+      fotoBeneficiario:   await (async () => {
+        const ruta = ben.urlFoto?.trim();
+        if (!ruta) return null;
+        if (ruta.startsWith('http')) return ruta;
+        return fs.existsSync(ruta) ? toDataUri(ruta) : null;
+      })(),
+      
+      causaPenal:         exp.causaPenal,
+      delitoImputado:     exp.delitoImputado ?? '—',
+      modalidadFalta:     exp.modalidadFalta ?? '—',
+      agraviado:          exp.agraviado ?? '—',
+      horasSentencia:     exp.horasSentencia,
+
+      // Info heredada de la F3
+      proyectoVida:       f3?.proyectoVidaF3 ?? {},
+      metasPrograma:      f3?.metasPrograma ?? '',
+      actividadesPlan:    f3?.actividadesPlan ?? {},
+      observacionesPlan:  f3?.observacionesPlan ?? '',
+
+      // Mapeo F4 Nativo
+      procesoIngreso:         f4.procesoIngreso ?? '—',
+      seguimientoActividades: f4.seguimientoActividades ?? {},
+
+      tituloDocumento:    'FICHA TECNICA DE SEGUIMIENTO',
       ...extras,
     });
 
@@ -693,19 +788,71 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   ): Promise<Buffer> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
-    const f1  = await this.f1Repo.findOne({ where: { expedienteId } });
-    if (!f1) throw new NotFoundException(`No existe un F1 (Entrevista) para el expediente ${expedienteId}`);
 
-    const psicologo = await this.userRepo.findOne({ where: { id: f1.psicologoId } });
+    const f1 = await this.f1Repo.findOne({ where: { expedienteId } });
+    const f3 = await this.f3Repo.findOne({ where: { expedienteId } });
+    const psicologo = await this.userRepo.findOne({ where: { id: f1?.psicologoId } });
+
+    // 1. Obtener Guía Asignado desde la Bitácora (si existe algún registro)
+    const primerBitacora = await this.bitacoraRepo.findOne({
+      where: { expedienteId },
+      order: { createdAt: 'ASC' },
+      relations: ['guia']
+    });
+    const nombreGuiaBitacora = primerBitacora?.guia?.nombre?.toUpperCase();
+
+    // 2. Obtener Evidencias de Bitácora (Galería de fotos)
+    const registrosBitacora = await this.bitacoraRepo.find({
+      where: { expedienteId, evidenciaUrl: Not(IsNull()) },
+      order: { fechaActividad: 'ASC' }
+    });
+
+    const evidencias = registrosBitacora.map(reg => {
+      const ruta = reg.evidenciaUrl?.trim();
+      let dataUri = null;
+      if (ruta) {
+        if (ruta.startsWith('http')) {
+          dataUri = ruta;
+        } else if (fs.existsSync(ruta)) {
+          dataUri = toDataUri(ruta);
+        }
+      }
+      return {
+        fecha: formatDate(reg.fechaActividad),
+        actividad: reg.detalleIncidencia || reg.observaciones || 'Actividad sin detalle',
+        url: dataUri
+      };
+    }).filter(e => e.url !== null);
+
+    // 2. Mapeo de Ejes (7 categorías del F5 vs 8 del F3)
+    // El frontend mandará el mapeo o lo extraemos del extras.
+    // Si no viene, usamos un esqueleto básico.
+    const ejesDefault = [
+      { eje: 'SALUD', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+      { eje: 'CAPACITACIÓN PARA EL TRABAJO', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+      { eje: 'TRABAJO', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+      { eje: 'DEPORTE', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+      { eje: 'CULTURA', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+      { eje: 'EDUCACIÓN', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+      { eje: 'SERVICIO SOCIAL A FAVOR DEL ESTADO', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' }
+    ];
 
     const buffer = await this.generarPdf('plan_vida', {
-      nombreBeneficiario: ben.nombre,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
       curp:               exp.curp,
-      folioExpediente: exp.folioExpediente,
-      fechaIngreso:       formatDate(ben.fechaIngreso).toUpperCase(),
-      nombreGuia:         extras['nombreGuia'] ?? psicologo?.nombre ?? '—',
-      fechaTemporalidad:  extras['fechaTemporalidad'],
-      ejes:               extras['ejes'] ?? [],
+      folioExpediente:    exp.folioExpediente,
+      fechaIngreso:       fechaLargaFormat(ben.fechaIngreso),
+      nombreGuia:         extras['nombreGuia'] ?? nombreGuiaBitacora ?? psicologo?.nombre?.toUpperCase() ?? '—',
+      fechaTemporalidad:  fechaLargaFormat(exp.fechaTerminoBeneficio || (f3 as any)?.fechaTerminoEstimada),
+      
+      // Logos e Imágenes (ya inicializados en onModuleInit)
+      logoEncabezado:    this.logoEncabezadoSspc,
+      logoGrecas:        this.logoGrecas,
+      
+      ejes:               extras['ejes'] ?? ejesDefault,
+      evidencias:         evidencias,
+      
+      tituloDocumento:    'PLAN DE VIDA INDIVIDUALIZADA',
       ...extras,
     });
 
@@ -739,6 +886,52 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   }
 
   // ── Helpers privados ───────────────────────────────────────────────
+
+  async generarNotaEvolucion(
+    expedienteId: string,
+    userId: number,
+  ): Promise<Buffer> {
+    const exp = await this.getExpediente(expedienteId);
+    const ben = await this.getBeneficiario(exp.beneficiarioId);
+
+    // Todas las sesiones ordenadas por número de sesión
+    const sesionesRepo = await this.seguimientoRepo.find({
+      where: { expedienteId },
+      order: { numSesion: 'ASC' },
+      relations: ['psicologo'],
+    });
+
+    const sesiones = sesionesRepo.map((s) => ({
+      numSesion: s.numSesion,
+      fecha: formatDate(s.fechaSesion),
+      hora: s.horaSesion || '—',
+      objetivo: s.objetivoSesion || '—',
+      conducta: s.conductaDisposicion || '—',
+      resumen: s.descripcionIntervencion || '—',
+      tema: s.temaSesion || '—',
+      estrategia: s.estrategiaAplicada || '—',
+      plan: s.planTerapeutico || '—',
+      actividades: s.actividadesAsignadasUsuario || '—',
+      observaciones: s.observaciones || '—',
+      fechaProxima: formatDate(s.fechaProximaSesion),
+      nombrePsicologo: s.psicologo?.nombre?.toUpperCase() || '—',
+      // Usar cédula profesional guardada en la sesión, fallback a placeholder
+      cedulaPsicologo: s.cedulaProfesional || '6487612',
+    }));
+
+    const buffer = await this.generarPdf('nota_evolucion', {
+      nombreUsuario: ben.nombre.toUpperCase(),
+      edad: calcularEdad(exp.fechaNacimiento),
+      sexo: (exp.genero || '—').charAt(0).toUpperCase(),
+      folioExpediente: exp.folioExpediente,
+      sesiones,
+
+      // Branding oficial (mismo que oficios de incorporación/conclusión)
+      logoEncabezado:    this.logoEncabezado,
+    });
+
+    return buffer;
+  }
 
   private async getExpediente(expedienteId: string): Promise<ExpedienteCivico> {
     const exp = await this.expedienteRepo.findOne({ where: { idUUID: expedienteId } });

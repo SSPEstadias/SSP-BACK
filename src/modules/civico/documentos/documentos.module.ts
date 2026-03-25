@@ -12,6 +12,7 @@ import { Incidencia }        from '../incidencias/incidencia.entity';
 import { BitacoraCivica }    from '../bitacora/bitacora-civica.entity';
 import { User }              from '../../../shared/users/entities/user.entity';
 import { OficioGenerado }    from '../oficios/oficio-generado.entity';
+import { SeguimientoPsicologico } from '../f5-seguimiento/seguimiento-psicologico.entity';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { OficioGenerado }    from '../oficios/oficio-generado.entity';
       BitacoraCivica,
       User,
       OficioGenerado,
+      SeguimientoPsicologico,
     ]),
   ],
   controllers: [DocumentosController],

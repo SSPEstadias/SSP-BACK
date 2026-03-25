@@ -179,6 +179,22 @@ export class DocumentosController {
     sendPdf(res, buffer, `plan_vida_${expedienteId}.pdf`);
   }
 
+  // ── GET /civico/documentos/nota-evolucion/:expedienteId ──────────
+  @Get('nota-evolucion/:expedienteId')
+  @Roles('Admin', 'Psicologo')
+  @ApiOperation({ summary: 'Generar Nota de Evolución Psicológica (Historial de Sesiones) en PDF' })
+  @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
+  @ApiProduces('application/pdf')
+  @ApiResponse(PDF_RESPONSE)
+  async notaEvolucion(
+    @Param('expedienteId', ParseUUIDPipe) expedienteId: string,
+    @CurrentUser() userId: number,
+    @Res() res: Response,
+  ): Promise<void> {
+    const buffer = await this.documentosService.generarNotaEvolucion(expedienteId, userId);
+    sendPdf(res, buffer, `nota_evolucion_${expedienteId}.pdf`);
+  }
+
   // ── POST /civico/documentos/lista-asistencia ──────────────────────
   @Post('lista-asistencia')
   @Roles('Admin', 'Guia')
