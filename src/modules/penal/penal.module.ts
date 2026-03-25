@@ -8,6 +8,7 @@ import { ValoracionPsicologicaModule } from './valoracion-psicologica/valoracion
 import { EstudioTrabajoSocialModule } from './estudio-trabajo-social/estudio-trabajo-social.module';
 import { PlanTrabajoModule } from './plan-trabajo/plan-trabajo.module';
 import { PlanTrabajoDetalleModule } from './plan-trabajo-detalle/plan-trabajo-detalle.module';
+import { ExpedienteCaratulaModule } from './expediente-caratula/expediente-caratula.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PlanTrabajoDetalleModule } from './plan-trabajo-detalle/plan-trabajo-de
     PlanTrabajoModule,
     PlanTrabajoDetalleModule,
     PlanTrabajoDetalleModule,
+    ExpedienteCaratulaModule,
   ],
   controllers: [PenalController],
   providers: [PenalService],

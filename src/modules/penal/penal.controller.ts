@@ -39,6 +39,16 @@ export class PenalController {
   findAll(): Promise<PenalExpediente[]> {
     return this.penalService.findAll();
   }
+  @Roles(
+    RolUsuario.ADMIN,
+    RolUsuario.PSICOLOGO,
+    RolUsuario.TRABAJO_SOCIAL,
+    RolUsuario.GUIA,
+  )
+  @Get(':id/resumen')
+  getResumenExpediente(@Param('id', ParseIntPipe) id: number) {
+    return this.penalService.getResumenExpediente(id);
+  }
 
   @Roles(
     RolUsuario.ADMIN,
@@ -50,7 +60,6 @@ export class PenalController {
   findOne(@Param('id', ParseIntPipe) id: number): Promise<PenalExpediente> {
     return this.penalService.findOne(id);
   }
-
   @Roles(RolUsuario.ADMIN)
   @Patch(':id')
   update(
