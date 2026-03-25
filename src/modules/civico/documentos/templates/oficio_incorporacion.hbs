@@ -16,18 +16,9 @@
       line-height: 1.5;
       background: none !important;
     }
-    /* ── Marca de agua ─────────────────────────── */
-    .watermark-fondo {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-      background: url('{{logoEncabezado}}') no-repeat left top !important;
-      background-size: cover !important;
-      z-index: -10;
-      opacity: 1;
-      pointer-events: none;
-    }
     /* ── Encabezado ────────────────────────────── */
     .encabezado-lema {
-      font-size: 13pt;
+      font-size: 10pt;
       font-style: italic;
       font-weight: bold;
       text-align: center;
@@ -81,7 +72,7 @@
 </head>
 <body>
   <!-- Marca de agua institucional en TODO el fondo -->
-  <div class="watermark-fondo"></div>
+  <div style="position: fixed; z-index: -1; top:0; left:0; width:100vw; height:100vh; background: url('{{logoEncabezado}}') no-repeat left top; background-size: cover; opacity: 1;"></div>
 
   <!-- Encabezado institucional y tabla de folio -->
   <div class="encabezado-lema">
