@@ -1,4 +1,6 @@
-{{!-- Marca de agua en todas las páginas (posición fija, detrás del contenido) --}}
-<div class="watermark-container" aria-hidden="true">
-  <img src="{{marcaAgua}}" alt="" class="watermark-img" />
-</div>
+<div style="
+    position: fixed; z-index:-1; top:0; left:0; width:100vw; height:100vh; 
+    background: url('{{logoEncabezado}}') no-repeat left top;
+    background-size: cover;
+    opacity: 1;   /* Solo la imagen es transparente si el png así lo es */
+"></div>
