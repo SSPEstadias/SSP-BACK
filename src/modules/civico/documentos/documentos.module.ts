@@ -13,11 +13,11 @@ import { BitacoraCivica }    from '../bitacora/bitacora-civica.entity';
 import { User }              from '../../../shared/users/entities/user.entity';
 import { OficioGenerado }    from '../oficios/oficio-generado.entity';
 import { SeguimientoPsicologico } from '../f5-seguimiento/seguimiento-psicologico.entity';
-import { GoogleDriveModule } from '../../../shared/google-drive/google-drive.module';
+import { CivicoGoogleDriveModule } from '../../../shared/google-drive/civico-google-drive.module';
 
 @Module({
   imports: [
-    GoogleDriveModule,
+    CivicoGoogleDriveModule,
     TypeOrmModule.forFeature([
       ExpedienteCivico,
       Beneficiario,

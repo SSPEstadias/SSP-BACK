@@ -183,116 +183,96 @@ export class DocumentosController {
   // ── GET /civico/documentos/lista-asistencia/:expedienteId ──────────
   @Get('lista-asistencia/:expedienteId')
   @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo')
-  @ApiOperation({ summary: 'Generar Hoja de Presentación Social pre-llenada en PDF' })
+  @ApiOperation({ summary: 'Generar Plantilla de Lista de Asistencia (para imprimir y llenar a mano)' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
   @ApiResponse(PDF_RESPONSE)
   async listaAsistenciaBeneficiario(
     @Param('expedienteId', ParseUUIDPipe) expedienteId: string,
-    @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const { buffer, filename } = await this.documentosService.generarListaAsistenciaBeneficiario(expedienteId, userId);
+    const { buffer, filename } = await this.documentosService.generarTemplateListaAsistencia(expedienteId);
     sendPdf(res, buffer, filename);
   }
 
   // ── POST /civico/documentos/lista-asistencia ──────────────────────
   @Post('lista-asistencia')
   @Roles('Admin', 'Guia')
-  @ApiOperation({ summary: 'Generar Lista de Asistencia en PDF (datos ad-hoc)' })
+  @ApiOperation({ summary: 'Registrar Asistencia en Bitácora y Generar PDF' })
   @ApiProduces('application/pdf')
   @ApiBody({
-    description: 'Datos para la lista de asistencia',
+    description: 'Datos para la asistencia. Si incluyes expedienteId, se guarda en BD y Drive.',
     examples: {
-      'Lista de asistencia ejemplo': {
+      'Asistencia con Registro': {
         value: {
-          nombreActividad: 'Taller de Liderazgo y Valores',
-          fecha: '07/04/2026',
-          horario: '08:00 – 12:00 hrs',
-          nombreGuia: 'MARIO JIMÉNEZ SÁNCHEZ',
-          lugar: 'Centro Comunitario "La Paz", Col. Centro, Oaxaca',
-          totalBeneficiarios: 3,
-          horasPorJornada: 4,
-          categoriaActividad: 'PSICOSOCIAL',
-          filasVacias: 5,
-          beneficiarios: [
-            {
-              nombre: 'JUAN PÉREZ LÓPEZ',
-              curp: 'PELJ000101HOFRNN01',
-              folio: 'OAX-2026-001',
-              horasSentencia: 40,
-              horasAcum: 12,
-              asistencia: 'P',
-              horasCubiertas: 4,
-              incidencia: '',
-            },
-          ],
+          expedienteId:    EXAMPLE_EXP_ID,
+          fecha:           '2026-04-06',
+          horasCubiertas:  4,
+          asistencia:      'PRESENTE',
+          horario:         '08:00 - 12:00',
+          sede:            'Sede Central',
+          actividadNombre: 'Taller de Valores',
+          observaciones:   'Asistencia puntual.',
         },
       },
     },
   })
   @ApiResponse(PDF_RESPONSE)
   async listaAsistencia(
-    @Body() datos: Record<string, unknown>,
+    @Body() datos: any,
+    @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarListaAsistencia(datos);
-    sendPdf(res, buffer, `lista_asistencia_${Date.now()}.pdf`);
+    const { buffer, filename } = await this.documentosService.procesarAsistenciaHibrida(datos, userId);
+    sendPdf(res, buffer, filename);
+  }
+
+  // ── GET /civico/documentos/reporte-semanal/:expedienteId ──────────
+  @Get('reporte-semanal/:expedienteId')
+  @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo')
+  @ApiOperation({ summary: 'Generar Plantilla de Reporte Semanal (para imprimir)' })
+  @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
+  @ApiProduces('application/pdf')
+  @ApiResponse(PDF_RESPONSE)
+  async reporteSemanalBeneficiario(
+    @Param('expedienteId', ParseUUIDPipe) expedienteId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    const { buffer, filename } = await this.documentosService.generarTemplateReporteSemanal(expedienteId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── POST /civico/documentos/reporte-semanal ───────────────────────
   @Post('reporte-semanal')
   @Roles('Admin', 'Guia')
-  @ApiOperation({ summary: 'Generar Reporte Semanal de Guía en PDF (datos ad-hoc)' })
+  @ApiOperation({ summary: 'Registrar Reporte Semanal en Bitácora y Generar PDF' })
   @ApiProduces('application/pdf')
   @ApiBody({
-    description: 'Datos para el reporte semanal',
+    description: 'Datos del reporte semanal. Si incluyes expedienteId, se guarda en Drive y Bitácora.',
     examples: {
-      'Reporte semana 5': {
+      'Reporte con Registro': {
         value: {
-          nombreGuia: 'MARIO JIMÉNEZ SÁNCHEZ',
-          semanaNumero: 5,
-          fechaInicio: '07/04/2026',
-          fechaFin: '11/04/2026',
-          actividades: 'Taller de Liderazgo, Limpieza de Parque',
-          observaciones: 'Semana sin incidencias mayores.',
-          totalHorasSemana: 15,
-          beneficiarios: [
-            {
-              nombre: 'JUAN PÉREZ LÓPEZ',
-              curp: 'PELJ000101HOFRNN01',
-              lun: 'P', mar: 'P', mie: 'P', jue: 'P', vie: 'P',
-              horasSemana: 20,
-              horasAcum: 32,
-              incidencias: '',
-            },
-          ],
+          expedienteId:     EXAMPLE_EXP_ID,
+          semanaNumero:     1,
+          fechaInicio:      '2026-04-06',
+          fechaFin:         '2026-04-10',
+          observaciones:    'Semana productiva, completó todas sus actividades.',
+          renglones: [
+            { fecha: '2026-04-06', asistencia: 'P', descripcion: 'Taller de Mediación' },
+            { fecha: '2026-04-07', asistencia: 'P', descripcion: 'Servicio Comunitario' },
+            { fecha: '2026-04-08', asistencia: 'P', descripcion: 'Sesión Psicológica' }
+          ]
         },
       },
     },
   })
   @ApiResponse(PDF_RESPONSE)
   async reporteSemanal(
-    @Body() datos: Record<string, unknown>,
-    @Res() res: Response,
-  ): Promise<void> {
-    const buffer = await this.documentosService.generarReporteSemanal(datos);
-    sendPdf(res, buffer, `reporte_semanal_${Date.now()}.pdf`);
-  }
-
-  // ── GET /civico/documentos/reporte-semanal/:expedienteId ──────────
-  @Get('reporte-semanal/:expedienteId')
-  @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo')
-  @ApiOperation({ summary: 'Generar Reporte Semanal pre-llenado en PDF' })
-  @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
-  @ApiProduces('application/pdf')
-  @ApiResponse(PDF_RESPONSE)
-  async reporteSemanalBeneficiario(
-    @Param('expedienteId', ParseUUIDPipe) expedienteId: string,
+    @Body() datos: any,
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const { buffer, filename } = await this.documentosService.generarReporteSemanalBeneficiario(expedienteId, userId);
+    const { buffer, filename } = await this.documentosService.procesarReporteSemanalHibrido(datos, userId);
     sendPdf(res, buffer, filename);
   }
 

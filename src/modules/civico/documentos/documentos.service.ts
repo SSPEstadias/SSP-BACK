@@ -24,7 +24,7 @@ import { SeguimientoPsicologico } from '../f5-seguimiento/seguimiento-psicologic
 import { User }             from '../../../shared/users/entities/user.entity';
 import { OficioGenerado }   from '../oficios/oficio-generado.entity';
 import { AsistenciaEnum, TipoDocumentoEnum } from '../enums/civico.enums';
-import { GoogleDriveService } from '../../../shared/google-drive/google-drive.service';
+import { CivicoGoogleDriveService } from '../../../shared/google-drive/civico-google-drive.service';
 
 // Resuelve la carpeta raíz del módulo de documentos.
 // Prueba __dirname (dist/ tras nest build) y cae a src/ como respaldo.
@@ -189,7 +189,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     @InjectRepository(SeguimientoPsicologico)
     private readonly seguimientoRepo: Repository<SeguimientoPsicologico>,
 
-    private readonly driveService: GoogleDriveService,
+    private readonly driveService: CivicoGoogleDriveService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -333,6 +333,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   /**
    * Registra los metadatos del oficio y sincroniza con Google Drive si hay buffer.
    */
+  /**
+   * Registra los metadatos del oficio y sincroniza con Google Drive si hay buffer.
+   */
   async registrarOficio(params: {
     expedienteId: string;
     generadoPorId: number;
@@ -344,7 +347,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   }): Promise<OficioGenerado> {
     const { expedienteId, tipoDocumento, folioOficio, buffer, nombreArchivoFederal } = params;
 
-    // 1. Buscar si ya existe para re-uso/actualización
+    // 1. Buscar si ya existe para re-uso/actualización.
+    // IMPORTANTE: Para reportes y listas, el folioOficio ya debe venir con el índice (ej: REP-1-...)
+    // esto asegura que findOne no encuentre el anterior y cree uno nuevo.
     let oficio = await this.oficioRepo.findOne({
       where: { expedienteId, tipoDocumento, folioOficio },
     });
@@ -359,7 +364,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
         urlArchivo: params.urlArchivo || '',
       });
     } else {
-      // Si ya existe, aseguramos que el nombre del archivo refleje el formato actual
+      // Si ya existe (mismo folio), actualizamos el nombre
       oficio.nombreArchivoFederal = nombreArchivoFederal;
     }
 
@@ -390,45 +395,46 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
           }
 
           if (oficio.driveFileId) {
-            // Es una modificación de un archivo existente
+            // Actualización (solo si el folio es idéntico)
             const driveData = await this.driveService.updateFile(oficio.driveFileId, buffer);
             oficio.urlArchivo = driveData.urlArchivo;
             oficio.esModificacion = true;
             oficio.motivoModificacion = 'Actualización automática del documento';
           } else {
-            // Es un archivo nuevo para este registro
+            // Subida nueva
+            this.logger.debug(`Subiendo nuevo archivo a Drive: ${nombreArchivoFederal} en carpeta ${exp.driveFolderId}`);
             const driveData = await this.driveService.uploadFile(buffer, nombreArchivoFederal, exp.driveFolderId!);
-            oficio.driveFileId = driveData.driveFileId;
-            oficio.urlArchivo = driveData.urlArchivo;
+            
+            if (driveData.driveFileId === 'DRIVE_DISABLED') {
+              this.logger.warn('Google Drive está desactivado. El archivo solo se guardará localmente.');
+            } else {
+              oficio.driveFileId = driveData.driveFileId;
+              oficio.urlArchivo = driveData.urlArchivo;
+              this.logger.log(`Archivo subido con éxito: ${driveData.driveFileId}`);
+            }
           }
         } catch (innerError: any) {
-          // Detectamos si el error es 404 (Not Found) usando el código de la API de Google
-          const isNotFound = innerError.code === 404 || 
-                             innerError.status === 404 ||
+          const isNotFound = innerError.code === 404 || innerError.status === 404 ||
                              String(innerError.message || '').toLowerCase().includes('not found');
 
           if (isNotFound) {
-            this.logger.warn(`Recurso en Drive no encontrado (ID: ${oficio.driveFileId || exp.driveFolderId}). Limpiando IDs obsoletos y re-intentando.`);
-            
-            // Si el archivo dio 404, el ID que teníamos ya no sirve
+            this.logger.warn(`Recurso en Drive no encontrado (404). Re-intentando subida limpia.`);
             oficio.driveFileId = null;
-
-            // Re-creamos/buscamos la carpeta (por si el 404 fue por la carpeta madre borrada)
             exp.driveFolderId = await this.driveService.getOrCreateFolder(folderName);
             await this.expedienteRepo.save(exp);
 
-            // Subimos como archivo nuevo forzado
             const driveData = await this.driveService.uploadFile(buffer, nombreArchivoFederal, exp.driveFolderId!);
             oficio.driveFileId = driveData.driveFileId;
             oficio.urlArchivo = driveData.urlArchivo;
           } else {
+            this.logger.error(`Error en operación Drive: ${innerError.message}`);
             throw innerError;
           }
         }
       } catch (error: any) {
         this.logger.error(`Error crítico en sincronización Drive: ${error.message}`);
-        // Fallback a URL local si falla Drive (pero el registro se guarda)
-        if (!oficio.urlArchivo) {
+        // Fallback robusto: link local si falla la nube
+        if (!oficio.urlArchivo || oficio.urlArchivo === 'DRIVE_DISABLED') {
            oficio.urlArchivo = `/civico/documentos/${nombreArchivoFederal}`;
         }
       }
@@ -455,10 +461,13 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
    * Obtiene un folio profesional estandarizado. 
    * Si ya existe un oficio de ese tipo para el expediente, devuelve el existente para re-uso.
    */
-  private async obtenerFolioDocumento(tipo: TipoDocumentoEnum, expedienteId: string): Promise<string> {
+   private async obtenerFolioDocumento(tipo: TipoDocumentoEnum, expedienteId: string): Promise<string> {
     // 1. ¿Ya existe un oficio de este tipo para este expediente?
     const existente = await this.buscarFolioExistente(expedienteId, tipo);
-    if (existente) return existente;
+    if (existente) {
+      // Si tiene sufijo de versión (ej: -V1), lo limpiamos para devolver la BASE
+      return existente.split('-V')[0];
+    }
 
     // 2. Si no existe, generar nuevo correlativo anual
     const year = new Date().getFullYear();
@@ -956,54 +965,102 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     return { buffer, filename };
   }
 
-  // Lista de asistencia y reporte semanal son ad-hoc (sin expedienteId),
-  // así que no se registran en el historial de oficios.
-  async generarListaAsistencia(datos: Record<string, unknown>): Promise<Buffer> {
-    return this.generarPdf('lista_asistencia', {
-      logoPresentacion1: this.logoPresentacion1,
-      logoPresentacion2: this.logoPresentacion2,
-      tituloDocumento: 'LISTA DE ASISTENCIA',
-      fecha: fechaLarga(),
-      ...datos,
-    });
+  /**
+   * Genera el siguiente número correlativo para un tipo de documento y expediente.
+   */
+  private async obtenerSiguienteNumeroDocumento(expedienteId: string, tipo: TipoDocumentoEnum): Promise<number> {
+    const count = await this.oficioRepo.count({ where: { expedienteId, tipoDocumento: tipo } });
+    return count + 1;
   }
 
-  // Genera la lista de asistencia pre-llenada para un beneficiario.
-  async generarListaAsistenciaBeneficiario(
-    expedienteId: string,
-    userId: number,
-  ): Promise<{ buffer: Buffer; filename: string }> {
+  // ── LISTA DE ASISTENCIA ──────────────────────────────────────────────
+
+  /**
+   * Genera SOLO la plantilla de lista de asistencia para imprimir (GET).
+   * NO se guarda en Drive ni en historial.
+   */
+  async generarTemplateListaAsistencia(expedienteId: string): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
 
-    // Folio estandarizado profesional
-    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.LISTA_ASISTENCIA, expedienteId);
-
-    // Buscamos si hay un guía asignado en bitácora para pre-llenar la firma
-    const primerBitacora = await this.bitacoraRepo.findOne({
-      where: { expedienteId },
-      order: { createdAt: 'ASC' },
-      relations: ['guia']
-    });
+    // Intentar sacar el guía de la bitácora más reciente o el asignado
+    const guia = await this.obtenerGuiaAsignado(expedienteId);
 
     const buffer = await this.generarPdf('lista_asistencia', {
-      numOficio:          folio,
       logoPresentacion1:  this.logoPresentacion1,
       logoPresentacion2:  this.logoPresentacion2,
       nombreBeneficiario: ben.nombre.toUpperCase(),
-      nombreGuia:         primerBitacora?.guia?.nombre?.toUpperCase() || '—',
-      fecha:              '', 
-      observaciones:      '',
+      nombreGuia:         guia?.nombre?.toUpperCase() || '—',
+      tituloDocumento:    'PLANTILLA DE ASISTENCIA - PARA LLENADO MANUAL',
+      fecha:              '',
       actividades:        [],
-      filasVacias:        2,
+      filasVacias:        10,
     });
 
-    const filename = this.generarNombreArchivo(folio, ben.nombre, 'LISTA_ASISTENCIA');
+    const filename = `PLANTILLA_ASISTENCIA - ${ben.nombre.toUpperCase()}.pdf`;
+    return { buffer, filename };
+  }
+
+  /**
+   * Procesa la asistencia real (POST), guarda en Bitácora y sube a Drive.
+   */
+  async procesarAsistenciaHibrida(datos: any, userId: number): Promise<{ buffer: Buffer; filename: string }> {
+    const { expedienteId, fecha, horasCubiertas, asistencia, observaciones, actividadId, horario, sede } = datos;
+
+    if (!expedienteId) {
+      const buffer = await this.generarPdf('lista_asistencia', { ...datos, logoPresentacion1: this.logoPresentacion1 });
+      return { buffer, filename: `asistencia_generica_${Date.now()}.pdf` };
+    }
+
+    const exp = await this.getExpediente(expedienteId);
+    const ben = await this.getBeneficiario(exp.beneficiarioId);
+
+    // 1. Guardar en Bitácora (Persistencia Operativa)
+    const guia = await this.userRepo.findOne({ where: { id: userId } });
+    await this.bitacoraRepo.save({
+      expedienteId,
+      guiaId: userId,
+      fechaActividad: fecha ? new Date(fecha) : new Date(),
+      horasCubiertas: horasCubiertas || 0,
+      asistencia: asistencia || AsistenciaEnum.PRESENTE,
+      observaciones: observaciones || '',
+      actividadId: actividadId || null,
+    });
+
+    // 2. Determinar número incremental
+    const numero = await this.obtenerSiguienteNumeroDocumento(expedienteId, TipoDocumentoEnum.LISTA_ASISTENCIA);
+    const baseFolio = await this.obtenerFolioDocumento(TipoDocumentoEnum.LISTA_ASISTENCIA, expedienteId);
+    const folioUnico = `${baseFolio}-V${numero}`;
+
+    // 3. Actualizar Avance de Horas en el Expediente (Sincronización solicitada)
+    await this.actualizarAvanceHoras(expedienteId);
+
+    // 4. Generar PDF
+    const buffer = await this.generarPdf('lista_asistencia', {
+      numOficio:          folioUnico,
+      logoPresentacion1:  this.logoPresentacion1,
+      logoPresentacion2:  this.logoPresentacion2,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
+      nombreGuia:         guia?.nombre?.toUpperCase() || '—',
+      fecha:              formatDate(fecha) || fechaLarga(),
+      observaciones,
+      actividades: [
+        { 
+          horario: horario || '—', 
+          actividad: datos.actividadNombre || 'Asistencia registrada vía sistema', 
+          sede: sede || 'En Sitio', 
+          firma: 'SINC' 
+        }
+      ],
+    });
+
+    // 5. Registrar en Drive (Nuevos archivos siempre)
+    const filename = this.generarNombreArchivo(folioUnico, ben.nombre, `LISTA ${numero}`);
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.LISTA_ASISTENCIA,
-      folioOficio:          folio,
+      folioOficio:          folioUnico,
       buffer,
       nombreArchivoFederal: filename,
     });
@@ -1011,54 +1068,101 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     return { buffer, filename };
   }
 
-  async generarReporteSemanal(datos: Record<string, unknown>): Promise<Buffer> {
-    return this.generarPdf('reporte_semanal', {
-      logoEncabezadoSspc: this.logoEncabezadoSspc,
-      logoGrecas:         this.logoGrecas,
-      ...datos,
-    });
-  }
+  // ── REPORTE SEMANAL ────────────────────────────────────────────────
 
-  // Genera el reporte semanal pre-llenado para un beneficiario.
-  async generarReporteSemanalBeneficiario(
-    expedienteId: string,
-    userId: number,
-  ): Promise<{ buffer: Buffer; filename: string }> {
+  /**
+   * Genera SOLO la plantilla de reporte semanal para imprimir (GET).
+   */
+  async generarTemplateReporteSemanal(expedienteId: string): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
-
-    // Folio estandarizado profesional
-    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.REPORTE_SEMANAL_GUIA, expedienteId);
-
-    const primerBitacora = await this.bitacoraRepo.findOne({
-      where: { expedienteId },
-      order: { createdAt: 'ASC' },
-      relations: ['guia']
-    });
+    const guia = await this.obtenerGuiaAsignado(expedienteId);
 
     const buffer = await this.generarPdf('reporte_semanal', {
-      numOficio:          folio,
       logoEncabezadoSspc: this.logoEncabezadoSspc,
       logoGrecas:         this.logoGrecas,
       nombreBeneficiario: ben.nombre.toUpperCase(),
-      nombreGuia:         primerBitacora?.guia?.nombre?.toUpperCase() || '—',
-      fecha:              fechaLarga(),
-      fechaPeriodo:       '', 
-      observaciones:      '',
+      nombreGuia:         guia?.nombre?.toUpperCase() || '—',
+      tituloDocumento:    'PLANTILLA REPORTE SEMANAL - PARA LLENADO MANUAL',
       actividades:        [],
     });
 
-    const filename = this.generarNombreArchivo(folio, ben.nombre, 'REPORTE_SEMANAL');
+    const filename = `PLANTILLA_REPORTE - ${ben.nombre.toUpperCase()}.pdf`;
+    return { buffer, filename };
+  }
+
+  /**
+   * Procesa el reporte semanal real (POST), sube a Drive.
+   * NO guarda en Bitácora para evitar duplicar horas (estos ya vienen de los POST diarios).
+   */
+  async procesarReporteSemanalHibrido(datos: any, userId: number): Promise<{ buffer: Buffer; filename: string }> {
+    const { expedienteId, semanaNumero, fechaInicio, fechaFin, observaciones, renglones } = datos;
+
+    if (!expedienteId) {
+      const buffer = await this.generarPdf('reporte_semanal', { ...datos, logoEncabezadoSspc: this.logoEncabezadoSspc });
+      return { buffer, filename: `reporte_generico_${Date.now()}.pdf` };
+    }
+
+    const exp = await this.getExpediente(expedienteId);
+    const ben = await this.getBeneficiario(exp.beneficiarioId);
+    const guia = await this.userRepo.findOne({ where: { id: userId } });
+
+    // 1. Determinar número incremental
+    const numero = await this.obtenerSiguienteNumeroDocumento(expedienteId, TipoDocumentoEnum.REPORTE_SEMANAL_GUIA);
+    const baseFolio = await this.obtenerFolioDocumento(TipoDocumentoEnum.REPORTE_SEMANAL_GUIA, expedienteId);
+    const folioUnico = `${baseFolio}-V${numero}`;
+
+    // 2. Mapear renglones de actividades si vienen en el JSON
+    const listaActividades = Array.isArray(renglones) ? renglones.map(r => ({
+      asistencia:  r.asistencia || 'P',
+      fecha:       formatDate(r.fecha),
+      descripcion: r.descripcion || 'Sin descripción'
+    })) : [];
+
+    // 3. Generar PDF
+    const buffer = await this.generarPdf('reporte_semanal', {
+      numOficio:          folioUnico,
+      logoEncabezadoSspc: this.logoEncabezadoSspc,
+      logoGrecas:         this.logoGrecas,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
+      nombreGuia:         guia?.nombre?.toUpperCase() || '—',
+      fecha:              fechaLarga(),
+      fechaPeriodo:       `${formatDate(fechaInicio)} al ${formatDate(fechaFin)}`,
+      semanaNumero,
+      observaciones,
+      actividades:        listaActividades,
+    });
+
+    // 4. Registrar en Drive con nombre incremental
+    const filename = this.generarNombreArchivo(folioUnico, ben.nombre, `REPORTE ${numero}`);
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.REPORTE_SEMANAL_GUIA,
-      folioOficio:          folio,
+      folioOficio:          folioUnico,
       buffer,
       nombreArchivoFederal: filename,
     });
 
     return { buffer, filename };
+  }
+
+  /**
+   * Recalcula el total de horas cumplidas y actualiza el campo avance_horas en el expediente.
+   */
+  private async actualizarAvanceHoras(expedienteId: string): Promise<void> {
+    const total = await this.calcularHorasCumplidas(expedienteId);
+    await this.expedienteRepo.update({ idUUID: expedienteId }, { avanceHoras: total });
+    this.logger.log(`Horas actualizadas para expediente ${expedienteId}: ${total} hrs.`);
+  }
+
+  private async obtenerGuiaAsignado(expedienteId: string): Promise<User | null> {
+    const bit = await this.bitacoraRepo.findOne({
+      where: { expedienteId },
+      order: { createdAt: 'DESC' },
+      relations: ['guia']
+    });
+    return bit?.guia || null;
   }
 
   // Lista todos los oficios y documentos generados para un expediente específico.

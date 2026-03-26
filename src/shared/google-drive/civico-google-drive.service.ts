@@ -4,8 +4,8 @@ import { google, drive_v3 } from 'googleapis';
 import { Readable } from 'stream';
 
 @Injectable()
-export class GoogleDriveService {
-  private readonly logger = new Logger(GoogleDriveService.name);
+export class CivicoGoogleDriveService {
+  private readonly logger = new Logger(CivicoGoogleDriveService.name);
   private drive: drive_v3.Drive | null = null;
   private rootFolderId: string | null = null;
 
@@ -13,7 +13,7 @@ export class GoogleDriveService {
     const clientId = this.configService.get<string>('GOOGLE_DRIVE_CLIENT_ID');
     const clientSecret = this.configService.get<string>('GOOGLE_DRIVE_CLIENT_SECRET');
     const refreshToken = this.configService.get<string>('GOOGLE_DRIVE_REFRESH_TOKEN');
-    this.rootFolderId = this.configService.get<string>('GOOGLE_DRIVE_FOLDER_ID') ?? null;
+    this.rootFolderId = this.configService.get<string>('CIVICO_DRIVE_FOLDER_ID') ?? null;
 
     if (!clientId || !clientSecret || !refreshToken || !this.rootFolderId) {
       this.logger.warn('Credenciales OAuth2 de Google Drive incompletas. La integración será desactivada.');
