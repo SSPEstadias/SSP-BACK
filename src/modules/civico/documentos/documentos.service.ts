@@ -933,6 +933,14 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     return buffer;
   }
 
+  // Lista todos los oficios y documentos generados para un expediente específico.
+  async listarOficiosBeneficiario(expedienteId: string): Promise<OficioGenerado[]> {
+    return this.oficioRepo.find({
+      where: { expedienteId },
+      order: { fechaGeneracion: 'DESC' },
+    });
+  }
+
   // ── Helpers privados ───────────────────────────────────────────────
 
   async generarNotaEvolucion(

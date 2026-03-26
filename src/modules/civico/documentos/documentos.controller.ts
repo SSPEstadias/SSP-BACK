@@ -24,6 +24,7 @@ import { RolesGuard } from '../../../shared/common/guards/roles.guard';
 import { Roles } from '../../../shared/common/decorators/roles.decorator';
 import { CurrentUser } from '../../../shared/common/decorators/current-user.decorator';
 import { DocumentosService } from './documentos.service';
+import { OficioGenerado } from '../oficios/oficio-generado.entity';
 
 const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
 
@@ -293,6 +294,22 @@ export class DocumentosController {
   ): Promise<void> {
     const buffer = await this.documentosService.generarReporteSemanalBeneficiario(expedienteId, userId);
     sendPdf(res, buffer, `reporte_semanal_${expedienteId}.pdf`);
+  }
+
+  // ── GET /civico/documentos/historial/:expedienteId ────────────────
+  @Get('historial/:expedienteId')
+  @Roles('Admin', 'TrabajoSocial', 'Psicologo', 'Guia')
+  @ApiOperation({ summary: 'Obtener el historial de oficios y documentos generados para un expediente' })
+  @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de oficios encontrados',
+    type: [OficioGenerado],
+  })
+  async historial(
+    @Param('expedienteId', ParseUUIDPipe) expedienteId: string,
+  ): Promise<OficioGenerado[]> {
+    return this.documentosService.listarOficiosBeneficiario(expedienteId);
   }
 
   // ── POST /civico/documentos/generar-custom ────────────────────────
