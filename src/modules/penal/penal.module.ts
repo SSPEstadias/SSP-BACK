@@ -9,6 +9,7 @@ import { EstudioTrabajoSocialModule } from './estudio-trabajo-social/estudio-tra
 import { PlanTrabajoModule } from './plan-trabajo/plan-trabajo.module';
 import { PlanTrabajoDetalleModule } from './plan-trabajo-detalle/plan-trabajo-detalle.module';
 import { ExpedienteCaratulaModule } from './expediente-caratula/expediente-caratula.module';
+import { FichaSeguimientoModule } from './ficha-seguimiento/ficha-seguimiento.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ExpedienteCaratulaModule } from './expediente-caratula/expediente-carat
     PlanTrabajoDetalleModule,
     PlanTrabajoDetalleModule,
     ExpedienteCaratulaModule,
+    FichaSeguimientoModule,
   ],
   controllers: [PenalController],
   providers: [PenalService],
