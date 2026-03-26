@@ -5,13 +5,27 @@ description: Registro de documentos oficiales generados por expediente
 
 ## Descripción
 
-La tabla `civic_oficios_generados` lleva el historial de todos los documentos PDF producidos para un expediente. La nomenclatura federal es: `CURP_TipoDocumento.pdf` (HU-05).
+La tabla `civic_oficios_generados` lleva el historial de todos los documentos PDF producidos para un expediente. Cada documento generado por el [Motor de Documentos PDF](/docs/civico/documentos) se registra aquí automáticamente con su `driveFileId` y `urlArchivo`.
+
+## Nomenclatura de archivos
+
+El campo `nombreArchivoFederal` almacena el nombre del archivo con el siguiente patrón (implementado en `DocumentosService.generarNombreArchivo()`):
+
+```
+TIPO - NOMBRE_BENEFICIARIO - FOLIO.pdf
+```
+
+**Ejemplo:** `INCORPORACION - JUAN PÉREZ LÓPEZ - CVX-2026-001.pdf`
+
+<Note>
+Las historias de usuario HU-05 mencionan `CURP_TipoDocumento.pdf` como nomenclatura federal objetivo. El código actual usa el patrón `TIPO - NOMBRE - FOLIO.pdf`. El campo `nombreArchivoFederal` (columna BD: `nombre_archivo_federal`) actualmente almacena el patrón `TIPO - NOMBRE - FOLIO.pdf`. El nombre del campo preserva la posibilidad de migrar al estándar federal `CURP_TipoDocumento.pdf` sin cambios de esquema.
+</Note>
 
 ## Tipos de documento (`TipoDocumentoEnum`)
 
 | Valor | Descripción |
 |---|---|
-| `OFICIO_CANALIZACION` | Oficio de canalización inicial |
+| `OFICIO_CANALIZACION` | Oficio de canalización inicial (viene del juzgado — `esExterno: true`) |
 | `OFICIO_INCORPORACION` | Incorporación al programa |
 | `OFICIO_CONCLUSION` | Alta definitiva — solo si horas cumplidas ≥ horas sentencia |
 | `INFORME_INCIDENCIAS` | Reporte de incidencias acumuladas |
@@ -21,15 +35,60 @@ La tabla `civic_oficios_generados` lleva el historial de todos los documentos PD
 | `F4_CEDULA_INICIAL` | Cédula para reporte federal |
 | `LISTA_ASISTENCIA` | Lista semanal de asistencia |
 | `REPORTE_SEMANAL_GUIA` | Reporte del guía |
+| `HOJA_PRESENTACION` | Hoja de presentación del beneficiario |
+| `PLAN_VIDA` | Plan de Vida Individualizada |
+| `NOTA_EVOLUCION_PSICOLOGICA` | Nota de evolución psicológica |
 
 ## Endpoints
 
 ### `POST /civico/oficios`
-Registra un oficio generado (URL del archivo almacenado).
+
+Registra manualmente un oficio generado (URL del archivo almacenado). Normalmente los oficios se crean automáticamente desde `DocumentosService`.
+
+**Roles:** `Admin`, `Guia`
+
+---
 
 ### `GET /civico/oficios/expediente/:expedienteId`
-Lista todos los documentos de un expediente.
 
-### `GET /civico/oficios/expediente/:expedienteId/paquete`
-Descarga el ZIP con los archivos requeridos para la plataforma federal (HU-05, RF-016).  
-<Warning>El paquete omite cualquier referencia a UMECAS — exclusivo del módulo Penal.</Warning>
+Lista todos los documentos de un expediente, ordenados por `fechaGeneracion DESC`.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+---
+
+### `GET /civico/oficios/expediente/:expedienteId/tipo?tipo=TIPO`
+
+Filtra los documentos de un expediente por tipo (`TipoDocumentoEnum`).
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+```http
+GET /civico/oficios/expediente/550e8400-.../tipo?tipo=OFICIO_INCORPORACION
+```
+
+---
+
+### `GET /civico/oficios/folio/:folio`
+
+Obtiene un oficio por su folio único.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+---
+
+### `GET /civico/oficios/:id`
+
+Obtiene un oficio por su UUID propio.
+
+**Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+---
+
+### ⚠️ `GET /civico/oficios/expediente/:expedienteId/paquete` — PENDIENTE
+
+<Warning>
+Este endpoint **no está implementado** en la versión actual. No existe la ruta en `oficios.controller.ts`.  
+Se requiere para la historia de usuario HU-05 (RF-016): descarga de un ZIP con todos los documentos requeridos por la plataforma federal.  
+**Workaround temporal:** usar el endpoint `GET /civico/documentos/historial/:expedienteId` para obtener las URLs de Drive y descargar cada documento individualmente.
+</Warning>

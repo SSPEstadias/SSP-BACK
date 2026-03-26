@@ -53,7 +53,8 @@
         "docs/civico/bitacora",
         "docs/civico/incidencias",
         "docs/civico/oficios",
-        "docs/civico/documentos"
+        "docs/civico/documentos",
+        "docs/civico/checklist-qa"
       ]
     },
     {

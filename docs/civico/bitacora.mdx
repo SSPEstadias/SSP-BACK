@@ -9,10 +9,22 @@ Cada registro de bitácora (`civic_bitacora`) documenta una sesión de actividad
 
 **Reglas de negocio:**
 - Máximo **8 horas** por registro (validado en DTO y BD)
-- Si `asistencia = false`, el campo `motivoFalta` es **obligatorio**
+- El campo `asistencia` es un **enum** (`AsistenciaEnum`), no un booleano
+- Para registrar una falta con detalle, usar el campo `detalleIncidencia` (no `motivoFalta` — ese nombre no existe en la entidad)
 - Solo se puede registrar bitácora para expedientes en estatus `EN_SEGUIMIENTO`
 
 **Tabla:** `civic_bitacora` — **PK:** UUID
+
+---
+
+## Valores de asistencia (`AsistenciaEnum`)
+
+| Valor | Descripción |
+|-------|-------------|
+| `PRESENTE` | El beneficiario asistió y cumplió la actividad |
+| `FALTA_JUSTIFICADA` | Ausencia con causa válida (no suma horas) |
+| `FALTA_INJUSTIFICADA` | Ausencia sin justificación (no suma horas) |
+| `PRESENTE_PARCIAL` | Asistió pero cumplió solo parte de la actividad |
 
 ---
 
@@ -35,10 +47,10 @@ curl -X POST http://localhost:3000/civico/bitacora \
     "actividadId": 5,
     "fechaActividad": "2026-03-10",
     "horasCubiertas": 4,
-    "asistencia": true
+    "asistencia": "PRESENTE"
   }'
 ```
-```bash Registro de falta
+```bash Registro de falta injustificada
 curl -X POST http://localhost:3000/civico/bitacora \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
@@ -48,8 +60,22 @@ curl -X POST http://localhost:3000/civico/bitacora \
     "actividadId": 5,
     "fechaActividad": "2026-03-10",
     "horasCubiertas": 0,
-    "asistencia": false,
-    "motivoFalta": "El beneficiario reportó enfermedad con justificante médico"
+    "asistencia": "FALTA_INJUSTIFICADA",
+    "detalleIncidencia": "El beneficiario no se presentó sin aviso previo"
+  }'
+```
+```bash Falta justificada
+curl -X POST http://localhost:3000/civico/bitacora \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "expedienteId": "550e8400-e29b-41d4-a716-446655440000",
+    "guiaId": 3,
+    "actividadId": 5,
+    "fechaActividad": "2026-03-10",
+    "horasCubiertas": 0,
+    "asistencia": "FALTA_JUSTIFICADA",
+    "detalleIncidencia": "Presentó justificante médico"
   }'
 ```
 </CodeGroup>
@@ -63,9 +89,8 @@ curl -X POST http://localhost:3000/civico/bitacora \
   "actividadId": 5,
   "fechaActividad": "2026-03-10",
   "horasCubiertas": "4.00",
-  "asistencia": true,
-  "motivoFalta": null,
-  "evidenciaUrl": null
+  "asistencia": "PRESENTE",
+  "detalleIncidencia": null
 }
 ```
 
@@ -92,15 +117,15 @@ GET /civico/bitacora/expediente/550e8400-e29b-41d4-a716-446655440000
     "idUUID": "a1b2c3d4-...",
     "fechaActividad": "2026-03-10",
     "horasCubiertas": "4.00",
-    "asistencia": true,
+    "asistencia": "PRESENTE",
     "actividadId": 5
   },
   {
     "idUUID": "b2c3d4e5-...",
     "fechaActividad": "2026-03-08",
     "horasCubiertas": "0.00",
-    "asistencia": false,
-    "motivoFalta": "Enfermedad justificada"
+    "asistencia": "FALTA_JUSTIFICADA",
+    "detalleIncidencia": "Enfermedad justificada"
   }
 ]
 ```

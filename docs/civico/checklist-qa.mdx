@@ -1,0 +1,147 @@
+---
+title: Checklist de Revisión — Gestor / QA
+description: Lista de verificación técnica para confirmar que el Módulo Cívico está operativo al 100%
+---
+
+Usa esta página antes de una demo, entrega o pase a producción. Cada ítem debe estar marcado como ✅ antes de liberar.
+
+---
+
+## 1. Infraestructura y arranque
+
+| # | Verificación | Cómo confirmar |
+|---|---|---|
+| 1.1 | `.env` con todas las variables requeridas | Ver [Instalación](/docs/instalacion) |
+| 1.2 | `npm run build` sin errores TypeScript | `npm run build` en terminal |
+| 1.3 | Base de datos PostgreSQL accesible | `npm run start` sin error de conexión |
+| 1.4 | El servidor responde en `http://localhost:3000` | `curl http://localhost:3000` |
+| 1.5 | Swagger UI disponible en `/api` | Abrir `http://localhost:3000/api` |
+
+---
+
+## 2. Autenticación y roles
+
+| # | Verificación | Endpoint |
+|---|---|---|
+| 2.1 | Login con usuario Admin retorna `access_token` | `POST /auth/login` |
+| 2.2 | Token inválido retorna `401` | Cualquier endpoint con token malo |
+| 2.3 | Rol `Guia` no accede a F1 ni F5 | `POST /civico/f1` con rol Guia → `403` |
+| 2.4 | Rol `Psicologo` no puede crear expedientes | `POST /civico/expedientes` con rol Psicologo → `403` |
+
+---
+
+## 3. Flujo cívico completo (happy path)
+
+Sigue este orden para verificar el flujo estándar de un beneficiario:
+
+| Paso | Acción | Resultado esperado |
+|------|--------|-------------------|
+| 3.1 | `POST /shared/beneficiarios` | `201` — beneficiario creado |
+| 3.2 | `POST /civico/expedientes` | `201` — expediente con `estatusProceso: INDUCCION` |
+| 3.3 | `POST /civico/f1` | `201` — entrevista en `PENDIENTE` |
+| 3.4 | `PATCH /civico/f1/:id/estatus` `{ "estatus": "COMPLETADO" }` | `200` — F1 en `COMPLETADO` |
+| 3.5 | `POST /civico/f2` | `201` — estudio en `PENDIENTE` |
+| 3.6 | `PATCH /civico/f2/:id/estatus` `{ "estatus": "COMPLETADO" }` | `200` — F2 en `COMPLETADO` |
+| 3.7 | `GET /civico/f2/expediente/:id/candado-f3` | `{ "habilitado": true }` |
+| 3.8 | `POST /civico/f3` | `201` — plan creado |
+| 3.9 | `POST /civico/bitacora` con `"asistencia": "PRESENTE"` | `201` — horas suman en expediente |
+| 3.10 | `GET /civico/expedientes/:id` | `avanceHoras` incrementado |
+
+---
+
+## 4. Candado F1+F2→F3 (RF-008)
+
+| # | Verificación | Resultado esperado |
+|---|---|---|
+| 4.1 | Intentar `POST /civico/f3` sin F1 creado | `403 Forbidden` + mensaje |
+| 4.2 | Intentar `POST /civico/f3` con F1 en `EN_PROCESO` (no `COMPLETADO`) | `403 Forbidden` |
+| 4.3 | Intentar `POST /civico/f3` con F1 `COMPLETADO` pero F2 `PENDIENTE` | `403 Forbidden` |
+| 4.4 | Con F1 y F2 en `COMPLETADO` → `POST /civico/f3` | `201 Created` ✅ |
+| 4.5 | `POST /civico/f3` por segunda vez mismo expediente | `409 Conflict` |
+
+---
+
+## 5. Lógica de 3 strikes — Incidencias (RF-013)
+
+| # | Verificación | Resultado esperado |
+|---|---|---|
+| 5.1 | `POST /civico/incidencias` 1ª falta acumulativa | `201` — estatus expediente sin cambio |
+| 5.2 | `POST /civico/incidencias` 2ª falta acumulativa | `201` — estatus expediente sin cambio |
+| 5.3 | `POST /civico/incidencias` 3ª falta acumulativa | `201` — `estatusProceso` → `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` |
+| 5.4 | `INASISTENCIA_JUSTIFICADA`, `VISITA_DOMICILIARIA`, `CONVERSATORIO` | No incrementan contador de strikes |
+
+---
+
+## 6. Generación de documentos PDF
+
+| # | Endpoint | Resultado esperado |
+|---|---|---|
+| 6.1 | `GET /civico/documentos/oficio-incorporacion/:id` | PDF descargable (`Content-Type: application/pdf`) |
+| 6.2 | `GET /civico/documentos/oficio-conclusion/:id` (horas completas, F1–F5 `CERRADO`) | PDF descargable |
+| 6.3 | `GET /civico/documentos/oficio-conclusion/:id` (horas incompletas) | `403 Forbidden` |
+| 6.4 | `GET /civico/documentos/informe-baja/:id` | PDF descargable |
+| 6.5 | `GET /civico/documentos/ficha-incidencias/:id` | PDF descargable |
+| 6.6 | `GET /civico/documentos/f3-plan-trabajo/:id` | PDF descargable |
+| 6.7 | `GET /civico/documentos/f4-cedula-inicial/:id` | PDF descargable |
+| 6.8 | `GET /civico/documentos/plan-vida/:id` | PDF descargable |
+| 6.9 | `GET /civico/documentos/nota-evolucion/:id` | PDF descargable |
+| 6.10 | `GET /civico/documentos/lista-asistencia/:id` | PDF plantilla descargable |
+| 6.11 | `GET /civico/documentos/reporte-semanal/:id` | PDF plantilla descargable |
+| 6.12 | `GET /civico/documentos/historial/:id` | Array JSON con oficios registrados |
+
+---
+
+## 7. Integración con Google Drive
+
+| # | Verificación | Resultado esperado |
+|---|---|---|
+| 7.1 | Variables de Drive **no** configuradas | Servidor arranca con aviso en log; PDFs se siguen generando localmente |
+| 7.2 | Variables de Drive **sí** configuradas | Logs muestran `Google Drive Service (OAuth2) inicializado con éxito` |
+| 7.3 | Generar un documento con Drive activo | `GET /civico/documentos/historial/:id` muestra `driveFileId` y URL de Drive |
+| 7.4 | Generar el mismo documento dos veces (mismo `folioOficio`) | El archivo en Drive se **actualiza** (no duplica) |
+
+---
+
+## 8. Nomenclatura de archivos
+
+| # | Verificación | Resultado esperado |
+|---|---|---|
+| 8.1 | Generar oficio de incorporación y revisar `nombreArchivoFederal` en historial | Formato: `INCORPORACION - NOMBRE BENEFICIARIO - FOLIO.pdf` |
+| 8.2 | El nombre no contiene caracteres especiales ni barras `/` | Los `/` del folio se convierten en `-` |
+
+---
+
+## 9. Pendientes conocidos — no bloquean entrega
+
+<Warning>
+Los siguientes ítems están documentados como **no implementados** en la versión actual. No se deben marcar como completados hasta que se implemente el código correspondiente.
+</Warning>
+
+| # | Funcionalidad pendiente | Referencia |
+|---|---|---|
+| P.1 | **ZIP paquete federal** — `GET /civico/oficios/expediente/:id/paquete` | HU-05 / RF-016 |
+| P.2 | **Prellenado Google Forms** — construcción de URLs con datos del beneficiario | HU pendiente |
+
+**Workaround para P.1:** usar `GET /civico/documentos/historial/:id` para obtener las URLs de Drive de cada documento y descargarlos individualmente.
+
+---
+
+## Resumen de estado del sistema
+
+```
+✅ Expedientes              — CRUD completo
+✅ F1 Entrevista           — CRUD + cambio de estatus
+✅ F2 Estudio              — CRUD + candado-F3 endpoint
+✅ F3 Plan de Trabajo      — Candado RF-008 implementado
+✅ F4 Cédula Inicial       — CRUD + bloques JSONB
+✅ F5 Notas de Evolución   — 1:N por expediente
+✅ Bitácora                — AsistenciaEnum (no booleano), suma horas automática
+✅ Incidencias             — 3 strikes → baja automática
+✅ Generación de PDF       — 10 plantillas HBS + Puppeteer
+✅ Google Drive Upload     — OAuth2, activación automática por env vars
+✅ Nomenclatura archivos   — TIPO - NOMBRE - FOLIO.pdf
+✅ Historial de oficios    — Registro completo con driveFileId
+
+⚠️ ZIP paquete federal    — PENDIENTE (HU-05/RF-016)
+⚠️ Prellenado Google Forms — PENDIENTE
+```

@@ -30,6 +30,7 @@ src/
 | ORM | TypeORM |
 | Autenticación | JWT (RFC 7519) + Bcrypt |
 | Generación de PDF | Puppeteer + Handlebars |
+| Integración nube | Google Drive API v3 (OAuth2) |
 | Metodología | Kanban (Trello) |
 
 ## URL base
@@ -39,3 +40,79 @@ http://localhost:3000
 ```
 
 Todos los endpoints del módulo Cívico tienen el prefijo `/civico/`.
+
+---
+
+## Estado de funcionalidades (rama `plantillascorreciones`)
+
+Las siguientes tablas reflejan el estado **real** de cada funcionalidad según el código actualmente en la rama `plantillascorreciones`.
+
+### ✅ Funcionalidades implementadas
+
+| Funcionalidad | Módulo / Archivo clave | Notas |
+|---|---|---|
+| CRUD Expedientes cívicos | `expedientes/` | UUID como PK, soft-delete |
+| F1 Entrevista Psicológica | `f1-entrevista/` | 1:1 con expediente, bloques JSONB |
+| F2 Estudio Socioeconómico | `f2-estudio/` | 1:1, candado-F3 endpoint |
+| F3 Plan de Trabajo | `f3-plan/` | **Candado RF-008**: solo crea si F1 y F2 están `COMPLETADO` |
+| F4 Cédula Inicial | `f4-cedula/` | Bloques JSONB por categoría |
+| F5 Notas de Evolución | `f5-seguimiento/` | 1:N (múltiples sesiones por expediente) |
+| Bitácora de Actividades | `bitacora/` | Suma horas al expediente automáticamente |
+| Incidencias (3 strikes) | `incidencias/` | Baja automática al 3.ª incidencia acumulativa |
+| Generación de PDFs | `documentos/` | 10+ plantillas HBS + Puppeteer |
+| **Subida a Google Drive** | `documentos.service.ts` + `civico-google-drive.service.ts` | OAuth2; se activa con las 4 variables de entorno (ver Instalación) |
+| **Nomenclatura de archivos** | `documentos.service.ts:generarNombreArchivo()` | Formato: `TIPO - NOMBRE_BENEFICIARIO - FOLIO.pdf` |
+| Registro de oficios generados | `oficios/` | Historial por expediente con `driveFileId` y `urlArchivo` |
+| CRUD Beneficiarios, Actividades, Salud, Usuarios | `shared/` | Módulo compartido |
+| Autenticación JWT + Roles | `shared/auth/` | Roles: `Admin`, `Psicologo`, `TrabajoSocial`, `Guia` |
+
+### ⚠️ Funcionalidades pendientes
+
+| Funcionalidad | Estado | Referencia |
+|---|---|---|
+| **ZIP paquete federal** (`GET /civico/oficios/expediente/:id/paquete`) | ❌ Endpoint **no implementado** — el controlador de oficios no incluye esta ruta | HU-05 / RF-016 |
+| **Prellenado Google Forms** | ❌ **No implementado** — no existe lógica de construcción de URLs de prefill en el codebase | HU pendiente |
+| Módulo Voluntarios | 🚧 Estructura presente, lógica en desarrollo | — |
+
+<Warning>
+La nomenclatura de archivos **real** es `TIPO - NOMBRE_BENEFICIARIO - FOLIO.pdf` (p. ej. `INCORPORACION - JUAN PÉREZ LÓPEZ - CVX-2026-001.pdf`). La referencia a `CURP_TipoDocumento.pdf` en historias de usuario anteriores **no coincide con el código actual** y debe tomarse como nomenclatura provisional descartada.
+</Warning>
+
+---
+
+## Checklist de revisión — Gestor / QA
+
+Usa esta lista para verificar que el sistema está al 100% antes de una entrega o demo. Consulta también la página [Checklist QA](/docs/civico/checklist-qa) para el detalle técnico completo.
+
+### Infraestructura
+
+- [ ] Variables de entorno configuradas (`DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`, `JWT_SECRET`)
+- [ ] Variables de Google Drive configuradas (`GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`, `GOOGLE_DRIVE_REFRESH_TOKEN`, `CIVICO_DRIVE_FOLDER_ID`) — **opcionales; si faltan, la subida a Drive se desactiva automáticamente**
+- [ ] Base de datos levantada y migraciones aplicadas
+- [ ] `npm run build` sin errores
+
+### Flujo cívico mínimo
+
+- [ ] `POST /auth/login` devuelve `access_token`
+- [ ] `POST /shared/beneficiarios` crea beneficiario
+- [ ] `POST /civico/expedientes` crea expediente (estatus → `INDUCCION`)
+- [ ] `POST /civico/f1` + `PATCH /civico/f1/:id/estatus` (→ `COMPLETADO`)
+- [ ] `POST /civico/f2` + `PATCH /civico/f2/:id/estatus` (→ `COMPLETADO`)
+- [ ] `GET /civico/f2/expediente/:id/candado-f3` devuelve `habilitado: true`
+- [ ] `POST /civico/f3` se crea correctamente (sin él el endpoint arroja `403`)
+- [ ] `POST /civico/bitacora` suma horas al expediente
+- [ ] `POST /civico/incidencias` al tercer strike cambia estatus a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS`
+
+### Generación de documentos
+
+- [ ] `GET /civico/documentos/oficio-incorporacion/:id` devuelve PDF
+- [ ] `GET /civico/documentos/oficio-conclusion/:id` devuelve PDF (solo si horas completas y F1–F5 en `CERRADO`)
+- [ ] `GET /civico/documentos/informe-baja/:id` devuelve PDF
+- [ ] `GET /civico/documentos/f3-plan-trabajo/:id` devuelve PDF
+- [ ] `GET /civico/documentos/f4-cedula-inicial/:id` devuelve PDF
+- [ ] `GET /civico/documentos/historial/:id` lista los oficios registrados
+
+### Pendientes conocidos (no bloquean entrega)
+
+- [ ] ZIP paquete federal — endpoint `/civico/oficios/expediente/:id/paquete` aún no implementado
+- [ ] Prellenado Google Forms — no implementado

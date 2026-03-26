@@ -1,11 +1,13 @@
 ---
 title: Motor de Documentos PDF
-description: Generación de PDFs con Puppeteer + Handlebars (RF-014)
+description: Generación de PDFs con Puppeteer + Handlebars, subida automática a Google Drive (RF-014)
 ---
 
 ## Descripción
 
 El servicio `DocumentosService` convierte plantillas `.hbs` (Handlebars) en archivos PDF usando **Puppeteer**. El formato de salida es **Carta (21.59 × 27.94 cm)** con márgenes institucionales.
+
+Tras generar el PDF, el servicio **registra automáticamente el oficio** en la tabla `civic_oficios_generados` y, si Google Drive está configurado, **sube el archivo a la carpeta Drive del expediente**.
 
 ## Flujo interno
 
@@ -14,18 +16,213 @@ El servicio `DocumentosService` convierte plantillas `.hbs` (Handlebars) en arch
 2. Lee la plantilla: src/modules/civico/documentos/templates/{tipo}.hbs
 3. Compila la plantilla con Handlebars (inyecta datos)
 4. Puppeteer renderiza el HTML y genera el PDF
-5. Retorna el Buffer del PDF al controlador
+5. Registra el oficio en civic_oficios_generados (upsert por folioOficio)
+6. Si Drive está habilitado → sube/actualiza el PDF en Google Drive
+7. Retorna el Buffer del PDF al controlador (descarga HTTP)
 ```
+
+## Nomenclatura de archivos
+
+El nombre del archivo sigue el patrón implementado en `generarNombreArchivo()`:
+
+```
+TIPO - NOMBRE_BENEFICIARIO - FOLIO.pdf
+```
+
+**Ejemplo:** `INCORPORACION - JUAN PÉREZ LÓPEZ - CVX-2026-001.pdf`
+
+<Note>
+Las historias de usuario anteriores mencionan `CURP_TipoDocumento.pdf` como nomenclatura federal. El código actual usa el patrón `TIPO - NOMBRE - FOLIO.pdf`. La entidad incluye el campo `nombreArchivoFederal` que actualmente almacena el patrón real del servicio; el nombre del campo preserva la posibilidad de migrar al estándar federal sin cambios de esquema.
+</Note>
+
+## Integración con Google Drive
+
+El servicio `CivicoGoogleDriveService` se inicializa automáticamente si las siguientes variables de entorno están presentes:
+
+| Variable | Descripción |
+|---|---|
+| `GOOGLE_DRIVE_CLIENT_ID` | ID de cliente OAuth2 de la app en Google Cloud |
+| `GOOGLE_DRIVE_CLIENT_SECRET` | Secret del cliente OAuth2 |
+| `GOOGLE_DRIVE_REFRESH_TOKEN` | Token de refresco con permisos sobre Drive |
+| `CIVICO_DRIVE_FOLDER_ID` | ID de la carpeta raíz en Drive para el módulo cívico |
+
+Si alguna variable falta, el sistema **imprime un aviso en logs** y continúa funcionando sin Drive — el PDF se descarga igualmente.
 
 ## Endpoints disponibles
 
+**Roles para todos los GET de PDF:** `Admin` más el rol indicado en cada caso.
+
+---
+
 ### `GET /civico/documentos/oficio-incorporacion/:expedienteId`
-### `GET /civico/documentos/f3-plan-trabajo/:expedienteId`
-### `GET /civico/documentos/lista-asistencia/:expedienteId`
+
+Genera el Oficio de Incorporación al Programa.  
+**Roles:** `Admin`, `TrabajoSocial`
+
+---
+
 ### `GET /civico/documentos/oficio-conclusion/:expedienteId`
 
+Genera el Oficio de Conclusión / Alta Definitiva.
+
 <Note>
-El `OFICIO_CONCLUSION` solo se genera si `avanceHoras >= horasSentencia` Y todos los formatos F1–F5 tienen estatus `CERRADO` (RF-015).
+El `OFICIO_CONCLUSION` solo se genera si `avanceHoras >= horasSentencia` Y todos los formatos F1–F5 tienen estatus `CERRADO` (RF-015). De lo contrario retorna `403 Forbidden`.
 </Note>
 
-**Roles para todos:** `Admin`
+**Roles:** `Admin`, `TrabajoSocial`
+
+---
+
+### `GET /civico/documentos/informe-baja/:expedienteId`
+
+Genera el Informe de Baja Definitiva (por acumulación de incidencias o baja voluntaria).  
+**Roles:** `Admin`, `TrabajoSocial`
+
+---
+
+### `GET /civico/documentos/ficha-incidencias/:expedienteId`
+
+Genera la Ficha Técnica de Incidencias del expediente.  
+**Roles:** `Admin`, `Guia`, `TrabajoSocial`, `Psicologo`
+
+---
+
+### `GET /civico/documentos/f3-plan-trabajo/:expedienteId`
+
+Genera el F3 — Plan de Trabajo Individual firmado en PDF.  
+**Roles:** `Admin`, `TrabajoSocial`, `Psicologo`
+
+---
+
+### `GET /civico/documentos/f4-cedula-inicial/:expedienteId`
+
+Genera el F4 — Cédula Inicial de Seguimiento (para reportes federales).  
+**Roles:** `Admin`, `TrabajoSocial`, `Psicologo`
+
+---
+
+### `GET /civico/documentos/plan-vida/:expedienteId`
+
+Genera el Plan de Vida Individualizada (derivado del F1 — Proyecto de vida).  
+**Roles:** `Admin`, `Psicologo`
+
+---
+
+### `GET /civico/documentos/nota-evolucion/:expedienteId`
+
+Genera la Nota de Evolución Psicológica (historial de todas las sesiones F5).  
+**Roles:** `Admin`, `Psicologo`
+
+---
+
+### `GET /civico/documentos/lista-asistencia/:expedienteId`
+
+Genera la **plantilla en blanco** de Lista de Asistencia prellenada con datos del beneficiario, para imprimir y llenar a mano.  
+**Roles:** `Admin`, `Guia`, `TrabajoSocial`, `Psicologo`
+
+---
+
+### `POST /civico/documentos/lista-asistencia`
+
+Registra una asistencia en Bitácora **y** genera el PDF de la lista. Si se incluye `expedienteId`, guarda el registro en BD y sube a Drive.
+
+**Roles:** `Admin`, `Guia`
+
+```json
+{
+  "expedienteId": "8c478ea9-fbcb-452d-90f6-e689a2590fd6",
+  "fecha": "2026-04-06",
+  "horasCubiertas": 4,
+  "asistencia": "PRESENTE",
+  "horario": "08:00 - 12:00",
+  "sede": "Sede Central",
+  "actividadNombre": "Taller de Valores",
+  "observaciones": "Asistencia puntual."
+}
+```
+
+---
+
+### `GET /civico/documentos/reporte-semanal/:expedienteId`
+
+Genera la **plantilla en blanco** del Reporte Semanal para el guía.  
+**Roles:** `Admin`, `Guia`, `TrabajoSocial`, `Psicologo`
+
+---
+
+### `POST /civico/documentos/reporte-semanal`
+
+Registra el reporte semanal en Bitácora **y** genera el PDF. Si se incluye `expedienteId`, guarda en Drive.
+
+**Roles:** `Admin`, `Guia`
+
+```json
+{
+  "expedienteId": "8c478ea9-fbcb-452d-90f6-e689a2590fd6",
+  "semanaNumero": 1,
+  "fechaInicio": "2026-04-06",
+  "fechaFin": "2026-04-10",
+  "observaciones": "Semana productiva.",
+  "renglones": [
+    { "fecha": "2026-04-06", "asistencia": "P", "descripcion": "Taller de Mediación" }
+  ]
+}
+```
+
+---
+
+### `GET /civico/documentos/historial/:expedienteId`
+
+Lista todos los oficios y documentos generados para un expediente (con `driveFileId` y `urlArchivo`).
+
+**Roles:** `Admin`, `TrabajoSocial`, `Psicologo`, `Guia`
+
+**Respuesta `200 OK`:**
+```json
+[
+  {
+    "idUUID": "...",
+    "tipoDocumento": "OFICIO_INCORPORACION",
+    "folioOficio": "OFC-INCORP-2026-001",
+    "nombreArchivoFederal": "INCORPORACION - JUAN PÉREZ LÓPEZ - CVX-2026-001.pdf",
+    "urlArchivo": "https://drive.google.com/file/d/.../view",
+    "driveFileId": "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVfSNMkM",
+    "esModificacion": false,
+    "fechaGeneracion": "2026-03-10T10:30:00.000Z"
+  }
+]
+```
+
+---
+
+### `POST /civico/documentos/generar-custom`
+
+Genera cualquier template HBS con datos personalizados. **Solo para pruebas y documentos ad-hoc.**
+
+**Roles:** `Admin`
+
+```json
+{
+  "template": "oficio_incorporacion",
+  "datos": {
+    "folioOficio": "OFC-INCORP-2026-TEST",
+    "nombreBeneficiario": "JUAN PÉREZ LÓPEZ",
+    "curp": "PELJ000101HOFRNN01"
+  }
+}
+```
+
+## Templates disponibles
+
+| Template (`.hbs`) | Endpoint relacionado |
+|---|---|
+| `oficio_incorporacion` | `GET oficio-incorporacion/:id` |
+| `oficio_conclusion` | `GET oficio-conclusion/:id` |
+| `oficio_baja_definitiva` | `GET informe-baja/:id` |
+| `ficha_incidencias` | `GET ficha-incidencias/:id` |
+| `f3_plan_trabajo` | `GET f3-plan-trabajo/:id` |
+| `f4_cedula_inicial` | `GET f4-cedula-inicial/:id` |
+| `plan_vida` | `GET plan-vida/:id` |
+| `nota_evolucion` | `GET nota-evolucion/:id` |
+| `lista_asistencia` | `GET/POST lista-asistencia` |
+| `reporte_semanal` | `GET/POST reporte-semanal` |
