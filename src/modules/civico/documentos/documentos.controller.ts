@@ -99,22 +99,6 @@ export class DocumentosController {
     sendPdf(res, buffer, `informe_baja_${expedienteId}.pdf`);
   }
 
-  // ── GET /civico/documentos/hoja-presentacion/:expedienteId ────────
-  @Get('hoja-presentacion/:expedienteId')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial')
-  @ApiOperation({ summary: 'Generar Hoja de Presentación al Programa en PDF' })
-  @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
-  @ApiProduces('application/pdf')
-  @ApiResponse(PDF_RESPONSE)
-  async hojaPresentacion(
-    @Param('expedienteId', ParseUUIDPipe) expedienteId: string,
-    @CurrentUser() userId: number,
-    @Res() res: Response,
-  ): Promise<void> {
-    const buffer = await this.documentosService.generarHojaPresentacion(expedienteId, userId);
-    sendPdf(res, buffer, `hoja_presentacion_${expedienteId}.pdf`);
-  }
-
   // ── GET /civico/documentos/ficha-incidencias/:expedienteId ────────
   @Get('ficha-incidencias/:expedienteId')
   @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo')
@@ -193,6 +177,22 @@ export class DocumentosController {
   ): Promise<void> {
     const buffer = await this.documentosService.generarNotaEvolucion(expedienteId, userId);
     sendPdf(res, buffer, `nota_evolucion_${expedienteId}.pdf`);
+  }
+
+  // ── GET /civico/documentos/lista-asistencia/:expedienteId ──────────
+  @Get('lista-asistencia/:expedienteId')
+  @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo')
+  @ApiOperation({ summary: 'Generar Hoja de Presentación Social pre-llenada en PDF' })
+  @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
+  @ApiProduces('application/pdf')
+  @ApiResponse(PDF_RESPONSE)
+  async listaAsistenciaBeneficiario(
+    @Param('expedienteId', ParseUUIDPipe) expedienteId: string,
+    @CurrentUser() userId: number,
+    @Res() res: Response,
+  ): Promise<void> {
+    const buffer = await this.documentosService.generarListaAsistenciaBeneficiario(expedienteId, userId);
+    sendPdf(res, buffer, `presentacion_social_${expedienteId}.pdf`);
   }
 
   // ── POST /civico/documentos/lista-asistencia ──────────────────────
@@ -277,6 +277,22 @@ export class DocumentosController {
   ): Promise<void> {
     const buffer = await this.documentosService.generarReporteSemanal(datos);
     sendPdf(res, buffer, `reporte_semanal_${Date.now()}.pdf`);
+  }
+
+  // ── GET /civico/documentos/reporte-semanal/:expedienteId ──────────
+  @Get('reporte-semanal/:expedienteId')
+  @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo')
+  @ApiOperation({ summary: 'Generar Reporte Semanal pre-llenado en PDF' })
+  @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
+  @ApiProduces('application/pdf')
+  @ApiResponse(PDF_RESPONSE)
+  async reporteSemanalBeneficiario(
+    @Param('expedienteId', ParseUUIDPipe) expedienteId: string,
+    @CurrentUser() userId: number,
+    @Res() res: Response,
+  ): Promise<void> {
+    const buffer = await this.documentosService.generarReporteSemanalBeneficiario(expedienteId, userId);
+    sendPdf(res, buffer, `reporte_semanal_${expedienteId}.pdf`);
   }
 
   // ── POST /civico/documentos/generar-custom ────────────────────────

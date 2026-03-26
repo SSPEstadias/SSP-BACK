@@ -568,36 +568,6 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     return buffer;
   }
 
-  async generarHojaPresentacion(
-    expedienteId: string,
-    userId: number,
-    extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
-    const exp = await this.getExpediente(expedienteId);
-    const ben = await this.getBeneficiario(exp.beneficiarioId);
-
-    const buffer = await this.generarPdf('hoja_presentacion', {
-      nombreBeneficiario: ben.nombre,
-      fechaHoja:          formatDate(new Date()),
-      actividades:        (extras['actividades'] as unknown[]) ?? [],
-      filasVacias:        (extras['filasVacias'] as number) ?? 3,
-      observaciones:      extras['observaciones'],
-      nombreGuia:         extras['nombreGuia'],
-      ...extras,
-    });
-
-    await this.registrarOficio({
-      expedienteId,
-      generadoPorId:        userId,
-      tipoDocumento:        TipoDocumentoEnum.HOJA_PRESENTACION,
-      folioOficio:          `HOJA-PRES-${expedienteId}-${Date.now()}`,
-      urlArchivo:           `/civico/documentos/hoja-presentacion/${expedienteId}`,
-      nombreArchivoFederal: `${exp.curp}_HOJA_PRESENTACION.pdf`,
-    });
-
-    return buffer;
-  }
-
   async generarFichaIncidencias(
     expedienteId: string,
     userId: number,
@@ -872,17 +842,95 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   // así que no se registran en el historial de oficios.
   async generarListaAsistencia(datos: Record<string, unknown>): Promise<Buffer> {
     return this.generarPdf('lista_asistencia', {
+      logoPresentacion1: this.logoPresentacion1,
+      logoPresentacion2: this.logoPresentacion2,
       tituloDocumento: 'LISTA DE ASISTENCIA',
       fecha: fechaLarga(),
       ...datos,
     });
   }
 
+  // Genera la lista de asistencia (hoja de presentación) pre-llenada para un beneficiario.
+  async generarListaAsistenciaBeneficiario(
+    expedienteId: string,
+    userId: number,
+  ): Promise<Buffer> {
+    const exp = await this.getExpediente(expedienteId);
+    const ben = await this.getBeneficiario(exp.beneficiarioId);
+
+    // Buscamos si hay un guía asignado en bitácora para pre-llenar la firma
+    const primerBitacora = await this.bitacoraRepo.findOne({
+      where: { expedienteId },
+      order: { createdAt: 'ASC' },
+      relations: ['guia']
+    });
+
+    const buffer = await this.generarPdf('lista_asistencia', {
+      logoPresentacion1:  this.logoPresentacion1,
+      logoPresentacion2:  this.logoPresentacion2,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
+      nombreGuia:         primerBitacora?.guia?.nombre?.toUpperCase() || '—',
+      fecha:              '', // Se deja vacío para el usuario
+      observaciones:      '',
+      actividades:        [],
+      filasVacias:        2,
+    });
+
+    await this.registrarOficio({
+      expedienteId,
+      generadoPorId:        userId,
+      tipoDocumento:        TipoDocumentoEnum.LISTA_ASISTENCIA,
+      folioOficio:          `PRES-SOCIAL-${expedienteId}-${Date.now()}`,
+      urlArchivo:           `/civico/documentos/lista-asistencia/${expedienteId}`,
+      nombreArchivoFederal: `${exp.curp}_PRESENTACION_SOCIAL.pdf`,
+    });
+
+    return buffer;
+  }
+
   async generarReporteSemanal(datos: Record<string, unknown>): Promise<Buffer> {
     return this.generarPdf('reporte_semanal', {
-      tituloDocumento: 'REPORTE SEMANAL — CONTROL DE ASISTENCIA',
+      logoEncabezadoSspc: this.logoEncabezadoSspc,
+      logoGrecas:         this.logoGrecas,
       ...datos,
     });
+  }
+
+  // Genera el reporte semanal pre-llenado para un beneficiario.
+  async generarReporteSemanalBeneficiario(
+    expedienteId: string,
+    userId: number,
+  ): Promise<Buffer> {
+    const exp = await this.getExpediente(expedienteId);
+    const ben = await this.getBeneficiario(exp.beneficiarioId);
+
+    const primerBitacora = await this.bitacoraRepo.findOne({
+      where: { expedienteId },
+      order: { createdAt: 'ASC' },
+      relations: ['guia']
+    });
+
+    const buffer = await this.generarPdf('reporte_semanal', {
+      logoEncabezadoSspc: this.logoEncabezadoSspc,
+      logoGrecas:         this.logoGrecas,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
+      nombreGuia:         primerBitacora?.guia?.nombre?.toUpperCase() || '—',
+      fecha:              fechaLarga(),
+      fechaPeriodo:       '', 
+      observaciones:      '',
+      actividades:        [],
+    });
+
+    await this.registrarOficio({
+      expedienteId,
+      generadoPorId:        userId,
+      tipoDocumento:        TipoDocumentoEnum.REPORTE_SEMANAL_GUIA,
+      folioOficio:          `REP-SEM-${expedienteId}-${Date.now()}`,
+      urlArchivo:           `/civico/documentos/reporte-semanal/${expedienteId}`,
+      nombreArchivoFederal: `${exp.curp}_REPORTE_SEMANAL.pdf`,
+    });
+
+    return buffer;
   }
 
   // ── Helpers privados ───────────────────────────────────────────────

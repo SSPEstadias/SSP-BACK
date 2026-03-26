@@ -1,137 +1,204 @@
-{{!-- Reporte Semanal de Guía — SSPC Reconecta con la Paz --}}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
-  <title>Reporte Semanal — Semana {{semanaNumero}}</title>
+  <title>Reporte Semanal de Actividades — {{nombreBeneficiario}}</title>
   <style>
-    @page { size: Letter; margin: 1.5cm 2cm 2.5cm 2.5cm; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Times New Roman', Times, serif; font-size: 10.5pt; color: #000; line-height: 1.4; }
-    .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
-    .watermark-img { width: 100%; height: 100%; object-fit: fill; opacity: 0.12; }
-    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
-    .header-logo { width: 220px; vertical-align: middle; padding-right: 12pt; }
-    .logo-img { width: 210px; height: auto; }
-    .header-title { vertical-align: middle; text-align: center; }
-    .header-dep { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
-    .header-prog { font-size: 10pt; font-weight: bold; color: #1a3a6b; }
-    .header-sub { font-size: 9pt; color: #555; }
-    .header-doc-title { font-size: 10pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
-    .header-divider { border-top: 2px solid #1a3a6b; margin: 6pt 0 10pt 0; }
-    .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
-    .footer-divider { border-top: 1px solid #999; margin-bottom: 4pt; }
-    .footer-table { width: 100%; border-collapse: collapse; font-size: 8pt; color: #555; }
-    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
-    .content { margin-top: 8pt; }
-    .meta-row { display: flex; gap: 12pt; margin-bottom: 10pt; flex-wrap: wrap; }
-    .meta-item { flex: 1; min-width: 140pt; border: 1px solid #ccc; padding: 4pt 8pt; background-color: #f9f9f9; }
-    .meta-label { font-size: 8.5pt; font-weight: bold; color: #555; }
-    .meta-value { font-size: 10.5pt; }
-    .section-title { font-size: 10.5pt; font-weight: bold; background-color: #1a3a6b; color: #fff; padding: 3pt 8pt; margin: 10pt 0 5pt 0; }
-    .bitacora-table { border: 1px solid #999; border-collapse: collapse; width: 100%; margin-bottom: 10pt; font-size: 10pt; }
-    .bitacora-table th { border: 1px solid #999; padding: 3pt 6pt; background-color: #2c4d7e; color: #fff; text-align: center; }
-    .bitacora-table td { border: 1px solid #ccc; padding: 3pt 6pt; }
-    .bitacora-table .total-row td { background-color: #e8f0fb; font-weight: bold; }
-    .incidencia-badge { background-color: #e74c3c; color: #fff; padding: 1pt 4pt; border-radius: 2px; font-size: 9pt; }
-    .presente-badge { background-color: #27ae60; color: #fff; padding: 1pt 4pt; border-radius: 2px; font-size: 9pt; }
-    .obs-box { border: 1px solid #ccc; padding: 6pt 8pt; min-height: 40pt; font-size: 10.5pt; margin-bottom: 8pt; }
-    .firma-block { margin-top: 30pt; text-align: center; }
-    .firma-linea { border-top: 1px solid #000; width: 200px; margin: 0 auto; margin-top: 40pt; }
-    .firma-nombre { font-weight: bold; font-size: 10pt; margin-top: 4pt; }
-    .firma-cargo  { font-size: 9.5pt; }
+    @page {
+      size: Letter;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 21.59cm;
+      height: 27.94cm;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 10pt;
+      color: #000;
+      line-height: 1.3;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ── Fondo / Grecas ── */
+    .grecas-lateral {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 2.4cm;
+      height: 100%;
+      z-index: -1;
+      object-fit: cover;
+      opacity: 0.18;
+    }
+
+    /* ── Contenedor principal ── */
+    .pagina {
+      position: relative;
+      width: 21.59cm;
+      padding: 1cm 3.5cm 1cm 1.5cm; /* Margen derecho amplio para no pisar las grecas */
+    }
+
+    /* ── Encabezado ── */
+    .header-section {
+      text-align: center;
+      margin-bottom: 20pt;
+    }
+
+    .img-logo {
+      max-height: 80px;
+      width: auto;
+      margin-bottom: 8pt;
+    }
+
+    .header-text {
+      font-size: 9pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #666;
+    }
+
+    /* ── Tabla Reporte ── */
+    .reporte-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #000;
+      margin-top: 10pt;
+    }
+
+    .reporte-table td, 
+    .reporte-table th {
+      border: 1px solid #000;
+      padding: 6pt;
+      vertical-align: middle;
+      word-wrap: break-word;
+    }
+
+    .cell-title {
+      font-weight: bold;
+      text-decoration: underline;
+      text-align: center;
+    }
+
+    .cell-label {
+      font-weight: normal;
+      background-color: #fff;
+    }
+
+    .header-row {
+      background-color: #f2f2f2;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* ── Alturas específicas ── */
+    .row-meta { height: 45pt; }
+    .row-full { height: 35pt; }
+    .row-data { height: 60pt; }
+    .row-obs  { height: 120pt; }
+
+    /* ── Footer ── */
+    .footer-address {
+      position: fixed;
+      bottom: 0.8cm;
+      right: 3.5cm;
+      text-align: right;
+      font-size: 8pt;
+      color: #444;
+      line-height: 1.2;
+    }
   </style>
 </head>
+
 <body>
 
-{{> _watermark}}
+  {{#if logoGrecas}}
+  <img src="{{logoGrecas}}" class="grecas-lateral" />
+  {{/if}}
 
-{{> _header tituloDocumento="REPORTE SEMANAL — CONTROL DE ASISTENCIA"}}
+  <div class="pagina">
 
-<div class="content">
+    <div class="header-section">
+      {{#if logoEncabezadoSspc}}
+      <img src="{{logoEncabezadoSspc}}" class="img-logo" alt="SSPC" />
+      {{/if}}
+      <div class="header-text">
+        SUBSECRETARÍA DE PREVENCIÓN Y REINSERCIÓN SOCIAL<br>
+        DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA
+      </div>
+    </div>
 
-  <!-- Metadatos del reporte -->
-  <div class="meta-row">
-    <div class="meta-item">
-      <div class="meta-label">Guía responsable</div>
-      <div class="meta-value">{{nombreGuia}}</div>
+    <table class="reporte-table">
+      <!-- Fila 1 -->
+      <tr class="row-meta">
+        <td style="width: 30%;" class="cell-title">Reporte semanal de actividades.</td>
+        <td style="width: 15%;">Origen</td>
+        <td style="width: 55%;">Unidad de Medidas Cautelares.</td>
+      </tr>
+      <!-- Fila 2 -->
+      <tr class="row-meta">
+        <td>Área: Reconecta con la Paz</td>
+        <td>Periodo del reporte</td>
+        <td>{{#if fechaPeriodo}}{{fechaPeriodo}}{{else}}{{fecha}}{{/if}}</td>
+      </tr>
+      <!-- Fila 3 -->
+      <tr class="row-full">
+        <td colspan="3">Guía: {{#if nombreGuia}}{{nombreGuia}}{{else}}—{{/if}}</td>
+      </tr>
+      <!-- Fila 4 -->
+      <tr class="row-full">
+        <td colspan="3">Nombre del Beneficiario: {{#if nombreBeneficiario}}{{nombreBeneficiario}}{{else}}—{{/if}}</td>
+      </tr>
+      <!-- Fila 5: Encabezados Columnas -->
+      <tr class="header-row">
+        <td>Asistencia</td>
+        <td>Fecha de la actividad</td>
+        <td>Descripción de la actividad.</td>
+      </tr>
+      
+      <!-- Filas de Datos (Loop) -->
+      {{#if actividades.length}}
+        {{#each actividades}}
+        <tr class="row-data">
+          <td style="text-align: center;">{{asistencia}}</td>
+          <td style="text-align: center;">{{fecha}}</td>
+          <td>{{descripcion}}</td>
+        </tr>
+        {{/each}}
+      {{else}}
+        <!-- Fila vacía para llenar manual si no hay datos -->
+        <tr class="row-data">
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+        </tr>
+      {{/if}}
+
+      <!-- Fila 7: Observaciones -->
+      <tr class="row-obs">
+        <td class="cell-title" style="vertical-align: top;">Observaciones:</td>
+        <td colspan="2" style="vertical-align: top; padding: 10pt;">
+          {{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}
+        </td>
+      </tr>
+    </table>
+
+    <div class="footer-address">
+      Fernando Montes de Oca N° 104<br>
+      Col. Niños Héroes, Santa Lucía del Camino, Oaxaca<br>
+      Teléfono: 951 513 3727 / 951 515 2013
     </div>
-    <div class="meta-item">
-      <div class="meta-label">Semana N°</div>
-      <div class="meta-value">{{semanaNumero}}</div>
-    </div>
-    <div class="meta-item">
-      <div class="meta-label">Período</div>
-      <div class="meta-value">{{fechaInicio}} al {{fechaFin}}</div>
-    </div>
-    <div class="meta-item">
-      <div class="meta-label">Actividad(es)</div>
-      <div class="meta-value">{{actividades}}</div>
-    </div>
+
   </div>
-
-  <!-- Bitácora de asistencia -->
-  <div class="section-title">REGISTRO DE ASISTENCIA SEMANAL</div>
-  <table class="bitacora-table">
-    <thead>
-      <tr>
-        <th>N°</th>
-        <th>Nombre del Beneficiario</th>
-        <th>CURP</th>
-        <th>Lun</th>
-        <th>Mar</th>
-        <th>Miér</th>
-        <th>Jue</th>
-        <th>Vie</th>
-        <th>Horas<br/>Semana</th>
-        <th>Horas<br/>Acum.</th>
-        <th>Incidencias</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each beneficiarios}}
-      <tr>
-        <td style="text-align:center;">{{add @index 1}}</td>
-        <td>{{nombre}}</td>
-        <td style="font-size:9pt;">{{curp}}</td>
-        <td style="text-align:center;">{{lun}}</td>
-        <td style="text-align:center;">{{mar}}</td>
-        <td style="text-align:center;">{{mie}}</td>
-        <td style="text-align:center;">{{jue}}</td>
-        <td style="text-align:center;">{{vie}}</td>
-        <td style="text-align:center; font-weight:bold;">{{horasSemana}}</td>
-        <td style="text-align:center;">{{horasAcum}}</td>
-        <td style="text-align:center;">{{#if incidencias}}<span class="incidencia-badge">{{incidencias}}</span>{{else}}—{{/if}}</td>
-      </tr>
-      {{/each}}
-      <tr class="total-row">
-        <td colspan="8" style="text-align:right;">TOTALES:</td>
-        <td style="text-align:center;">{{totalHorasSemana}}</td>
-        <td colspan="2"></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- Observaciones -->
-  <div class="section-title">OBSERVACIONES GENERALES DE LA SEMANA</div>
-  <div class="obs-box">{{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}</div>
-
-  <!-- Leyenda -->
-  <p style="font-size:9pt; margin-bottom:8pt;">
-    <strong>Leyenda:</strong> P = Presente &nbsp;|&nbsp; F = Falta injustificada &nbsp;|&nbsp;
-    FJ = Falta justificada &nbsp;|&nbsp; PP = Presente parcial &nbsp;|&nbsp; N/A = No aplica
-  </p>
-
-  <!-- Firma -->
-  <div class="firma-block">
-    <div class="firma-linea"></div>
-    <p class="firma-nombre">{{nombreGuia}}</p>
-    <p class="firma-cargo">Guía — Programa Reconecta con la Paz</p>
-  </div>
-
-</div>
-
-{{> _footer}}
 
 </body>
+
 </html>

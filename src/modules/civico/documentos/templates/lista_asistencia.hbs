@@ -1,140 +1,202 @@
-{{!-- Lista de Asistencia — SSPC Reconecta con la Paz --}}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
-  <title>Lista de Asistencia — {{nombreActividad}}</title>
+  <title>Lista de Asistencia — {{nombreBeneficiario}}</title>
   <style>
-    @page { size: Letter landscape; margin: 1.5cm 2cm 2.5cm 2cm; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Times New Roman', Times, serif; font-size: 10.5pt; color: #000; line-height: 1.4; }
-    .watermark-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
-    .watermark-img { width: 100%; height: 100%; object-fit: fill; opacity: 0.12; }
-    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
-    .header-logo { width: 200px; vertical-align: middle; padding-right: 10pt; }
-    .logo-img { width: 190px; height: auto; }
-    .header-title { vertical-align: middle; text-align: center; }
-    .header-dep { font-size: 10pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4pt; }
-    .header-prog { font-size: 9.5pt; font-weight: bold; color: #1a3a6b; }
-    .header-sub { font-size: 8.5pt; color: #555; }
-    .header-doc-title { font-size: 9.5pt; font-weight: bold; margin-top: 3pt; text-decoration: underline; }
-    .header-divider { border-top: 2px solid #1a3a6b; margin: 4pt 0 8pt 0; }
-    .doc-footer { position: fixed; bottom: 0; left: 0; right: 0; }
-    .footer-divider { border-top: 1px solid #999; margin-bottom: 3pt; }
-    .footer-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; color: #555; }
-    .footer-left { text-align: left; } .footer-center { text-align: center; } .footer-right { text-align: right; }
-    .content { margin-top: 6pt; }
-    .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8pt; margin-bottom: 10pt; }
-    .meta-item { border: 1px solid #ccc; padding: 3pt 7pt; background-color: #f9f9f9; }
-    .meta-label { font-size: 8pt; font-weight: bold; color: #555; }
-    .meta-value { font-size: 10pt; }
-    .asistencia-table { border: 1px solid #999; border-collapse: collapse; width: 100%; font-size: 9.5pt; }
-    .asistencia-table th { background-color: #1a3a6b; color: #fff; padding: 3pt 5pt; border: 1px solid #999; text-align: center; }
-    .asistencia-table td { border: 1px solid #ccc; padding: 3pt 5pt; }
-    .asistencia-table .firma-cel { width: 80pt; }
-    .asistencia-table .num-cel { width: 24pt; text-align: center; }
-    .pie-firma { display: flex; justify-content: flex-end; margin-top: 28pt; }
-    .firma-linea { border-top: 1px solid #000; width: 200px; text-align: center; margin-top: 38pt; }
-    .firma-nombre { font-weight: bold; font-size: 9.5pt; margin-top: 3pt; }
-    .firma-cargo  { font-size: 9pt; }
+    @page {
+      size: Letter;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 21.59cm;
+      height: 27.94cm;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11pt;
+      color: #000;
+      line-height: 1.4;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ── Contenedor principal ── */
+    .pagina {
+      position: relative;
+      width: 21.59cm;
+      padding: 1.5cm 2cm 1.5cm 2cm;
+    }
+
+    .header-logos {
+      text-align: center;
+      margin-bottom: 20pt;
+    }
+
+    .img-logo-1 {
+      max-height: 150px;
+      width: auto;
+      margin-bottom: 5pt;
+    }
+
+    .img-logo-2 {
+      max-height: 180px;
+      width: auto;
+    }
+
+    .plan-title {
+      font-size: 11pt;
+      text-transform: uppercase;
+      margin-bottom: 12pt;
+      display: flex;
+      justify-content: flex-start;
+      gap: 6cm;
+      align-items: center;
+    }
+
+    .nombre-row {
+      margin-bottom: 10pt;
+      font-size: 11pt;
+    }
+
+    .underline-field {
+      border-bottom: 1px solid #000;
+      display: inline-block;
+      min-width: 450px;
+      padding-left: 5px;
+    }
+
+    /* ── Tabla Fija 4x4 ── */
+    .asistencia-table {
+      border: 1px solid #000;
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;
+      font-size: 10.5pt;
+    }
+
+    .asistencia-table th {
+      border: 1px solid #000;
+      padding: 6pt;
+      text-align: center;
+      font-weight: normal;
+      text-decoration: underline;
+      width: 25%;
+    }
+
+    .asistencia-table td {
+      border: 1px solid #000;
+      padding: 6pt;
+      vertical-align: middle;
+      height: 60pt; /* Altura fija para celdas de datos */
+      word-wrap: break-word;
+    }
+
+    .obs-label {
+      text-align: center;
+      vertical-align: middle;
+      font-size: 10pt;
+      height: 80pt; /* Altura para observaciones */
+    }
+
+    .obs-content {
+      height: 80pt;
+      vertical-align: top !important;
+      padding: 8pt;
+    }
+
+    /* ── Sección de Firmas ── */
+    .signatures-section {
+      margin-top: 80pt; /* Aumentado de 30pt a 80pt */
+      display: flex;
+      justify-content: space-between;
+      font-size: 10pt;
+      page-break-inside: avoid;
+    }
+    .signature-block {
+      width: 45%;
+    }
   </style>
 </head>
+
 <body>
 
-{{> _watermark}}
+  <div class="pagina">
 
-{{> _header tituloDocumento="LISTA DE ASISTENCIA"}}
+    <div class="header-logos">
+      {{#if logoPresentacion1}}
+      <div><img src="{{logoPresentacion1}}" class="img-logo-1" alt="Secretaría" /></div>
+      {{/if}}
+      {{#if logoPresentacion2}}
+      <div><img src="{{logoPresentacion2}}" class="img-logo-2" alt="Reconecta" /></div>
+      {{/if}}
+    </div>
 
-<div class="content">
+    <div class="plan-title">
+      <span>PLAN DE TRABAJO: <u>PRESENTACIONES SOCIALES</u></span>
+      <span>FECHA: <u>{{#if fechaHoja}}{{fechaHoja}}{{else}}{{fecha}}{{/if}}</u></span>
+    </div>
 
-  <!-- Metadatos -->
-  <div class="meta-grid">
-    <div class="meta-item">
-      <div class="meta-label">Actividad</div>
-      <div class="meta-value">{{nombreActividad}}</div>
+    <div class="nombre-row">
+      NOMBRE: <span class="underline-field">{{#if nombreBeneficiario}}{{nombreBeneficiario}}{{else}}&nbsp;{{/if}}</span>
     </div>
-    <div class="meta-item">
-      <div class="meta-label">Fecha</div>
-      <div class="meta-value">{{fecha}}</div>
+
+    <table class="asistencia-table">
+      <thead>
+        <tr>
+          <th>HORARIO</th>
+          <th>ACTIVIDAD</th>
+          <th>SEDE</th>
+          <th>FIRMA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Fila de Datos 1 -->
+        <tr>
+          <td>{{#if actividades.[0].horario}}{{actividades.[0].horario}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[0].actividad}}{{actividades.[0].actividad}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[0].sede}}{{actividades.[0].sede}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[0].firma}}{{actividades.[0].firma}}{{else}}&nbsp;{{/if}}</td>
+        </tr>
+        <!-- Fila de Datos 2 -->
+        <tr>
+          <td>{{#if actividades.[1].horario}}{{actividades.[1].horario}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[1].actividad}}{{actividades.[1].actividad}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[1].sede}}{{actividades.[1].sede}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[1].firma}}{{actividades.[1].firma}}{{else}}&nbsp;{{/if}}</td>
+        </tr>
+        <!-- Fila de OBSERVACIONES (Equivale a la 4ta "fila" en altura/lógica) -->
+        <tr>
+          <td class="obs-label">OBSERVACIONES</td>
+          <td colspan="3" class="obs-content">
+            {{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="signatures-section">
+      <div class="signature-block" style="text-align: left;">
+        GUÍA RESPONSABLE DE LA ACTIVIDAD:<br><br>
+        <strong>C. {{nombreGuia}}</strong>
+      </div>
+      <div class="signature-block" style="text-align: center;">
+        Vo.Bo.<br><br>
+        <strong>MTRA. LII YIO PÉREZ ZARATE</strong><br>
+        DIRECTORA DE PREVENCIÓN DEL DELITO Y<br>
+        PARTICIPACIÓN CIUDADANA
+      </div>
     </div>
-    <div class="meta-item">
-      <div class="meta-label">Horario</div>
-      <div class="meta-value">{{horario}}</div>
-    </div>
-    <div class="meta-item">
-      <div class="meta-label">Guía responsable</div>
-      <div class="meta-value">{{nombreGuia}}</div>
-    </div>
-    <div class="meta-item">
-      <div class="meta-label">Lugar</div>
-      <div class="meta-value">{{lugar}}</div>
-    </div>
-    <div class="meta-item">
-      <div class="meta-label">Total de beneficiarios</div>
-      <div class="meta-value">{{totalBeneficiarios}}</div>
-    </div>
-    <div class="meta-item">
-      <div class="meta-label">Horas por jornada</div>
-      <div class="meta-value">{{horasPorJornada}} hrs</div>
-    </div>
-    <div class="meta-item">
-      <div class="meta-label">Categoría de actividad</div>
-      <div class="meta-value">{{categoriaActividad}}</div>
-    </div>
+
   </div>
-
-  <!-- Lista de asistencia -->
-  <table class="asistencia-table">
-    <thead>
-      <tr>
-        <th class="num-cel">#</th>
-        <th>Nombre completo</th>
-        <th>CURP</th>
-        <th>Folio</th>
-        <th>Horas<br/>Sentencia</th>
-        <th>Horas<br/>Acum.</th>
-        <th>Asistencia<br/>(P/F/FJ/PP)</th>
-        <th>Horas<br/>Cubiertas</th>
-        <th>Incidencia</th>
-        <th class="firma-cel">Firma / Huella</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{#each beneficiarios}}
-      <tr>
-        <td class="num-cel">{{add @index 1}}</td>
-        <td>{{nombre}}</td>
-        <td style="font-size:8.5pt;">{{curp}}</td>
-        <td style="font-size:8.5pt;">{{folio}}</td>
-        <td style="text-align:center;">{{horasSentencia}}</td>
-        <td style="text-align:center;">{{horasAcum}}</td>
-        <td style="text-align:center; font-weight:bold;">{{asistencia}}</td>
-        <td style="text-align:center;">{{horasCubiertas}}</td>
-        <td style="font-size:8.5pt;">{{incidencia}}</td>
-        <td class="firma-cel">&nbsp;</td>
-      </tr>
-      {{/each}}
-      {{!-- Filas vacías para llenar a mano si hay menos beneficiarios --}}
-      {{#times filasVacias}}
-      <tr style="height:22pt;">
-        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-      </tr>
-      {{/times}}
-    </tbody>
-  </table>
-
-  <!-- Pie de firma del guía -->
-  <div class="pie-firma">
-    <div>
-      <div class="firma-linea"></div>
-      <p class="firma-nombre">{{nombreGuia}}</p>
-      <p class="firma-cargo">Guía Responsable — Programa Reconecta con la Paz</p>
-    </div>
-  </div>
-
-</div>
-
-{{> _footer}}
 
 </body>
+
 </html>
