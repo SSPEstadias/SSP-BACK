@@ -40,25 +40,10 @@ import {
     @IsUrl()
     urlArchivo!: string;
   
-    @IsString()
-    @IsOptional()
-    @MaxLength(150)
-    destinatario?: string;
-  
-    @IsObject()
-    @IsOptional()
-    actividadesRealizadas?: object;
-    // Usado en OFICIO_CONCLUSION:
-    // [{"descripcion":"Tequio Agencia Dolores","fecha":"2025-08-10"}, ...]
-  
     // ── Control de modificaciones ──────────────────────────────────────
     @IsBoolean()
     @IsOptional()
     esModificacion?: boolean;
-  
-    @IsUUID()
-    @IsOptional()
-    oficioOriginalId?: string;
   
     @IsString()
     @IsOptional()

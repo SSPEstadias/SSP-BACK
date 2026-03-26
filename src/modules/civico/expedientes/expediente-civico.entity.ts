@@ -142,15 +142,12 @@ import {
     })
     estatusProceso!: CivicStatusEnum;
   
-    @Column({
-      name: 'avance_horas',
-      type: 'decimal',
-      precision: 5,
-      scale: 2,
-      default: 0.0,
-    })
+    @Column({ name: 'avance_horas', type: 'decimal', precision: 5, scale: 2, default: 0.0 })
     avanceHoras!: number;
   
+    @Column({ name: 'drive_folder_id', type: 'varchar', length: 100, nullable: true })
+    driveFolderId!: string | null;
+
     @CreateDateColumn({ name: 'creado_en' })
     creadoEn!: Date;
   }

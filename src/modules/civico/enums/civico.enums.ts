@@ -56,5 +56,6 @@ export enum CivicStatusEnum {
     // Nuevos tipos añadidos para documentos generados por el módulo de PDFs
     HOJA_PRESENTACION         = 'HOJA_PRESENTACION',
     PLAN_VIDA                 = 'PLAN_VIDA',
+    NOTA_EVOLUCION_PSICOLOGICA = 'NOTA_EVOLUCION_PSICOLOGICA',
   }
   

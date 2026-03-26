@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   OnModuleDestroy,
   OnModuleInit,
@@ -23,6 +24,7 @@ import { SeguimientoPsicologico } from '../f5-seguimiento/seguimiento-psicologic
 import { User }             from '../../../shared/users/entities/user.entity';
 import { OficioGenerado }   from '../oficios/oficio-generado.entity';
 import { AsistenciaEnum, TipoDocumentoEnum } from '../enums/civico.enums';
+import { GoogleDriveService } from '../../../shared/google-drive/google-drive.service';
 
 // Resuelve la carpeta raíz del módulo de documentos.
 // Prueba __dirname (dist/ tras nest build) y cae a src/ como respaldo.
@@ -147,6 +149,7 @@ function calcularEdad(fechaNacimiento: Date | string | null): number {
 
 @Injectable()
 export class DocumentosService implements OnModuleInit, OnModuleDestroy {
+    private readonly logger = new Logger(DocumentosService.name);
     private logoEncabezado: string = '';
     private marcaAgua: string = '';
     private logoPresentacion1: string = '';
@@ -185,37 +188,50 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
     @InjectRepository(SeguimientoPsicologico)
     private readonly seguimientoRepo: Repository<SeguimientoPsicologico>,
+
+    private readonly driveService: GoogleDriveService,
   ) {}
 
   async onModuleInit(): Promise<void> {
+    const start = Date.now();
     const docRoot = resolveDocumentosRoot();
-
-    // Cargar logos como data URI (sin error si no existen en el entorno)
     const assetsDir = path.join(docRoot, 'assets');
-    const logoPath = path.normalize(path.join(assetsDir, 'logoencabezado_con_margen_derecho.png'));
-    const marcaPath = path.normalize(path.join(assetsDir, 'LOGO_RECONECTACONLAPAZ_MARCADE AGUA FONDO EN TODOS LOS ARCHIVOS.jpg'));
-    const logoPres1Path = path.normalize(path.join(assetsDir, 'Logo_encabezado_expediente.jpg'));
-    const logoPres2Path = path.normalize(path.join(assetsDir, 'LOGO_RECONECTACONLAPAZ.jpg'));
-    const grecasPath = path.normalize(path.join(assetsDir, 'grecas_oaxaca.png'));
-    const sspcPath = path.normalize(path.join(assetsDir, 'Logo_EncabezadoSSPC.png'));
-    
-    this.logoEncabezado     = fs.existsSync(logoPath) ? toDataUri(logoPath) : '';
-    this.marcaAgua          = fs.existsSync(marcaPath) ? toDataUri(marcaPath) : '';
-    this.logoPresentacion1  = fs.existsSync(logoPres1Path) ? toDataUri(logoPres1Path) : '';
-    this.logoPresentacion2  = fs.existsSync(logoPres2Path) ? toDataUri(logoPres2Path) : '';
-    this.logoGrecas         = fs.existsSync(grecasPath) ? toDataUri(grecasPath) : '';
-    this.logoEncabezadoSspc = fs.existsSync(sspcPath) ? toDataUri(sspcPath) : '';
 
-    // Registrar partials HBS (_header, _footer, _watermark, etc.)
+    // 1. Cargar logos en paralelo para optimizar arranque
+    this.logger.debug('Cargando recursos gráficos...');
+    const logoFiles = [
+      { key: 'logoEncabezado',     file: 'logoencabezado_con_margen_derecho.png' },
+      { key: 'marcaAgua',          file: 'LOGO_RECONECTACONLAPAZ_MARCADE AGUA FONDO EN TODOS LOS ARCHIVOS.jpg' },
+      { key: 'logoPresentacion1',  file: 'Logo_encabezado_expediente.jpg' },
+      { key: 'logoPresentacion2',  file: 'LOGO_RECONECTACONLAPAZ.jpg' },
+      { key: 'logoGrecas',         file: 'grecas_oaxaca.png' },
+      { key: 'logoEncabezadoSspc', file: 'Logo_EncabezadoSSPC.png' },
+    ];
+
+    await Promise.all(logoFiles.map(async (item) => {
+      const fullPath = path.normalize(path.join(assetsDir, item.file));
+      if (fs.existsSync(fullPath)) {
+        const buffer = await fs.promises.readFile(fullPath);
+        const ext = path.extname(fullPath).toLowerCase();
+        const mime = ext === '.png' ? 'image/png' : 'image/jpeg';
+        (this as any)[item.key] = `data:${mime};base64,${buffer.toString('base64')}`;
+      }
+    }));
+    this.logger.debug(`Recursos gráficos cargados en ${Date.now() - start}ms`);
+
+    const partialStart = Date.now();
+
+    // Registrar partials HBS (_header, _footer, _watermark, etc.) en paralelo
     const partialsDir = path.join(docRoot, 'partials');
     if (fs.existsSync(partialsDir)) {
-      for (const file of fs.readdirSync(partialsDir)) {
-        if (file.endsWith('.hbs')) {
-          const name = path.basename(file, '.hbs');
-          Handlebars.registerPartial(name, fs.readFileSync(path.join(partialsDir, file), 'utf-8'));
-        }
-      }
+      const partialFiles = fs.readdirSync(partialsDir).filter(f => f.endsWith('.hbs'));
+      await Promise.all(partialFiles.map(async (file) => {
+        const name = path.basename(file, '.hbs');
+        const content = await fs.promises.readFile(path.join(partialsDir, file), 'utf-8');
+        Handlebars.registerPartial(name, content);
+      }));
     }
+    this.logger.debug(`Partials HBS registrados en ${Date.now() - partialStart}ms`);
 
     // Helpers de Handlebars
     if (!Handlebars.helpers['formatDate']) {
@@ -240,11 +256,13 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       });
     }
 
-    // Lanzar el browser una sola vez; cada petición abre/cierra solo una pestaña
+    const browserStart = Date.now();
     this.browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
+    this.logger.debug(`Puppeteer inicializado en ${Date.now() - browserStart}ms`);
+    this.logger.log(`DocumentosService listo (Arranque total: ${Date.now() - start}ms)`);
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -312,23 +330,116 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // Guarda el registro del oficio en civic_oficios_generados.
-  // Si el folio ya existe (re-generación), simplemente lo omite sin lanzar error.
-  private async registrarOficio(params: {
+  /**
+   * Registra los metadatos del oficio y sincroniza con Google Drive si hay buffer.
+   */
+  async registrarOficio(params: {
     expedienteId: string;
     generadoPorId: number;
     tipoDocumento: TipoDocumentoEnum;
     folioOficio: string;
-    urlArchivo: string;
-    nombreArchivoFederal?: string;
-  }): Promise<void> {
-    const existe = await this.oficioRepo.findOne({ where: { folioOficio: params.folioOficio } });
-    if (!existe) {
-      await this.oficioRepo.save(this.oficioRepo.create(params));
+    buffer?: Buffer;
+    nombreArchivoFederal: string;
+    urlArchivo?: string;
+  }): Promise<OficioGenerado> {
+    const { expedienteId, tipoDocumento, folioOficio, buffer, nombreArchivoFederal } = params;
+
+    // 1. Buscar si ya existe para re-uso/actualización
+    let oficio = await this.oficioRepo.findOne({
+      where: { expedienteId, tipoDocumento, folioOficio },
+    });
+
+    if (!oficio) {
+      oficio = this.oficioRepo.create({
+        expedienteId,
+        generadoPorId: params.generadoPorId,
+        tipoDocumento,
+        folioOficio,
+        nombreArchivoFederal,
+        urlArchivo: params.urlArchivo || '',
+      });
+    } else {
+      // Si ya existe, aseguramos que el nombre del archivo refleje el formato actual
+      oficio.nombreArchivoFederal = nombreArchivoFederal;
     }
+
+    if (buffer) {
+      try {
+        let exp = await this.getExpediente(expedienteId);
+        const ben = await this.getBeneficiario(exp.beneficiarioId);
+        const folderName = `${ben.nombre.toUpperCase()} - ${exp.folioExpediente}`;
+
+        // a. Asegurar carpeta del beneficiario
+        if (!exp.driveFolderId) {
+          exp.driveFolderId = await this.driveService.getOrCreateFolder(folderName);
+          await this.expedienteRepo.save(exp);
+        }
+
+        // b. Subir o Actualizar archivo
+        try {
+          // --- Validación Extra: Si el archivo o carpeta no existen o están en la papelera, forzar re-creación ---
+          const metaExp = exp.driveFolderId ? await this.driveService.getFileMetadata(exp.driveFolderId) : null;
+          const metaOficio = oficio.driveFileId ? await this.driveService.getFileMetadata(oficio.driveFileId) : null;
+
+          // Si el ID existe pero no hay metadatos (404) o está marcado como borrado
+          const expInvalido = exp.driveFolderId && (!metaExp || metaExp.trashed);
+          const oficioInvalido = oficio.driveFileId && (!metaOficio || metaOficio.trashed);
+
+          if (expInvalido || oficioInvalido) {
+             throw { code: 404, message: 'Resource is missing or in trash' };
+          }
+
+          if (oficio.driveFileId) {
+            // Es una modificación de un archivo existente
+            const driveData = await this.driveService.updateFile(oficio.driveFileId, buffer);
+            oficio.urlArchivo = driveData.urlArchivo;
+            oficio.esModificacion = true;
+            oficio.motivoModificacion = 'Actualización automática del documento';
+          } else {
+            // Es un archivo nuevo para este registro
+            const driveData = await this.driveService.uploadFile(buffer, nombreArchivoFederal, exp.driveFolderId!);
+            oficio.driveFileId = driveData.driveFileId;
+            oficio.urlArchivo = driveData.urlArchivo;
+          }
+        } catch (innerError: any) {
+          // Detectamos si el error es 404 (Not Found) usando el código de la API de Google
+          const isNotFound = innerError.code === 404 || 
+                             innerError.status === 404 ||
+                             String(innerError.message || '').toLowerCase().includes('not found');
+
+          if (isNotFound) {
+            this.logger.warn(`Recurso en Drive no encontrado (ID: ${oficio.driveFileId || exp.driveFolderId}). Limpiando IDs obsoletos y re-intentando.`);
+            
+            // Si el archivo dio 404, el ID que teníamos ya no sirve
+            oficio.driveFileId = null;
+
+            // Re-creamos/buscamos la carpeta (por si el 404 fue por la carpeta madre borrada)
+            exp.driveFolderId = await this.driveService.getOrCreateFolder(folderName);
+            await this.expedienteRepo.save(exp);
+
+            // Subimos como archivo nuevo forzado
+            const driveData = await this.driveService.uploadFile(buffer, nombreArchivoFederal, exp.driveFolderId!);
+            oficio.driveFileId = driveData.driveFileId;
+            oficio.urlArchivo = driveData.urlArchivo;
+          } else {
+            throw innerError;
+          }
+        }
+      } catch (error: any) {
+        this.logger.error(`Error crítico en sincronización Drive: ${error.message}`);
+        // Fallback a URL local si falla Drive (pero el registro se guarda)
+        if (!oficio.urlArchivo) {
+           oficio.urlArchivo = `/civico/documentos/${nombreArchivoFederal}`;
+        }
+      }
+    }
+
+    return this.oficioRepo.save(oficio);
   }
 
-  // Busca si el expediente ya tiene un folio asignado para ese tipo de documento.
+  /**
+   * Busca si el expediente ya tiene un folio asignado para ese tipo de documento.
+   */
   private async buscarFolioExistente(
     expedienteId: string,
     tipoDocumento: TipoDocumentoEnum,
@@ -340,36 +451,64 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     return oficio ? oficio.folioOficio : null;
   }
 
-  // Genera el folio consecutivo SSyPC/SPRS/DGPDyPC/0000/YYYY
-  private async obtenerFolioConsecutivo(extras: Record<string, unknown>): Promise<string> {
-    if (extras['folioOficio']) return String(extras['folioOficio']);
+  /**
+   * Obtiene un folio profesional estandarizado. 
+   * Si ya existe un oficio de ese tipo para el expediente, devuelve el existente para re-uso.
+   */
+  private async obtenerFolioDocumento(tipo: TipoDocumentoEnum, expedienteId: string): Promise<string> {
+    // 1. ¿Ya existe un oficio de este tipo para este expediente?
+    const existente = await this.buscarFolioExistente(expedienteId, tipo);
+    if (existente) return existente;
 
+    // 2. Si no existe, generar nuevo correlativo anual
     const year = new Date().getFullYear();
-    const prefix = `SSyPC/SPRS/DGPDyPC/`;
+    const prefix = this.getPrefixForTipo(tipo);
     const suffix = `/${year}`;
 
-    // Buscar el último folio del año actual
-    const lastOficio = await this.oficioRepo
-      .createQueryBuilder('o')
-      .where('o.folioOficio LIKE :pattern', { pattern: `${prefix}%${suffix}` })
+    // Buscar el último de este tipo con este prefijo/año
+    const last = await this.oficioRepo.createQueryBuilder('o')
+      .where('o.tipoDocumento = :tipo', { tipo })
+      .andWhere('o.folioOficio LIKE :pattern', { pattern: `${prefix}%${suffix}` })
       .orderBy('o.fechaGeneracion', 'DESC')
       .getOne();
 
-    let nextNum = 20;
-    if (lastOficio) {
-      const parts = lastOficio.folioOficio.split('/');
-      // SSyPC / SPRS / DGPDyPC / 0045 / 2026
-      if (parts.length >= 5) {
-        const numStr = parts[parts.length - 2];
-        const parsed = parseInt(numStr, 10);
-        if (!isNaN(parsed)) {
-          nextNum = parsed + 1;
-        }
+    let nextNum = 1;
+    // Para oficios oficiales de SSyPC empezamos en 20 por requerimiento previo
+    if (prefix.includes('SSyPC')) nextNum = 20; 
+
+    if (last) {
+      // Extraer número: SSyPC/.../0025/2026 o F3-0005/2026
+      const matches = last.folioOficio.match(/(\d+)\//);
+      if (matches) {
+        nextNum = parseInt(matches[1], 10) + 1;
       }
     }
 
-    const numPadded = String(nextNum).padStart(4, '0');
-    return `${prefix}${numPadded}${suffix}`;
+    const padded = String(nextNum).padStart(4, '0');
+    return `${prefix}${padded}${suffix}`;
+  }
+
+  private getPrefixForTipo(tipo: TipoDocumentoEnum): string {
+    switch (tipo) {
+      case TipoDocumentoEnum.OFICIO_INCORPORACION:
+      case TipoDocumentoEnum.OFICIO_CONCLUSION:
+      case TipoDocumentoEnum.OFICIO_BAJA_DEFINITIVA:
+      case TipoDocumentoEnum.OFICIO_CANALIZACION:
+        return `SSyPC/SPRS/DGPDyPC/`;
+      case TipoDocumentoEnum.F3_PLAN_TRABAJO:            return `F3-`;
+      case TipoDocumentoEnum.F4_CEDULA_INICIAL:          return `F4-`;
+      case TipoDocumentoEnum.PLAN_VIDA:                  return `PLAN-VIDA-`;
+      case TipoDocumentoEnum.LISTA_ASISTENCIA:           return `LIST-ASIST-`;
+      case TipoDocumentoEnum.REPORTE_SEMANAL_GUIA:       return `REP-SEM-`;
+      case TipoDocumentoEnum.HOJA_PRESENTACION:          return `PRES-SOCIAL-`;
+      default:                                           return `DOC-`;
+    }
+  }
+
+  // Helper legacy (consecutivo viejo)
+  private async obtenerFolioConsecutivo(extras: Record<string, unknown>): Promise<string> {
+    if (extras['folioOficio']) return String(extras['folioOficio']);
+    return this.obtenerFolioDocumento(TipoDocumentoEnum.OFICIO_INCORPORACION, 'GLOBAL');
   }
 
   // ── Métodos específicos por tipo de documento ──────────────────────
@@ -378,33 +517,28 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     expedienteId: string,
     userId: number,
     extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     
-    // Re-uso de folio si ya existe
-    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.OFICIO_INCORPORACION);
-    const folio = folioExistente ?? (await this.obtenerFolioConsecutivo(extras));
+    // Folio estandarizado profesional
+    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.OFICIO_INCORPORACION, expedienteId);
 
-    // Determinar género del juez para el template
     const esJuezFemenino = (exp.generoJuez ?? '').toUpperCase() === 'F';
 
     const buffer = await this.generarPdf('oficio_incorporacion', {
       numOficio:          folio,
       fechaGeneracion:    fechaLarga(),
-      nombreBeneficiario: ben.nombre,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
       curp:               exp.curp,
       causaPenal:         exp.causaPenal,
       delitoImputado:     exp.delitoImputado ?? '—',
       horasSentencia:     exp.horasSentencia,
-      folioExpediente: exp.folioExpediente,
-      // Fecha de incorporación en formato largo con día de semana
+      folioExpediente:    exp.folioExpediente,
+      // Metadata institucional
       fechaIncorporacion: fechaLargaDesde(exp.fechaInicioBeneficio ?? ben.fechaIngreso),
-      // Fecha de conclusión del beneficio
       fechaConclusion:    fechaLargaSinDia(exp.fechaTerminoBeneficio),
-      // Fecha del oficio de canalización
       fechaCanalizacion:  fechaLargaSinDia(exp.fechaOficioCanalizacion),
-      // Días programados de tequios
       diasProgramados:    formatDiasProgramados(exp.diasAsignadosJuzgado),
       juzgadoNombre:      exp.numJuzgadoCivico ?? 'Juzgado Cívico',
       juezNombre:         exp.juezControl ?? 'C. JUEZ DE CONTROL',
@@ -415,33 +549,32 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       ...extras,
     });
 
+    const filename = this.generarNombreArchivo(folio, ben.nombre, 'INCORPORACION');
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.OFICIO_INCORPORACION,
       folioOficio:          folio,
-      urlArchivo:           `/civico/documentos/oficio-incorporacion/${expedienteId}`,
-      nombreArchivoFederal: `${exp.curp}_OFICIO_INCORPORACION.pdf`,
+      buffer,
+      nombreArchivoFederal: filename,
     });
 
-    return buffer;
+    return { buffer, filename };
   }
 
   async generarOficioConclusion(
     expedienteId: string,
     userId: number,
     extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
     
-    // Re-uso de folio
-    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.OFICIO_CONCLUSION);
-    const folio = folioExistente ?? (await this.obtenerFolioConsecutivo(extras));
+    // Folio estandarizado profesional
+    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.OFICIO_CONCLUSION, expedienteId);
     const esJuezFemenino = (exp.generoJuez ?? '').toUpperCase() === 'F';
 
-    // Traer actividades realizadas desde la bitácora (con nombre de actividad)
     const bitacoraRows = await this.bitacoraRepo
       .createQueryBuilder('b')
       .leftJoin('actividades', 'a', 'a.id = b.actividad_id')
@@ -456,35 +589,23 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const actividades = bitacoraRows.map(r => {
       let desc = (r.nombre ?? r.observaciones ?? 'actividad del programa').trim();
       const lowerDesc = desc.toLowerCase();
-      
-      const verbosAccion = [
-        'participó', 'participo', 'impartió', 'impartio', 'asistió', 'asistio', 
-        'realizó', 'realizo', 'apoyó', 'apoyo', 'colaboró', 'colaboro', 'coordinó', 'coordino'
-      ];
+      const verbosAccion = ['participó', 'participo', 'impartió', 'impartio', 'asistió', 'asistio', 'realizó', 'realizo', 'apoyó', 'apoyo', 'colaboró', 'colaboro', 'coordinó', 'coordino'];
       const tieneVerbo = verbosAccion.some(v => lowerDesc.startsWith(v));
-      
-      if (!tieneVerbo) {
-        desc = `Participó en ${desc.charAt(0).toLowerCase() + desc.slice(1)}`;
-      }
+      if (!tieneVerbo) desc = `Participó en ${desc.charAt(0).toLowerCase() + desc.slice(1)}`;
 
       let strFecha = fechaLargaDesde(r.fecha);
-      if (strFecha.startsWith('el ')) {
-        strFecha = strFecha.substring(3); // Removemos 'el ' para que no se duplique en el template
-      }
+      if (strFecha.startsWith('el ')) strFecha = strFecha.substring(3);
 
-      return {
-        descripcion: desc,
-        fecha: strFecha,
-      };
+      return { descripcion: desc, fecha: strFecha };
     });
 
     const buffer = await this.generarPdf('oficio_conclusion', {
       numOficio:          folio,
       fechaGeneracion:    fechaLarga(),
-      nombreBeneficiario: ben.nombre,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
       curp:               exp.curp,
       causaPenal:         exp.causaPenal,
-      folioExpediente: exp.folioExpediente,
+      folioExpediente:    exp.folioExpediente,
       horasSentencia:     exp.horasSentencia,
       horasCumplidas,
       fechaInicio:        fechaLargaSinDia(ben.fechaIngreso),
@@ -499,30 +620,30 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       ...extras,
     });
 
+    const filename = this.generarNombreArchivo(folio, ben.nombre, 'CONCLUSION');
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.OFICIO_CONCLUSION,
       folioOficio:          folio,
-      urlArchivo:           `/civico/documentos/oficio-conclusion/${expedienteId}`,
-      nombreArchivoFederal: `${exp.curp}_OFICIO_CONCLUSION.pdf`,
+      buffer,
+      nombreArchivoFederal: filename,
     });
 
-    return buffer;
+    return { buffer, filename };
   }
 
   async generarInformeBaja(
     expedienteId: string,
     userId: number,
     extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
     
-    // Re-uso de folio
-    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.OFICIO_BAJA_DEFINITIVA);
-    const folio = folioExistente ?? (await this.obtenerFolioConsecutivo(extras));
+    // Folio estandarizado profesional
+    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.OFICIO_BAJA_DEFINITIVA, expedienteId);
 
     const incidencias = await this.incidenciaRepo.find({
       where: { expedienteId },
@@ -532,10 +653,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const buffer = await this.generarPdf('oficio_baja_definitiva', {
       numOficio:          folio,
       fechaGeneracion:    fechaLarga(),
-      nombreBeneficiario: ben.nombre,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
       curp:               exp.curp,
       causaPenal:         exp.causaPenal,
-      folioExpediente: exp.folioExpediente,
+      folioExpediente:    exp.folioExpediente,
       horasSentencia:     exp.horasSentencia,
       horasCumplidas,
       fechaIncorporacion: formatDate(ben.fechaIngreso),
@@ -556,29 +677,29 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       ...extras,
     });
 
+    const filename = this.generarNombreArchivo(folio, ben.nombre, 'BAJA');
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.OFICIO_BAJA_DEFINITIVA,
       folioOficio:          folio,
-      urlArchivo:           `/civico/documentos/informe-baja/${expedienteId}`,
-      nombreArchivoFederal: `${exp.curp}_OFICIO_BAJA_DEFINITIVA.pdf`,
+      buffer,
+      nombreArchivoFederal: filename,
     });
 
-    return buffer;
+    return { buffer, filename };
   }
 
   async generarFichaIncidencias(
     expedienteId: string,
     userId: number,
     extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     
-    // Re-uso de folio
-    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.INFORME_INCIDENCIAS);
-    const folio = folioExistente ?? (await this.obtenerFolioConsecutivo(extras));
+    // Folio estandarizado profesional
+    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.INFORME_INCIDENCIAS, expedienteId);
     
     const horasCumplidas = await this.calcularHorasCumplidas(expedienteId);
     const incidencias = await this.incidenciaRepo.find({
@@ -588,9 +709,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
     const buffer = await this.generarPdf('ficha_incidencias', {
       numOficio:          folio,
-      nombreBeneficiario: ben.nombre,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
       curp:               exp.curp,
-      folioExpediente: exp.folioExpediente,
+      folioExpediente:    exp.folioExpediente,
       causaPenal:         exp.causaPenal,
       horasSentencia:     exp.horasSentencia,
       horasCumplidas,
@@ -601,7 +722,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       paginarTabla:       incidencias.length > 2,
       incidencias: incidencias.map((i) => {
         let ft = fechaLargaDesde(i.fechaIncidencia);
-        ft = ft.charAt(0).toUpperCase() + ft.slice(1); // "El martes, 7 de abril de 2026"
+        ft = ft.charAt(0).toUpperCase() + ft.slice(1);
         return {
           tipo:                  i.tipo,
           fechaFormateada:       formatDate(i.fechaIncidencia),
@@ -615,23 +736,24 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       ...extras,
     });
 
+    const filename = this.generarNombreArchivo(folio, ben.nombre, 'INCIDENCIAS');
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.INFORME_INCIDENCIAS,
       folioOficio:          folio,
-      urlArchivo:           `/civico/documentos/ficha-incidencias/${expedienteId}`,
-      nombreArchivoFederal: `${exp.curp}_FICHA_INCIDENCIAS.pdf`,
+      buffer,
+      nombreArchivoFederal: filename,
     });
 
-    return buffer;
+    return { buffer, filename };
   }
 
   async generarF3PlanTrabajo(
     expedienteId: string,
     userId: number,
     extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const f3  = await this.f3Repo.findOne({ where: { expedienteId } });
@@ -639,15 +761,14 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
     const coordinador = await this.userRepo.findOne({ where: { id: f3.coordinadorId } });
 
-    // Re-uso de folio
-    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.F3_PLAN_TRABAJO);
-    const folio = folioExistente ?? `F3-${expedienteId.slice(0, 8).toUpperCase()}`;
+    // Folio estandarizado profesional
+    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.F3_PLAN_TRABAJO, expedienteId);
 
     const buffer = await this.generarPdf('f3_plan_trabajo', {
       numOficio:          folio,
-      nombreBeneficiario: ben.nombre,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
       curp:               exp.curp,
-      folioExpediente: exp.folioExpediente,
+      folioExpediente:    exp.folioExpediente,
       causaPenal:         exp.causaPenal,
       horasSentencia:     exp.horasSentencia,
       nombreCoordinador:  coordinador?.nombre ?? '—',
@@ -662,23 +783,24 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       ...extras,
     });
 
+    const filename = this.generarNombreArchivo(folio, ben.nombre, 'F3_PLAN_TRABAJO');
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.F3_PLAN_TRABAJO,
       folioOficio:          folio,
-      urlArchivo:           `/civico/documentos/f3-plan-trabajo/${expedienteId}`,
-      nombreArchivoFederal: `${exp.curp}_F3_PLAN_TRABAJO.pdf`,
+      buffer,
+      nombreArchivoFederal: filename,
     });
 
-    return buffer;
+    return { buffer, filename };
   }
 
   async generarF4CedulaInicial(
     expedienteId: string,
     userId: number,
     extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     
@@ -686,23 +808,17 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const f4  = await this.f4Repo.findOne({ where: { expedienteId } });
     if (!f4) throw new NotFoundException(`No existe un F4 (Cédula Inicial) para el expediente ${expedienteId}`);
 
-    // La Ficha 4 hereda los planes e intenciones documentados en F3
     const f3  = await this.f3Repo.findOne({ where: { expedienteId } });
     
     // Calculamos edad
-    const fn = new Date(exp.fechaNacimiento);
-    const ageDiffMs = Date.now() - fn.getTime();
-    const ageDate = new Date(ageDiffMs);
-    const edad = Math.abs(ageDate.getUTCFullYear() - 1970);
+    const edad = calcularEdad(exp.fechaNacimiento);
 
-    // Re-uso de folio
-    const folioExistente = await this.buscarFolioExistente(expedienteId, TipoDocumentoEnum.F4_CEDULA_INICIAL);
-    const folio = folioExistente ?? (await this.obtenerFolioConsecutivo({ ...extras, tipoFirma: 'F4' }));
+    // Folio estandarizado profesional
+    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.F4_CEDULA_INICIAL, expedienteId);
 
-    // Armamos el payload completo
     const buffer = await this.generarPdf('f4_cedula_inicial', {
       numOficio:          folio,
-      nombreBeneficiario: ben.nombre,
+      nombreBeneficiario: ben.nombre.toUpperCase(),
       edad:               edad,
       curp:               exp.curp,
       estadoCivil:        exp.estadoCivil ?? '—',
@@ -712,7 +828,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       ocupacionActual:    exp.ocupacionActual ?? '—',
       fechaIngreso:       formatDate(ben.fechaIngreso),
       telefonoContacto:   exp.telefonoContacto ?? '—',
-      fotoBeneficiario:   await (async () => {
+      fotoBeneficiario: await (async () => {
         const ruta = ben.urlFoto?.trim();
         if (!ruta) return null;
         if (ruta.startsWith('http')) return ruta;
@@ -725,13 +841,11 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       agraviado:          exp.agraviado ?? '—',
       horasSentencia:     exp.horasSentencia,
 
-      // Info heredada de la F3
       proyectoVida:       f3?.proyectoVidaF3 ?? {},
       metasPrograma:      f3?.metasPrograma ?? '',
       actividadesPlan:    f3?.actividadesPlan ?? {},
       observacionesPlan:  f3?.observacionesPlan ?? '',
 
-      // Mapeo F4 Nativo
       procesoIngreso:         f4.procesoIngreso ?? '—',
       seguimientoActividades: f4.seguimientoActividades ?? {},
 
@@ -739,25 +853,29 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       ...extras,
     });
 
+    const filename = this.generarNombreArchivo(folio, ben.nombre, 'F4_CEDULA_INICIAL');
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.F4_CEDULA_INICIAL,
-      folioOficio:          `F4-${expedienteId}-${Date.now()}`,
-      urlArchivo:           `/civico/documentos/f4-cedula-inicial/${expedienteId}`,
-      nombreArchivoFederal: `${exp.curp}_F4_CEDULA_INICIAL.pdf`,
+      folioOficio:          folio,
+      buffer,
+      nombreArchivoFederal: filename,
     });
 
-    return buffer;
+    return { buffer, filename };
   }
 
   async generarPlanVida(
     expedienteId: string,
     userId: number,
     extras: Record<string, unknown> = {},
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
+
+    // Folio estandarizado profesional
+    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.PLAN_VIDA, expedienteId);
 
     const f1 = await this.f1Repo.findOne({ where: { expedienteId } });
     const f3 = await this.f3Repo.findOne({ where: { expedienteId } });
@@ -794,9 +912,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       };
     }).filter(e => e.url !== null);
 
-    // 2. Mapeo de Ejes (7 categorías del F5 vs 8 del F3)
-    // El frontend mandará el mapeo o lo extraemos del extras.
-    // Si no viene, usamos un esqueleto básico.
+    // Mapeo básico de ejes
     const ejesDefault = [
       { eje: 'SALUD', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
       { eje: 'CAPACITACIÓN PARA EL TRABAJO', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
@@ -808,6 +924,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     ];
 
     const buffer = await this.generarPdf('plan_vida', {
+      numOficio:          folio,
       nombreBeneficiario: ben.nombre.toUpperCase(),
       curp:               exp.curp,
       folioExpediente:    exp.folioExpediente,
@@ -815,7 +932,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       nombreGuia:         extras['nombreGuia'] ?? nombreGuiaBitacora ?? psicologo?.nombre?.toUpperCase() ?? '—',
       fechaTemporalidad:  fechaLargaFormat(exp.fechaTerminoBeneficio || (f3 as any)?.fechaTerminoEstimada),
       
-      // Logos e Imágenes (ya inicializados en onModuleInit)
+      // Logos e Imágenes
       logoEncabezado:    this.logoEncabezadoSspc,
       logoGrecas:        this.logoGrecas,
       
@@ -826,16 +943,17 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       ...extras,
     });
 
+    const filename = this.generarNombreArchivo(folio, ben.nombre, 'PLAN_VIDA');
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.PLAN_VIDA,
-      folioOficio:          `PLAN-VIDA-${expedienteId}-${Date.now()}`,
-      urlArchivo:           `/civico/documentos/plan-vida/${expedienteId}`,
-      nombreArchivoFederal: `${exp.curp}_PLAN_VIDA.pdf`,
+      folioOficio:          folio,
+      buffer,
+      nombreArchivoFederal: filename,
     });
 
-    return buffer;
+    return { buffer, filename };
   }
 
   // Lista de asistencia y reporte semanal son ad-hoc (sin expedienteId),
@@ -850,13 +968,16 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  // Genera la lista de asistencia (hoja de presentación) pre-llenada para un beneficiario.
+  // Genera la lista de asistencia pre-llenada para un beneficiario.
   async generarListaAsistenciaBeneficiario(
     expedienteId: string,
     userId: number,
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
+
+    // Folio estandarizado profesional
+    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.LISTA_ASISTENCIA, expedienteId);
 
     // Buscamos si hay un guía asignado en bitácora para pre-llenar la firma
     const primerBitacora = await this.bitacoraRepo.findOne({
@@ -866,26 +987,28 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     });
 
     const buffer = await this.generarPdf('lista_asistencia', {
+      numOficio:          folio,
       logoPresentacion1:  this.logoPresentacion1,
       logoPresentacion2:  this.logoPresentacion2,
       nombreBeneficiario: ben.nombre.toUpperCase(),
       nombreGuia:         primerBitacora?.guia?.nombre?.toUpperCase() || '—',
-      fecha:              '', // Se deja vacío para el usuario
+      fecha:              '', 
       observaciones:      '',
       actividades:        [],
       filasVacias:        2,
     });
 
+    const filename = this.generarNombreArchivo(folio, ben.nombre, 'LISTA_ASISTENCIA');
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.LISTA_ASISTENCIA,
-      folioOficio:          `PRES-SOCIAL-${expedienteId}-${Date.now()}`,
-      urlArchivo:           `/civico/documentos/lista-asistencia/${expedienteId}`,
-      nombreArchivoFederal: `${exp.curp}_PRESENTACION_SOCIAL.pdf`,
+      folioOficio:          folio,
+      buffer,
+      nombreArchivoFederal: filename,
     });
 
-    return buffer;
+    return { buffer, filename };
   }
 
   async generarReporteSemanal(datos: Record<string, unknown>): Promise<Buffer> {
@@ -900,9 +1023,12 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   async generarReporteSemanalBeneficiario(
     expedienteId: string,
     userId: number,
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
+
+    // Folio estandarizado profesional
+    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.REPORTE_SEMANAL_GUIA, expedienteId);
 
     const primerBitacora = await this.bitacoraRepo.findOne({
       where: { expedienteId },
@@ -911,6 +1037,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     });
 
     const buffer = await this.generarPdf('reporte_semanal', {
+      numOficio:          folio,
       logoEncabezadoSspc: this.logoEncabezadoSspc,
       logoGrecas:         this.logoGrecas,
       nombreBeneficiario: ben.nombre.toUpperCase(),
@@ -921,16 +1048,17 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       actividades:        [],
     });
 
+    const filename = this.generarNombreArchivo(folio, ben.nombre, 'REPORTE_SEMANAL');
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
       tipoDocumento:        TipoDocumentoEnum.REPORTE_SEMANAL_GUIA,
-      folioOficio:          `REP-SEM-${expedienteId}-${Date.now()}`,
-      urlArchivo:           `/civico/documentos/reporte-semanal/${expedienteId}`,
-      nombreArchivoFederal: `${exp.curp}_REPORTE_SEMANAL.pdf`,
+      folioOficio:          folio,
+      buffer,
+      nombreArchivoFederal: filename,
     });
 
-    return buffer;
+    return { buffer, filename };
   }
 
   // Lista todos los oficios y documentos generados para un expediente específico.
@@ -943,12 +1071,18 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
   // ── Helpers privados ───────────────────────────────────────────────
 
+  /**
+   * Genera el reporte de notas de evolución psicológica.
+   */
   async generarNotaEvolucion(
     expedienteId: string,
     userId: number,
-  ): Promise<Buffer> {
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
+
+    // Folio estandarizado profesional
+    const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.NOTA_EVOLUCION_PSICOLOGICA, expedienteId);
 
     // Todas las sesiones ordenadas por número de sesión
     const sesionesRepo = await this.seguimientoRepo.find({
@@ -971,22 +1105,31 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       observaciones: s.observaciones || '—',
       fechaProxima: formatDate(s.fechaProximaSesion),
       nombrePsicologo: s.psicologo?.nombre?.toUpperCase() || '—',
-      // Usar cédula profesional guardada en la sesión, fallback a placeholder
       cedulaPsicologo: s.cedulaProfesional || '6487612',
     }));
 
     const buffer = await this.generarPdf('nota_evolucion', {
-      nombreUsuario: ben.nombre.toUpperCase(),
-      edad: calcularEdad(exp.fechaNacimiento),
-      sexo: (exp.genero || '—').charAt(0).toUpperCase(),
-      folioExpediente: exp.folioExpediente,
+      numOficio:          folio,
+      nombreUsuario:      ben.nombre.toUpperCase(),
+      edad:               calcularEdad(exp.fechaNacimiento),
+      sexo:               (exp.genero || '—').charAt(0).toUpperCase(),
+      folioExpediente:    exp.folioExpediente,
       sesiones,
-
-      // Branding oficial (mismo que oficios de incorporación/conclusión)
-      logoEncabezado:    this.logoEncabezado,
+      logoEncabezado:     this.logoEncabezadoSspc,
+      logoGrecas:         this.logoGrecas,
     });
 
-    return buffer;
+    const filename = this.generarNombreArchivo(folio, ben.nombre, 'NOTA_EVOLUCION');
+    await this.registrarOficio({
+      expedienteId,
+      generadoPorId:        userId,
+      tipoDocumento:        TipoDocumentoEnum.NOTA_EVOLUCION_PSICOLOGICA,
+      folioOficio:          folio,
+      buffer,
+      nombreArchivoFederal: filename,
+    });
+
+    return { buffer, filename };
   }
 
   private async getExpediente(expedienteId: string): Promise<ExpedienteCivico> {
@@ -1011,5 +1154,11 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       })
       .getRawOne<{ total: string }>();
     return parseFloat(result?.total ?? '0');
+  }
+
+  // Genera un nombre de archivo profesional: TIPO - NOMBRE - FOLIO.pdf
+  private generarNombreArchivo(folio: string, nombreBeneficiario: string, tipo: string): string {
+    const folioSanitizado = folio.replace(/\//g, '-');
+    return `${tipo.toUpperCase()} - ${nombreBeneficiario.toUpperCase()} - ${folioSanitizado}.pdf`;
   }
 }

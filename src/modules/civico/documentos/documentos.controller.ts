@@ -64,8 +64,8 @@ export class DocumentosController {
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarOficioIncorporacion(expedienteId, userId);
-    sendPdf(res, buffer, `oficio_incorporacion_${expedienteId}.pdf`);
+    const { buffer, filename } = await this.documentosService.generarOficioIncorporacion(expedienteId, userId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── GET /civico/documentos/oficio-conclusion/:expedienteId ────────
@@ -80,8 +80,8 @@ export class DocumentosController {
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarOficioConclusion(expedienteId, userId);
-    sendPdf(res, buffer, `oficio_conclusion_${expedienteId}.pdf`);
+    const { buffer, filename } = await this.documentosService.generarOficioConclusion(expedienteId, userId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── GET /civico/documentos/informe-baja/:expedienteId ─────────────
@@ -96,8 +96,8 @@ export class DocumentosController {
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarInformeBaja(expedienteId, userId);
-    sendPdf(res, buffer, `informe_baja_${expedienteId}.pdf`);
+    const { buffer, filename } = await this.documentosService.generarInformeBaja(expedienteId, userId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── GET /civico/documentos/ficha-incidencias/:expedienteId ────────
@@ -112,8 +112,8 @@ export class DocumentosController {
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarFichaIncidencias(expedienteId, userId);
-    sendPdf(res, buffer, `ficha_incidencias_${expedienteId}.pdf`);
+    const { buffer, filename } = await this.documentosService.generarFichaIncidencias(expedienteId, userId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── GET /civico/documentos/f3-plan-trabajo/:expedienteId ──────────
@@ -128,8 +128,8 @@ export class DocumentosController {
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarF3PlanTrabajo(expedienteId, userId);
-    sendPdf(res, buffer, `f3_plan_trabajo_${expedienteId}.pdf`);
+    const { buffer, filename } = await this.documentosService.generarF3PlanTrabajo(expedienteId, userId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── GET /civico/documentos/f4-cedula-inicial/:expedienteId ────────
@@ -144,8 +144,8 @@ export class DocumentosController {
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarF4CedulaInicial(expedienteId, userId);
-    sendPdf(res, buffer, `f4_cedula_inicial_${expedienteId}.pdf`);
+    const { buffer, filename } = await this.documentosService.generarF4CedulaInicial(expedienteId, userId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── GET /civico/documentos/plan-vida/:expedienteId ────────────────
@@ -160,8 +160,8 @@ export class DocumentosController {
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarPlanVida(expedienteId, userId);
-    sendPdf(res, buffer, `plan_vida_${expedienteId}.pdf`);
+    const { buffer, filename } = await this.documentosService.generarPlanVida(expedienteId, userId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── GET /civico/documentos/nota-evolucion/:expedienteId ──────────
@@ -176,8 +176,8 @@ export class DocumentosController {
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarNotaEvolucion(expedienteId, userId);
-    sendPdf(res, buffer, `nota_evolucion_${expedienteId}.pdf`);
+    const { buffer, filename } = await this.documentosService.generarNotaEvolucion(expedienteId, userId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── GET /civico/documentos/lista-asistencia/:expedienteId ──────────
@@ -192,8 +192,8 @@ export class DocumentosController {
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarListaAsistenciaBeneficiario(expedienteId, userId);
-    sendPdf(res, buffer, `presentacion_social_${expedienteId}.pdf`);
+    const { buffer, filename } = await this.documentosService.generarListaAsistenciaBeneficiario(expedienteId, userId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── POST /civico/documentos/lista-asistencia ──────────────────────
@@ -292,8 +292,8 @@ export class DocumentosController {
     @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const buffer = await this.documentosService.generarReporteSemanalBeneficiario(expedienteId, userId);
-    sendPdf(res, buffer, `reporte_semanal_${expedienteId}.pdf`);
+    const { buffer, filename } = await this.documentosService.generarReporteSemanalBeneficiario(expedienteId, userId);
+    sendPdf(res, buffer, filename);
   }
 
   // ── GET /civico/documentos/historial/:expedienteId ────────────────

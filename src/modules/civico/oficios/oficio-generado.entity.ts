@@ -54,25 +54,12 @@ import {
     @Column({ name: 'url_archivo', type: 'text' })
     urlArchivo!: string;
   
-    @Column({ type: 'varchar', length: 150, nullable: true })
-    destinatario!: string | null;
-  
-    // Para OFICIO_CONCLUSION:
-    // [{"descripcion":"Tequio Agencia Dolores","fecha":"2025-08-10"}, ...]
-    @Column({ name: 'actividades_realizadas', type: 'jsonb', nullable: true })
-    actividadesRealizadas!: object | null;
+    @Column({ name: 'drive_file_id', type: 'varchar', length: 150, nullable: true })
+    driveFileId!: string | null;
   
     // ── Control de modificaciones ─────────────────────────────────────
     @Column({ name: 'es_modificacion', type: 'boolean', default: false })
     esModificacion!: boolean;
-  
-    // Auto-referencia: si es una modificación, apunta al oficio original
-    @ManyToOne(() => OficioGenerado, { nullable: true, onDelete: 'RESTRICT' })
-    @JoinColumn({ name: 'oficio_original_id' })
-    oficioOriginal!: OficioGenerado | null;
-  
-    @Column({ name: 'oficio_original_id', type: 'uuid', nullable: true })
-    oficioOriginalId!: string | null;
   
     @Column({ name: 'motivo_modificacion', type: 'text', nullable: true })
     motivoModificacion!: string | null;

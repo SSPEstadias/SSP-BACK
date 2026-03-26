@@ -24,8 +24,30 @@ export class ExpedientesCivicoService {
 
   // ── Crear expediente ──────────────────────────────────────────────
   async create(dto: CreateExpedienteCivicoDto): Promise<ExpedienteCivico> {
+    // Generar folio automático institucional si no cumple el formato
+    if (!dto.folioExpediente || !dto.folioExpediente.startsWith('DGPDYPC-RCP-')) {
+      dto.folioExpediente = await this.generarSiguienteFolio();
+    }
     const expediente = this.expedienteRepo.create(dto);
     return this.expedienteRepo.save(expediente);
+  }
+
+  private async generarSiguienteFolio(): Promise<string> {
+    const prefix = 'DGPDYPC-RCP-';
+    const last = await this.expedienteRepo.createQueryBuilder('exp')
+      .where('exp.folioExpediente LIKE :pattern', { pattern: `${prefix}%` })
+      .orderBy('exp.folioExpediente', 'DESC')
+      .getOne();
+
+    let nextNum = 1;
+    if (last) {
+      const parts = last.folioExpediente.split('-');
+      const lastNumStr = parts[parts.length - 1];
+      const lastNum = parseInt(lastNumStr, 10);
+      if (!isNaN(lastNum)) nextNum = lastNum + 1;
+    }
+
+    return `${prefix}${String(nextNum).padStart(3, '0')}`;
   }
 
   // ── Listar todos ──────────────────────────────────────────────────

@@ -29,13 +29,6 @@ import {
         );
       }
   
-      // Si es modificación, debe indicar el oficio original
-      if (dto.esModificacion && !dto.oficioOriginalId) {
-        throw new BadRequestException(
-          'Una modificación debe incluir oficioOriginalId',
-        );
-      }
-  
       const oficio = this.oficioRepo.create(dto);
       return this.oficioRepo.save(oficio);
     }
@@ -77,11 +70,4 @@ import {
       return oficio;
     }
   
-    // ── Obtener historial de modificaciones de un oficio ─────────────
-    async findModificaciones(oficioOriginalId: string): Promise<OficioGenerado[]> {
-      return this.oficioRepo.find({
-        where: { oficioOriginalId, esModificacion: true },
-        order: { fechaGeneracion: 'ASC' },
-      });
-    }
   }
