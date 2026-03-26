@@ -30,7 +30,7 @@
   "navigation": [
     {
       "group": "Introducción",
-      "pages": ["docs/overview", "docs/instalacion", "docs/autenticacion"]
+      "pages": ["docs/overview", "docs/instalacion", "docs/autenticacion", "docs/funcionalidades-app"]
     },
     {
       "group": "Núcleo Compartido",

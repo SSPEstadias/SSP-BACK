@@ -14,7 +14,7 @@ import {
   import { TipoDocumentoEnum } from '../enums/civico.enums';
   import { RolesGuard } from '../../../shared/common/guards/roles.guard';
   import { Roles } from '../../../shared/common/decorators/roles.decorator';
-  import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+  import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
 
   @ApiTags('📨 Oficios')
 @ApiBearerAuth('JWT-Auth')
@@ -53,8 +53,23 @@ import {
     findByFolio(@Param('folio') folio: string) {
       return this.service.findByFolio(folio);
     }
-  
-  
+
+    // GET /civico/oficios/expediente/:expedienteId/paquete-forms
+    // Documentos requeridos para subir al Google Forms federal + fotos de actividades
+    @Get('expediente/:expedienteId/paquete-forms')
+    @Roles('Admin', 'TrabajoSocial', 'Psicologo', 'Guia')
+    @ApiOperation({
+      summary: 'Paquete para Google Forms federal',
+      description:
+        'Retorna los oficios requeridos para el Forms federal ' +
+        '(incorporación, canalización, cédula inicial, plan de trabajo, plan de vida, reporte de instancia) ' +
+        'y las URLs de evidencia fotográfica registradas en bitácora.',
+    })
+    @ApiParam({ name: 'expedienteId', type: 'string', format: 'uuid' })
+    findPaqueteForms(@Param('expedienteId', ParseUUIDPipe) expedienteId: string) {
+      return this.service.findPaqueteForms(expedienteId);
+    }
+
     // GET /civico/oficios/:id
     @Get(':id')
     @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')

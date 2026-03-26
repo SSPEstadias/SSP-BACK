@@ -31,10 +31,6 @@ TIPO - NOMBRE_BENEFICIARIO - FOLIO.pdf
 
 **Ejemplo:** `INCORPORACION - JUAN PÉREZ LÓPEZ - CVX-2026-001.pdf`
 
-<Note>
-Las historias de usuario anteriores mencionan `CURP_TipoDocumento.pdf` como nomenclatura federal. El código actual usa el patrón `TIPO - NOMBRE - FOLIO.pdf`. La entidad incluye el campo `nombreArchivoFederal` que actualmente almacena el patrón real del servicio; el nombre del campo preserva la posibilidad de migrar al estándar federal sin cambios de esquema.
-</Note>
-
 ## Integración con Google Drive
 
 El servicio `CivicoGoogleDriveService` se inicializa automáticamente si las siguientes variables de entorno están presentes:

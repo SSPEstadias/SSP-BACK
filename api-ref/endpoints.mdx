@@ -75,3 +75,14 @@ description: Referencia rápida de todos los endpoints del sistema con método, 
 | `GET` | `/civico/incidencias/:id` | Individual | Todos |
 | `PATCH` | `/civico/incidencias/:id` | Actualizar | Admin |
 | `PATCH` | `/civico/incidencias/:id/resolver` | Marcar como resuelta | Admin, Guia |
+
+## Oficios
+
+| Método | Ruta | Descripción | Roles |
+|--------|------|-------------|-------|
+| `POST` | `/civico/oficios` | Registrar oficio | Admin, Guia |
+| `GET` | `/civico/oficios/expediente/:id` | Historial completo de oficios | Todos |
+| `GET` | `/civico/oficios/expediente/:id/paquete-forms` | Documentos + fotos para Google Forms federal | Todos |
+| `GET` | `/civico/oficios/expediente/:id/tipo?tipo=TIPO` | Filtrar por tipo | Todos |
+| `GET` | `/civico/oficios/folio/:folio` | Por folio | Todos |
+| `GET` | `/civico/oficios/:id` | Por UUID | Todos |

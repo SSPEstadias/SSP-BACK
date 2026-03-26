@@ -9,17 +9,13 @@ La tabla `civic_oficios_generados` lleva el historial de todos los documentos PD
 
 ## Nomenclatura de archivos
 
-El campo `nombreArchivoFederal` almacena el nombre del archivo con el siguiente patrón (implementado en `DocumentosService.generarNombreArchivo()`):
+El campo `nombreArchivoFederal` almacena el nombre del archivo con el patrón:
 
 ```
 TIPO - NOMBRE_BENEFICIARIO - FOLIO.pdf
 ```
 
 **Ejemplo:** `INCORPORACION - JUAN PÉREZ LÓPEZ - CVX-2026-001.pdf`
-
-<Note>
-Las historias de usuario HU-05 mencionan `CURP_TipoDocumento.pdf` como nomenclatura federal objetivo. El código actual usa el patrón `TIPO - NOMBRE - FOLIO.pdf`. El campo `nombreArchivoFederal` (columna BD: `nombre_archivo_federal`) actualmente almacena el patrón `TIPO - NOMBRE - FOLIO.pdf`. El nombre del campo preserva la posibilidad de migrar al estándar federal `CURP_TipoDocumento.pdf` sin cambios de esquema.
-</Note>
 
 ## Tipos de documento (`TipoDocumentoEnum`)
 
@@ -34,7 +30,7 @@ Las historias de usuario HU-05 mencionan `CURP_TipoDocumento.pdf` como nomenclat
 | `F3_PLAN_TRABAJO` | Plan de trabajo firmado |
 | `F4_CEDULA_INICIAL` | Cédula para reporte federal |
 | `LISTA_ASISTENCIA` | Lista semanal de asistencia |
-| `REPORTE_SEMANAL_GUIA` | Reporte del guía |
+| `REPORTE_SEMANAL_GUIA` | Reporte del guía / reporte de instancia |
 | `HOJA_PRESENTACION` | Hoja de presentación del beneficiario |
 | `PLAN_VIDA` | Plan de Vida Individualizada |
 | `NOTA_EVOLUCION_PSICOLOGICA` | Nota de evolución psicológica |
@@ -51,9 +47,60 @@ Registra manualmente un oficio generado (URL del archivo almacenado). Normalment
 
 ### `GET /civico/oficios/expediente/:expedienteId`
 
-Lista todos los documentos de un expediente, ordenados por `fechaGeneracion DESC`.
+Lista **todos** los documentos de un expediente, ordenados por `fechaGeneracion DESC`.
 
 **Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
+
+---
+
+### `GET /civico/oficios/expediente/:expedienteId/paquete-forms`
+
+Retorna únicamente los documentos requeridos para subir al **Google Forms federal**, más las URLs de fotos de actividades registradas en bitácora.
+
+**Documentos incluidos:**
+
+| Tipo | Descripción |
+|---|---|
+| `OFICIO_INCORPORACION` | Oficio de incorporación al programa |
+| `OFICIO_CANALIZACION` | Oficio de canalización (del juzgado) |
+| `F4_CEDULA_INICIAL` | Cédula inicial |
+| `F3_PLAN_TRABAJO` | Plan de trabajo |
+| `PLAN_VIDA` | Plan de Vida Individualizada |
+| `REPORTE_SEMANAL_GUIA` | Reporte de instancia (si existe) |
+
+**Fotos:** URLs del campo `evidenciaUrl` de cada registro de bitácora que tenga imagen adjunta.
+
+**Roles:** `Admin`, `TrabajoSocial`, `Psicologo`, `Guia`
+
+**Respuesta `200 OK`:**
+
+```json
+{
+  "oficios": [
+    {
+      "idUUID": "a1b2c3d4-...",
+      "tipoDocumento": "OFICIO_INCORPORACION",
+      "folioOficio": "OFC-INCORP-2026-001",
+      "urlArchivo": "https://drive.google.com/file/d/.../view",
+      "driveFileId": "1BxiMVs0XRA5nFMdKvBdBZjgmUUq...",
+      "fechaGeneracion": "2026-03-10T10:30:00.000Z"
+    },
+    {
+      "idUUID": "b2c3d4e5-...",
+      "tipoDocumento": "OFICIO_CANALIZACION",
+      "folioOficio": "OFC-CANAL-2026-001",
+      "urlArchivo": "https://drive.google.com/file/d/.../view",
+      "driveFileId": "...",
+      "esExterno": true,
+      "fechaGeneracion": "2026-03-01T08:00:00.000Z"
+    }
+  ],
+  "fotosActividades": [
+    "https://storage.example.com/fotos/actividad-taller-1.jpg",
+    "https://storage.example.com/fotos/actividad-taller-2.jpg"
+  ]
+}
+```
 
 ---
 
@@ -82,13 +129,3 @@ Obtiene un oficio por su folio único.
 Obtiene un oficio por su UUID propio.
 
 **Roles:** `Admin`, `Psicologo`, `TrabajoSocial`, `Guia`
-
----
-
-### ⚠️ `GET /civico/oficios/expediente/:expedienteId/paquete` — PENDIENTE
-
-<Warning>
-Este endpoint **no está implementado** en la versión actual. No existe la ruta en `oficios.controller.ts`.  
-Se requiere para la historia de usuario HU-05 (RF-016): descarga de un ZIP con todos los documentos requeridos por la plataforma federal.  
-**Workaround temporal:** usar el endpoint `GET /civico/documentos/historial/:expedienteId` para obtener las URLs de Drive y descargar cada documento individualmente.
-</Warning>

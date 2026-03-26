@@ -1,0 +1,299 @@
+---
+title: Funcionalidades de la Aplicación Web
+description: Especificación de pantallas, flujos y responsabilidades del sistema Reconecta con la Paz
+---
+
+## Objetivo
+
+Este documento describe las funcionalidades que debe tener la aplicación web del sistema **Reconecta con la Paz**, el flujo general de trabajo y las integraciones externas requeridas. Sirve como referencia para verificar que cada función ya esté implementada o para priorizar lo que aún falta.
+
+---
+
+## Roles del sistema
+
+| Rol | Descripción |
+|---|---|
+| **Admin** | Acceso total: gestión de usuarios, configuración, reportes y todas las operaciones |
+| **TrabajoSocial** | Gestión de expedientes, registro de entrevistas y estudios socioeconómicos |
+| **Psicologo** | Seguimiento psicológico, notas de evolución, plan de vida |
+| **Guia** | Registro de asistencia (bitácora), seguimiento de actividades, incidencias |
+
+---
+
+## Módulos y pantallas
+
+### 1. Autenticación
+
+- Pantalla de inicio de sesión con usuario y contraseña.
+- El sistema devuelve un token JWT que se usa en todas las peticiones siguientes.
+- Los roles determinan qué menús y acciones son visibles para cada usuario.
+- Cierre de sesión elimina el token del cliente.
+
+---
+
+### 2. Gestión de Beneficiarios
+
+**Quién lo usa:** Admin, TrabajoSocial, Psicologo
+
+**Pantallas:**
+- Lista de beneficiarios con búsqueda por nombre o CURP.
+- Formulario de alta de beneficiario (datos personales, CURP, domicilio, contacto).
+- Vista de detalle del beneficiario.
+- Edición de datos del beneficiario.
+
+**Flujo:**
+1. Admin o TrabajoSocial registra al beneficiario con su CURP y datos básicos.
+2. El beneficiario queda disponible para asociarlo a un expediente cívico.
+
+---
+
+### 3. Expedientes Cívicos
+
+**Quién lo usa:** Admin, TrabajoSocial, Psicologo, Guia
+
+**Pantallas:**
+- Listado de expedientes con estado y nombre del beneficiario (carátulas).
+- Buscador por CURP.
+- Formulario de creación de expediente (número de folio, juzgado, horas sentenciadas, fecha de inicio).
+- Vista de expediente completo con todas sus secciones (formatos F1–F5, bitácora, incidencias, oficios).
+- Edición de expediente.
+
+**Flujo:**
+1. TrabajoSocial crea el expediente al recibir el oficio de canalización del juzgado.
+2. El expediente pasa por los estatus: `INDUCCION → DIAGNOSTICO → PLANEACION → EN_SEGUIMIENTO → GRADUADO`.
+3. Si se acumulan 3 incidencias, el sistema cambia automáticamente el estatus a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS`.
+
+---
+
+### 4. Formatos del Expediente (F1 – F5)
+
+#### F1 — Entrevista Clínica
+**Quién lo usa:** Psicologo
+
+- Registro de los datos de la entrevista psicológica inicial.
+- Vista y edición del formato.
+- Cambio de estatus: Pendiente → En proceso → Completado → Cerrado.
+
+#### F2 — Estudio Socioeconómico
+**Quién lo usa:** TrabajoSocial
+
+- Registro de los datos del estudio socioeconómico del beneficiario.
+- Vista y edición del formato.
+
+#### F3 — Plan de Trabajo
+**Quién lo usa:** TrabajoSocial, Psicologo
+
+- Registro y edición del plan de trabajo individual.
+- Generación del PDF del plan de trabajo (descargable y subible a Drive).
+
+#### F4 — Cédula Inicial
+**Quién lo usa:** TrabajoSocial
+
+- Registro de los datos de la cédula inicial.
+- Generación del PDF de la cédula inicial.
+
+#### F5 — Seguimiento Psicológico
+**Quién lo usa:** Psicologo
+
+- Registro de notas de evolución psicológica.
+- Generación de PDF de cada nota.
+
+---
+
+### 5. Bitácora de Actividades
+
+**Quién lo usa:** Guia, Admin
+
+**Pantallas:**
+- Lista de registros de asistencia del expediente, ordenados por fecha descendente.
+- Formulario para registrar una nueva entrada (fecha, actividad, horas, tipo de asistencia, incidencia si aplica).
+- Campo opcional para adjuntar una imagen de evidencia de la actividad (`evidenciaUrl`).
+- Vista del resumen de horas acumuladas.
+
+**Flujo:**
+1. El Guia registra la asistencia del beneficiario en cada sesión.
+2. Si registra `FALTA_INJUSTIFICADA`, las horas son automáticamente 0.
+3. Si incluye una incidencia, se crea también un registro en la tabla de Incidencias.
+4. Cuando las horas acumuladas alcanzan las horas sentenciadas, el sistema marca el expediente como `GRADUADO`.
+5. Las imágenes adjuntas en bitácora alimentan el paquete de fotos para el reporte federal.
+
+---
+
+### 6. Incidencias
+
+**Quién lo usa:** Admin, Guia
+
+**Pantallas:**
+- Lista de incidencias del expediente.
+- Conteo de incidencias acumulativas (strikes).
+- Formulario para registrar una incidencia manual.
+- Acción para marcar una incidencia como resuelta.
+
+**Flujo:**
+1. Las incidencias se crean automáticamente cuando se registra una en bitácora, o se pueden crear manualmente.
+2. Al llegar a 3 incidencias acumulativas, el expediente pasa a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS`.
+
+---
+
+### 7. Generación de Documentos PDF
+
+**Quién lo usa:** Admin, TrabajoSocial, Psicologo
+
+**Pantallas:**
+- Botón de "Generar PDF" dentro de la vista del expediente, para cada tipo de documento.
+- El PDF se descarga directamente y, si Google Drive está configurado, se sube automáticamente a la carpeta del expediente.
+- Historial de documentos generados con su tipo, fecha y enlace a Drive.
+
+**Tipos de documentos generables:**
+- Oficio de Incorporación
+- Plan de Trabajo (F3)
+- Cédula Inicial (F4)
+- Oficio de Conclusión (solo cuando horas cumplidas ≥ horas sentenciadas y F1–F5 están cerrados)
+- Oficio de Baja Definitiva
+- Lista de Asistencia
+- Plan de Vida Individualizada
+- Nota de Evolución Psicológica
+- Reporte Semanal del Guía
+- Ficha de Incidencias
+
+**Nomenclatura de archivos generados:**
+```
+TIPO - NOMBRE_BENEFICIARIO - FOLIO.pdf
+```
+**Ejemplo:** `INCORPORACION - JUAN PÉREZ LÓPEZ - CVX-2026-001.pdf`
+
+---
+
+### 8. Paquete para Google Forms Federal
+
+**Quién lo usa:** Admin, TrabajoSocial
+
+**Pantallas:**
+- Sección "Paquete Federal" dentro del expediente.
+- Lista de documentos disponibles para el Forms federal, con su URL de Drive.
+- Lista de fotos de actividades (tomadas de la bitácora).
+- Botón para copiar o abrir cada enlace individualmente.
+
+**Documentos incluidos en el paquete:**
+
+| Documento | Descripción |
+|---|---|
+| Oficio de Incorporación | Obligatorio |
+| Oficio de Canalización | Obligatorio (viene del juzgado) |
+| Cédula Inicial | Obligatorio |
+| Plan de Trabajo | Obligatorio |
+| Plan de Vida | Obligatorio |
+| Reporte de Instancia | Si existe |
+| Fotos de actividades | URLs de evidencia fotográfica de bitácora |
+
+**Flujo:**
+1. El usuario abre la sección "Paquete Federal" del expediente.
+2. El frontend llama a `GET /civico/oficios/expediente/:id/paquete-forms`.
+3. La respuesta incluye los oficios relevantes y las fotos de bitácora.
+4. El usuario copia los enlaces y los sube manualmente al Google Forms federal.
+
+---
+
+### 9. Perfil de Salud del Beneficiario
+
+**Quién lo usa:** Admin, Psicologo
+
+**Pantallas:**
+- Formulario de creación y edición del perfil de salud.
+- Indicador de aptitud física (`esAptoFisico`).
+- Lista de restricciones por categoría de actividad.
+
+**Flujo:**
+- Si un beneficiario no es apto físicamente, el sistema bloquea el registro de asistencia en bitácora.
+- Si una actividad pertenece a una categoría restringida para el beneficiario, el sistema rechaza el registro.
+
+---
+
+### 10. Administración de Usuarios
+
+**Quién lo usa:** Admin
+
+**Pantallas:**
+- Lista de usuarios del sistema.
+- Formulario de creación de usuario (nombre, correo, contraseña, rol).
+- Edición de usuario (incluyendo cambio de rol).
+- Desactivación de usuario.
+
+---
+
+### 11. Catálogo de Actividades
+
+**Quién lo usa:** Admin, Guia (lectura)
+
+**Pantallas:**
+- Lista de actividades disponibles para registro en bitácora.
+- Formulario de creación/edición de actividad (nombre, categoría, estado activo/inactivo).
+- Filtro por categoría.
+
+---
+
+## Flujo general del expediente
+
+```
+Juzgado emite sentencia
+        ↓
+TrabajoSocial registra beneficiario y crea expediente
+        ↓
+Se registra el Oficio de Canalización (externo, del juzgado)
+        ↓
+Se genera el Oficio de Incorporación
+        ↓
+Psicologo realiza Entrevista Clínica (F1) → INDUCCION
+        ↓
+TrabajoSocial realiza Estudio Socioeconómico (F2) → DIAGNOSTICO
+        ↓
+Se elabora Plan de Trabajo (F3) + Cédula Inicial (F4) → PLANEACION
+        ↓
+Guia registra asistencia en Bitácora sesión a sesión → EN_SEGUIMIENTO
+        ↓
+Psicologo registra Seguimiento Psicológico (F5) y Plan de Vida
+        ↓
+Horas acumuladas ≥ Horas sentenciadas
+y F1–F5 en estatus CERRADO
+        ↓
+Sistema genera Oficio de Conclusión → GRADUADO
+        ↓
+TrabajoSocial prepara Paquete Federal y sube documentos al Forms
+```
+
+Si en cualquier punto se acumulan 3 incidencias acumulativas:
+```
+Sistema cambia estatus → BAJA_POR_ACUMULACION_DE_INCIDENCIAS
+Se genera Oficio de Baja Definitiva
+```
+
+---
+
+## Integraciones externas
+
+| Integración | Estado | Descripción |
+|---|---|---|
+| **JWT** | ✅ Implementado | Autenticación con token en todas las rutas protegidas |
+| **Google Drive** | ✅ Implementado | Subida automática de PDFs a carpeta del expediente en Drive |
+| **Google Forms Federal** | Manual | El usuario copia las URLs del paquete-forms y las sube manualmente al Forms |
+
+---
+
+## Verificación de implementación
+
+| Funcionalidad | Endpoint / Módulo | Estado |
+|---|---|---|
+| Registro de beneficiarios | `POST /beneficiarios` | ✅ |
+| Creación de expediente cívico | `POST /civico/expedientes` | ✅ |
+| Formatos F1–F5 | `/civico/f1` a `/civico/f5` | ✅ |
+| Bitácora de asistencia | `POST /civico/bitacora` | ✅ |
+| Cálculo automático de horas | Servicio BitacoraCivicaService | ✅ |
+| Graduación automática | Servicio BitacoraCivicaService | ✅ |
+| Baja automática por incidencias | Servicio BitacoraCivicaService | ✅ |
+| Generación de PDFs | `/civico/documentos/*` | ✅ |
+| Subida automática a Drive | CivicoGoogleDriveService | ✅ |
+| Historial de documentos (todos) | `GET /civico/oficios/expediente/:id` | ✅ |
+| Paquete para Forms federal | `GET /civico/oficios/expediente/:id/paquete-forms` | ✅ |
+| Perfil de salud | `/salud/*` | ✅ |
+| Catálogo de actividades | `/actividades/*` | ✅ |
+| Gestión de usuarios | `/usuarios/*` | ✅ |
