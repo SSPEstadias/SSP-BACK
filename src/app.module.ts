@@ -23,7 +23,7 @@ import { EstudioTrabajoSocial } from './modules/penal/estudio-trabajo-social/ent
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: false,
 
         // dropSchema:        false,
         migrationsRun: true,
