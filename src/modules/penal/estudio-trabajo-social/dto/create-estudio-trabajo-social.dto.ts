@@ -6,32 +6,24 @@ import {
   IsString,
 } from 'class-validator';
 
-export class CreateValoracionPsicologicaDto {
+export class CreateEstudioTrabajoSocialDto {
   @IsInt()
   expedienteId: number;
 
   @IsInt()
-  psicologoId: number;
+  trabajadorSocialId: number;
 
   @IsDateString()
   fechaEstudio: string;
-
-  @IsOptional()
-  @IsString()
-  motivoValoracion?: string;
 
   @IsObject()
   seccionesJsonb: Record<string, any>;
 
   @IsOptional()
   @IsString()
-  observacionesGenerales?: string;
+  opinionPrograma?: string;
 
   @IsOptional()
-  @IsObject()
-  resultadosPruebas?: Record<string, any>;
-
-  @IsOptional()
-  @IsObject()
-  accionDerivada?: Record<string, any>;
+  @IsString()
+  diagnosticoSocial?: string;
 }
