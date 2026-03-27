@@ -37,7 +37,10 @@ import {
       default: UnidadTiempoEnum.MESES,
     })
     unidadTiempo!: UnidadTiempoEnum;
-  
+
+    @Column({ name: 'url_foto', type: 'text', nullable: true })
+    urlFoto!: string | null;
+
     @CreateDateColumn({ name: 'creado_en' })
     creadoEn!: Date;
   }

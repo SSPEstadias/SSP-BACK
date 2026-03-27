@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>F3 — Plan de Trabajo</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: 1.5cm 2cm 2.5cm 2cm;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 11pt;
+      color: #000;
+      line-height: 1.4;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ── Marca de agua a toda página ── */
+    .fondo-pagina {
+      position: fixed;
+      top: -1.5cm; 
+      left: -2cm;
+      width: 21.59cm; 
+      height: 27.94cm;
+      z-index: -10;
+      pointer-events: none;
+      opacity: 0.25;
+    }
+    .fondo-pagina img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+    }
+
+    /* ── Header Logos ── */
+    .header-logos {
+      text-align: left;
+      margin-bottom: 25pt;
+    }
+    .img-logo-1 {
+      height: 70px;
+      width: auto;
+    }
+
+    /* ── Titles ── */
+    .titles-container {
+      text-align: center;
+      margin-bottom: 20pt;
+    }
+    .titles-container p {
+      font-size: 11.5pt;
+      font-weight: bold;
+      margin-bottom: 4pt;
+    }
+    .plan-title {
+      font-size: 13pt;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 15pt;
+    }
+
+    /* ── Contenedor de la Tabla ── */
+    .table-container {
+      width: 100%;
+      margin-bottom: 20pt;
+      page-break-inside: auto;
+    }
+
+    /* ── Table ── */
+    .plan-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 10.5pt;
+      background: transparent !important;
+      page-break-inside: auto;
+    }
+    .plan-table th, .plan-table td {
+      border: 1px solid #000;
+      padding: 6pt;
+      background: transparent;
+    }
+    .plan-table th {
+      font-weight: bold;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    /* ── TRAMPA PARA SALTO DE PÁGINA (P2 NO ESTÉ TAN ARRIBA) ── */
+    .page-spacer-wrapper {
+      width: 100%;
+      border-collapse: collapse;
+      border: none;
+      margin-top: -3cm; /* Compensa el espacio en la página 1 */
+    }
+    .page-spacer-wrapper > thead > tr > td {
+      height: 3cm; /* Genera un margen TOP en la página 2 hacia adelante */
+      padding: 0; border: none;
+    }
+    .page-spacer-wrapper > tbody > tr > td {
+      padding: 0; border: none; vertical-align: top;
+    }
+
+    /* ── Fondos grises SOLO para las cabeceras ── */
+    .gray-header th {
+      background-color: #d9d9d9 !important;
+    }
+
+    /* ── Celdas Proyecto de Vida ── */
+    .pv-cat {
+      font-weight: bold;
+      text-align: center;
+      width: 20%;
+    }
+    .pv-val {
+      text-align: left;
+      text-transform: uppercase;
+    }
+    
+    /* ── Celdas Actividades ── */
+    .act-cat {
+      font-weight: bold;
+      text-align: center;
+      width: 22%;
+      font-size: 9.5pt;
+    }
+    .act-val {
+      text-align: center;
+      vertical-align: middle;
+      text-transform: uppercase;
+      font-size: 9.5pt;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Marca de Agua (Abarcando físicamente toda la página) -->
+  <div class="fondo-pagina">
+    {{#if logoPresentacion2}}
+    <img src="{{logoPresentacion2}}" alt="Reconecta con la Paz" />
+    {{/if}}
+  </div>
+
+  <!-- HACK CSS para páginas secundarias -->
+  <table class="page-spacer-wrapper">
+    <thead><tr><td></td></tr></thead>
+    <tbody><tr><td>
+
+  <!-- Logo esquina superior izquierda -->
+  <div class="header-logos">
+    {{#if logoPresentacion1}}
+    <img src="{{logoPresentacion1}}" class="img-logo-1" alt="Secretaría" />
+    {{/if}}
+  </div>
+
+  <!-- Títulos Centrales -->
+  <div class="titles-container">
+    <p>SUBSECRETARIA DE PREVENCIÓN Y REINSERCIÓN SOCIAL</p>
+    <p>DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA</p>
+    <p>VALORACIÓN CLÍNICA PSICOLÓGICA.</p>
+  </div>
+
+  <!-- Subtítulo de Tabla -->
+  <div class="plan-title">
+    PLAN DE TRABAJO INDIVIDUAL
+  </div>
+
+  <!-- TABLA 1: PROYECTO DE VIDA -->
+  <div class="table-container">
+    <table class="plan-table">
+      <thead>
+        <tr class="gray-header">
+          <th colspan="2" style="font-size: 12pt;">PROYECTO DE VIDA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="pv-cat">PERSONAL</td>
+          <td class="pv-val">{{proyectoVida.personal}}</td>
+        </tr>
+        <tr>
+          <td class="pv-cat">FAMILIAR</td>
+          <td class="pv-val">{{proyectoVida.familiar}}</td>
+        </tr>
+        <tr>
+          <td class="pv-cat">SOCIAL</td>
+          <td class="pv-val">{{proyectoVida.social}}</td>
+        </tr>
+        <tr class="gray-header">
+          <th colspan="2" style="font-size: 11pt;">METAS POR CUMPLIR CON EL PROGRAMA:</th>
+        </tr>
+        <tr>
+          <td colspan="2" class="pv-val" style="height: 45pt; text-align: justify; vertical-align: top;">
+            {{metasPrograma}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TABLA 2: PROCESO DE SEGUIMIENTO -->
+  <div class="table-container">
+    <table class="plan-table">
+      <thead>
+        <tr class="gray-header">
+          <th colspan="4" style="font-size: 11pt;"> PROCESO DE SEGUIMIENTO DE ACTIVIDADES DEL PROGRAMA "RECONECTA CON LA PAZ." </th>
+        </tr>
+        <tr class="gray-header">
+          <th class="act-cat">ACTIVIDAD</th>
+          <th style="width: 25%;">STATUS</th>
+          <th style="width: 28%;">OBJETIVO</th>
+          <th style="width: 25%;">CUMPLIMIENTO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="act-cat">EDUCATIVA</td>
+          <td class="act-val">{{actividadesPlan.EDUCATIVA.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.EDUCATIVA.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.EDUCATIVA.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">PSICOSOCIAL<br>RED DE APOYO</td>
+          <td class="act-val">{{actividadesPlan.PSICOSOCIAL.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.PSICOSOCIAL.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.PSICOSOCIAL.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">PSICOLÓGICA</td>
+          <td class="act-val">{{actividadesPlan.PSICOLOGICA.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.PSICOLOGICA.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.PSICOLOGICA.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">ADICCIONES</td>
+          <td class="act-val">{{actividadesPlan.ADICCIONES.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.ADICCIONES.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.ADICCIONES.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">FAMILIAR</td>
+          <td class="act-val">{{actividadesPlan.FAMILIAR.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.FAMILIAR.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.FAMILIAR.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">LABORAL</td>
+          <td class="act-val">{{actividadesPlan.LABORAL.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.LABORAL.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.LABORAL.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">DEPORTIVA</td>
+          <td class="act-val">{{actividadesPlan.DEPORTIVA.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.DEPORTIVA.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.DEPORTIVA.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat">CULTURAL</td>
+          <td class="act-val">{{actividadesPlan.CULTURAL.estatus}}</td>
+          <td class="act-val">{{actividadesPlan.CULTURAL.objetivo}}</td>
+          <td class="act-val">{{actividadesPlan.CULTURAL.cumplimiento}}</td>
+        </tr>
+        <tr>
+          <td class="act-cat" style="vertical-align: middle;">OBSERVACIONES</td>
+          <td colspan="3" class="pv-val" style="height: 50pt; text-align: justify; vertical-align: top; padding: 6pt;">
+            {{#if observaciones}}{{observaciones}}{{else}}{{observaciones_plan}}{{/if}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+    </td></tr></tbody>
+  </table>
+
+</body>
+</html>

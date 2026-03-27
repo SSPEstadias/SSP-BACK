@@ -46,7 +46,7 @@ export class PenalService {
       beneficiario,
       cPenal: dto.cPenal,
       expedienteTecnico: dto.expedienteTecnico,
-      folioIncorporacion: dto.folioIncorporacion,
+      folioExpediente: dto.folioExpediente,
       juzgado: dto.juzgado,
       delito: dto.delito,
       agraviado: dto.agraviado,
@@ -87,8 +87,8 @@ export class PenalService {
     if (dto.cPenal !== undefined) expediente.cPenal = dto.cPenal;
     if (dto.expedienteTecnico !== undefined)
       expediente.expedienteTecnico = dto.expedienteTecnico;
-    if (dto.folioIncorporacion !== undefined)
-      expediente.folioIncorporacion = dto.folioIncorporacion;
+    if (dto.folioExpediente !== undefined)
+      expediente.folioExpediente = dto.folioExpediente;
     if (dto.juzgado !== undefined) expediente.juzgado = dto.juzgado;
     if (dto.delito !== undefined) expediente.delito = dto.delito;
     if (dto.agraviado !== undefined) expediente.agraviado = dto.agraviado;

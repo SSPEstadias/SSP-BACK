@@ -33,7 +33,7 @@ import {
       examples: {
         'Estudio completo': {
           value: {
-            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
             trabajadorSocialId: 4,
             ingresoMensual: 8500.00,
             nivelSocioeconomico: 'MEDIO_BAJO',
@@ -45,7 +45,7 @@ import {
         },
         'Estudio mínimo': {
           value: {
-            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
             trabajadorSocialId: 4,
           },
         },
