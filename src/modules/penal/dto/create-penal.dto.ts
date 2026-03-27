@@ -14,7 +14,7 @@ export class CreatePenalDto {
 
   @IsOptional()
   @IsString()
-  folioIncorporacion?: string;
+  folioExpediente?: string;
 
   @IsOptional()
   @IsString()

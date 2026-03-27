@@ -33,7 +33,7 @@ import {
       examples: {
         'Sesión completa': {
           value: {
-            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
             psicologoId: 2,
             numSesion: 1,
             fechaSesion: '2026-04-07',
@@ -51,7 +51,7 @@ import {
         },
         'Sesión mínima': {
           value: {
-            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
             psicologoId: 2,
             numSesion: 1,
             fechaSesion: '2026-04-07',

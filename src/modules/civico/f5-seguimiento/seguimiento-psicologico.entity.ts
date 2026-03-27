@@ -69,4 +69,7 @@ import {
   
     @Column({ type: 'text', nullable: true })
     observaciones!: string | null;
+  
+    @Column({ name: 'cedula_profesional', type: 'varchar', length: 50, nullable: true })
+    cedulaProfesional!: string | null;
   }

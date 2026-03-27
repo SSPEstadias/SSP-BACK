@@ -2,7 +2,7 @@
 export class CaratulaDto {
     // Del expediente
     expedienteId!: string;
-    folioIncorporacion!: string;
+    folioExpediente!: string;
     causaPenal!: string;
     aliasSobrenombre!: string | null;
     numJuzgadoCivico!: string | null;

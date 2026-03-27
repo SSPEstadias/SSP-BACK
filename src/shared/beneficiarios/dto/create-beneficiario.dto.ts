@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsEnum, IsNotEmpty, Min } from 'class-validator';
+import { IsString, IsInt, IsEnum, IsNotEmpty, Min, IsOptional } from 'class-validator';
 import { UnidadTiempoEnum } from '../beneficiario.entity';
 
 export class CreateBeneficiarioDto {
@@ -17,4 +17,8 @@ export class CreateBeneficiarioDto {
     message: 'La unidad de tiempo debe ser HORAS o MESES',
   })
   unidadTiempo!: UnidadTiempoEnum;
+
+  @IsOptional()
+  @IsString()
+  urlFoto?: string;
 }

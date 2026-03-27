@@ -33,8 +33,8 @@ export class PenalExpediente {
   @Column({ name: 'expediente_tecnico', type: 'varchar', length: 80, nullable: true })
   expedienteTecnico: string;
 
-  @Column({ name: 'folio_incorporacion', type: 'varchar', length: 80, nullable: true })
-  folioIncorporacion: string;
+  @Column({ name: 'folio_expediente', type: 'varchar', length: 80, nullable: true })
+  folioExpediente: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   juzgado: string;
