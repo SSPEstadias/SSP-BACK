@@ -10,6 +10,7 @@ import { PlanTrabajoModule } from './plan-trabajo/plan-trabajo.module';
 import { PlanTrabajoDetalleModule } from './plan-trabajo-detalle/plan-trabajo-detalle.module';
 import { ExpedienteCaratulaModule } from './expediente-caratula/expediente-caratula.module';
 import { FichaSeguimientoModule } from './ficha-seguimiento/ficha-seguimiento.module';
+import { HistorialSupervisionModule } from './historial-supervision/historial-supervision.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { FichaSeguimientoModule } from './ficha-seguimiento/ficha-seguimiento.mo
     PlanTrabajoDetalleModule,
     ExpedienteCaratulaModule,
     FichaSeguimientoModule,
+    HistorialSupervisionModule,
   ],
   controllers: [PenalController],
   providers: [PenalService],
