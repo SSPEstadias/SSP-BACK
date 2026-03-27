@@ -23,7 +23,8 @@ import { BitacoraCivica }   from '../bitacora/bitacora-civica.entity';
 import { SeguimientoPsicologico } from '../f5-seguimiento/seguimiento-psicologico.entity';
 import { User }             from '../../../shared/users/entities/user.entity';
 import { OficioGenerado }   from '../oficios/oficio-generado.entity';
-import { AsistenciaEnum, TipoDocumentoEnum } from '../enums/civico.enums';
+import { EstudioSocioeconomico } from '../f2-estudio/estudio-socioeconomico.entity';
+import { AsistenciaEnum, TipoDocumentoEnum, FormStatusEnum } from '../enums/civico.enums';
 import { CivicoGoogleDriveService } from '../../../shared/google-drive/civico-google-drive.service';
 
 // Resuelve la carpeta raíz del módulo de documentos.
@@ -189,6 +190,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     @InjectRepository(SeguimientoPsicologico)
     private readonly seguimientoRepo: Repository<SeguimientoPsicologico>,
 
+    @InjectRepository(EstudioSocioeconomico)
+    private readonly f2Repo: Repository<EstudioSocioeconomico>,
+
     private readonly driveService: CivicoGoogleDriveService,
   ) {}
 
@@ -197,7 +201,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const docRoot = resolveDocumentosRoot();
     const assetsDir = path.join(docRoot, 'assets');
 
-    // 1. Cargar logos en paralelo para optimizar arranque
+    // 1. Cargar logos en paralelo para optimizar arranque (Cache en Base64 para HBS)
     this.logger.debug('Cargando recursos gráficos...');
     const logoFiles = [
       { key: 'logoEncabezado',     file: 'logoencabezado_con_margen_derecho.png' },
@@ -330,9 +334,93 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  // ── GESTIÓN DE DRIVE Y PAQUETE FEDERAL ────────────────────────────
+
   /**
-   * Registra los metadatos del oficio y sincroniza con Google Drive si hay buffer.
+   * Asegura que exista la carpeta del beneficiario y retorna su ID.
+   * Auto-sana si la carpeta fue borrada en Drive.
    */
+  async asegurarCarpetaBeneficiario(expedienteId: string): Promise<string> {
+    const exp = await this.getExpediente(expedienteId);
+    const ben = await this.getBeneficiario(exp.beneficiarioId);
+    const folderName = `${ben.nombre.toUpperCase()} - ${exp.folioExpediente}`;
+
+    if (exp.driveFolderId) {
+      const meta = await this.driveService.getFileMetadata(exp.driveFolderId);
+      if (meta && !meta.trashed) return exp.driveFolderId;
+    }
+
+    // Crear de nuevo si no existe o fue borrada
+    const folderId = await this.driveService.getOrCreateFolder(folderName);
+    exp.driveFolderId = folderId;
+    await this.expedienteRepo.save(exp);
+    return folderId;
+  }
+
+  /**
+   * Sube un documento escaneado/firmado a Drive y actualiza el expediente.
+   */
+  async subirDocumentoEscaneado(
+    expedienteId: string,
+    tipo: 'CANALIZACION' | 'INCORPORACION',
+    file: Express.Multer.File,
+  ): Promise<{ driveFileId: string; urlArchivo: string }> {
+    const exp = await this.getExpediente(expedienteId);
+    const ben = await this.getBeneficiario(exp.beneficiarioId);
+
+    // 1. Asegurar carpeta principal y subcarpeta de firmados
+    const parentId = await this.asegurarCarpetaBeneficiario(expedienteId);
+    const signedFolderId = await this.driveService.getSignedDocsFolder(parentId);
+
+    // 2. Subir archivo
+    const filename = `${tipo}_FIRMADO - ${ben.nombre.toUpperCase()} - ${exp.folioExpediente}.pdf`;
+    const driveData = await this.driveService.uploadFile(file.buffer, filename, signedFolderId);
+
+    // 3. Persistir en Expediente
+    if (tipo === 'CANALIZACION') {
+      exp.canalizacionDriveId = driveData.driveFileId;
+    } else {
+      exp.incorporacionFirmadaDriveId = driveData.driveFileId;
+    }
+    await this.expedienteRepo.save(exp);
+
+    return driveData;
+  }
+
+  /**
+   * Consolida todos los enlaces necesarios para el Google Form Federal.
+   */
+  async obtenerPaqueteFederal(expedienteId: string): Promise<any> {
+    const exp = await this.getExpediente(expedienteId);
+    const oficios = await this.listarOficiosBeneficiario(expedienteId);
+    const bitacora = await this.bitacoraRepo.find({ where: { expedienteId }, order: { fechaActividad: 'DESC' } });
+
+    // Helper para buscar por tipo en Drive
+    const findDriveUrl = (tipo: TipoDocumentoEnum) => oficios.find(o => o.tipoDocumento === tipo)?.urlArchivo || null;
+
+    // Obtener URLs de los archivos firmados si existen
+    const urlCanalizacion = exp.canalizacionDriveId ? `https://drive.google.com/file/d/${exp.canalizacionDriveId}/view` : null;
+    const urlIncorporacionSign = exp.incorporacionFirmadaDriveId ? `https://drive.google.com/file/d/${exp.incorporacionFirmadaDriveId}/view` : null;
+
+    return {
+      documentos: {
+        oficioCanalizacion: urlCanalizacion,
+        oficioIncorporacion: urlIncorporacionSign || findDriveUrl(TipoDocumentoEnum.OFICIO_INCORPORACION),
+        cedulaInicial:       findDriveUrl(TipoDocumentoEnum.F4_CEDULA_INICIAL),
+        planTrabajo:         findDriveUrl(TipoDocumentoEnum.F3_PLAN_TRABAJO),
+        planVida:            findDriveUrl(TipoDocumentoEnum.PLAN_VIDA),
+        reporteDeInstancia:  findDriveUrl(TipoDocumentoEnum.REPORTE_SEMANAL_GUIA), 
+      },
+      fotosEvidencia: bitacora.filter(b => b.evidenciaUrl).map(b => b.evidenciaUrl),
+      estatusCierre: {
+        horasCumplidas: exp.avanceHoras,
+        horasSentencia: exp.horasSentencia,
+        estatusActual:  exp.estatusProceso,
+        f5Cerrado:      exp.estatusF5Cerrado
+      }
+    };
+  }
+
   /**
    * Registra los metadatos del oficio y sincroniza con Google Drive si hay buffer.
    */
@@ -375,10 +463,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
         const folderName = `${ben.nombre.toUpperCase()} - ${exp.folioExpediente}`;
 
         // a. Asegurar carpeta del beneficiario
-        if (!exp.driveFolderId) {
-          exp.driveFolderId = await this.driveService.getOrCreateFolder(folderName);
-          await this.expedienteRepo.save(exp);
-        }
+        exp.driveFolderId = await this.asegurarCarpetaBeneficiario(expedienteId);
 
         // b. Subir o Actualizar archivo
         try {

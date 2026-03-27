@@ -8,8 +8,11 @@ import {
   ParseUUIDPipe,
   UseGuards,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Response, Express } from 'express';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -18,6 +21,7 @@ import {
   ApiBody,
   ApiProduces,
   ApiResponse,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard';
 import { RolesGuard } from '../../../shared/common/guards/roles.guard';
@@ -321,5 +325,44 @@ export class DocumentosController {
   ): Promise<void> {
     const buffer = await this.documentosService.generarPdf(body.template, body.datos ?? {});
     sendPdf(res, buffer, `${body.template}_${Date.now()}.pdf`);
+  }
+
+  // ── GET /civico/documentos/expediente/:id/paquete-forms ───────────
+  @Get('expediente/:id/paquete-forms')
+  @Roles('Admin', 'TrabajoSocial', 'Psicologo')
+  @ApiOperation({ 
+    summary: 'Obtener URLs de todos los documentos para el Google Form Federal',
+    description: 'Consolida enlaces de Drive de F3, F4, Plan Vida, Reporte Semanal y los escaneos firmados.' 
+  })
+  @ApiParam({ name: 'id', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
+  async obtenerPaqueteFederal(@Param('id', ParseUUIDPipe) id: string) {
+    return this.documentosService.obtenerPaqueteFederal(id);
+  }
+
+  // ── POST /civico/documentos/subir-escaneado ───────────────────────
+  @Post('subir-escaneado')
+  @Roles('Admin', 'TrabajoSocial')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ 
+    summary: 'Subir versión escaneada/firmada de un oficio (Canalización o Incorporación)',
+    description: 'Se guarda en la subcarpeta "Documentos Firmados" de Drive y actualiza el expediente.'
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        expedienteId: { type: 'string', format: 'uuid', example: EXAMPLE_EXP_ID },
+        tipo: { type: 'string', enum: ['CANALIZACION', 'INCORPORACION'], example: 'CANALIZACION' },
+        file: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  async subirEscaneado(
+    @Body('expedienteId', ParseUUIDPipe) expedienteId: string,
+    @Body('tipo') tipo: 'CANALIZACION' | 'INCORPORACION',
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.documentosService.subirDocumentoEscaneado(expedienteId, tipo, file);
   }
 }

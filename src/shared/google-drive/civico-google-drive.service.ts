@@ -137,6 +137,13 @@ export class CivicoGoogleDriveService {
   }
 
   /**
+   * Obtiene o crea la subcarpeta "Documentos Firmados" dentro de la carpeta del beneficiario.
+   */
+  async getSignedDocsFolder(beneficiaryFolderId: string): Promise<string> {
+    return this.getOrCreateFolder('Documentos Firmados', beneficiaryFolderId);
+  }
+
+  /**
    * Obtiene metadatos de un archivo o carpeta (ej: si está en la papelera).
    */
   async getFileMetadata(fileId: string): Promise<{ trashed: boolean } | null> {

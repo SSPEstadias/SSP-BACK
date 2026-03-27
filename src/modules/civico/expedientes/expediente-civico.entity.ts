@@ -148,6 +148,15 @@ import {
     @Column({ name: 'drive_folder_id', type: 'varchar', length: 100, nullable: true })
     driveFolderId!: string | null;
 
+    @Column({ name: 'canalizacion_drive_id', type: 'varchar', length: 100, nullable: true })
+    canalizacionDriveId!: string | null;
+
+    @Column({ name: 'incorporacion_firmada_drive_id', type: 'varchar', length: 100, nullable: true })
+    incorporacionFirmadaDriveId!: string | null;
+
+    @Column({ name: 'estatus_f5_cerrado', type: 'boolean', default: false })
+    estatusF5Cerrado!: boolean;
+
     @CreateDateColumn({ name: 'creado_en' })
     creadoEn!: Date;
   }
