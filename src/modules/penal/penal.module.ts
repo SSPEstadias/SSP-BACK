@@ -11,6 +11,7 @@ import { PlanTrabajoDetalleModule } from './plan-trabajo-detalle/plan-trabajo-de
 import { ExpedienteCaratulaModule } from './expediente-caratula/expediente-caratula.module';
 import { FichaSeguimientoModule } from './ficha-seguimiento/ficha-seguimiento.module';
 import { HistorialSupervisionModule } from './historial-supervision/historial-supervision.module';
+import { NotaEvolucionPsicologicaModule } from './nota-evolucion-psicologica/nota-evolucion-psicologica.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { HistorialSupervisionModule } from './historial-supervision/historial-su
     ExpedienteCaratulaModule,
     FichaSeguimientoModule,
     HistorialSupervisionModule,
+    NotaEvolucionPsicologicaModule,
   ],
   controllers: [PenalController],
   providers: [PenalService],
