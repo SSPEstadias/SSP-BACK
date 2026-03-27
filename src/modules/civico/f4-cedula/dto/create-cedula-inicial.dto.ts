@@ -6,7 +6,6 @@ import {
     IsNotEmpty,
     IsUUID,
     IsString,
-    Min,
   } from 'class-validator';
   import { FormStatusEnum } from '../../enums/civico.enums';
   
@@ -18,34 +17,16 @@ import {
     @IsInt()
     coordinadorId!: number;
   
-    // ── Datos ──────────────────────────────────────────────────────────
-    @IsInt()
-    @Min(1)
-    horasACubrir!: number;
-  
+    // ── Proceso de Ingreso (texto libre) ───────────────────────────────
     @IsString()
     @IsOptional()
-    modalidadFalta?: string;
+    procesoIngreso?: string;
   
-    // ── Bloques JSONB ──────────────────────────────────────────────────
+    // ── Seguimiento 5 categorías JSONB ─────────────────────────────────
+    // { "EDUCATIVA": "...", "LABORAL": "...", "FAMILIAR": "...", "DEPORTIVO": "...", "CULTURAL": "..." }
     @IsObject()
     @IsOptional()
-    procesoIngreso?: object;
-  
-    @IsObject()
-    @IsOptional()
-    seguimientoActividades?: object;
-    // [{ "categoria":"EDUCATIVA", "descripcion":"", "responsable":"", "horario":"" }]
-  
-    @IsObject()
-    @IsOptional()
-    proyectoVidaF4?: object;
-    // { "personal":"", "familiar":"", "laboral":"", ... }
-  
-    @IsObject()
-    @IsOptional()
-    tablaSeguimientoDetallado?: object;
-    // 8 categorías — misma estructura que F3.actividadesPlan
+    seguimientoActividades?: Record<string, string>;
   
     // ── Control ────────────────────────────────────────────────────────
     @IsEnum(FormStatusEnum)

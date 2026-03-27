@@ -32,7 +32,7 @@ import {
       examples: {
         'Cédula completa': {
           value: {
-            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
             coordinadorId: 1,
             horasACubrir: 40,
             modalidadFalta: 'Falta administrativa por alteración al orden público',
@@ -46,7 +46,7 @@ import {
         },
         'Cédula mínima': {
           value: {
-            expedienteId: '3bdb102a-d997-4ff7-8fc5-8ae2cf6b4cfe',
+            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
             coordinadorId: 1,
             horasACubrir: 40,
           },

@@ -7,7 +7,11 @@ import { ExpedienteCivico } from '../expedientes/expediente-civico.entity';
 import { Actividad } from '../../../shared/actividades/actividad.entity';
 import { Salud } from '../../../shared/salud/salud.entity';
 import { IncidenciasService } from '../incidencias/incidencias.service';
-import { AsistenciaEnum, IncidenciaTipoEnum, CivicStatusEnum } from '../enums/civico.enums';
+import { EntrevistaClinica } from '../f1-entrevista/entrevista-clinica.entity';
+import { EstudioSocioeconomico } from '../f2-estudio/estudio-socioeconomico.entity';
+import { PlanTrabajo } from '../f3-plan/plan-trabajo.entity';
+import { CedulaInicial } from '../f4-cedula/cedula-inicial';
+import { AsistenciaEnum, IncidenciaTipoEnum, CivicStatusEnum, FormStatusEnum } from '../enums/civico.enums';
 
 @Injectable()
 export class BitacoraCivicaService {
@@ -23,6 +27,18 @@ export class BitacoraCivicaService {
 
     @InjectRepository(Salud)
     private readonly saludRepo: Repository<Salud>,
+
+    @InjectRepository(EntrevistaClinica)
+    private readonly f1Repo: Repository<EntrevistaClinica>,
+
+    @InjectRepository(EstudioSocioeconomico)
+    private readonly f2Repo: Repository<EstudioSocioeconomico>,
+
+    @InjectRepository(PlanTrabajo)
+    private readonly f3Repo: Repository<PlanTrabajo>,
+
+    @InjectRepository(CedulaInicial)
+    private readonly f4Repo: Repository<CedulaInicial>,
 
     // ✅ NUEVO: Inyectar servicio de incidencias
     private readonly incidenciasService: IncidenciasService,
@@ -93,26 +109,25 @@ export class BitacoraCivicaService {
       const nuevoAvance = avanceActual + horasNuevas;
       expediente.avanceHoras = nuevoAvance;
 
-      // Verificar si llegó a las horas requeridas
+      // Verificar si llegó a las horas requeridas Y los formatos están cerrados
       if (expediente.horasSentencia && nuevoAvance >= Number(expediente.horasSentencia)) {
-        expediente.estatusProceso = CivicStatusEnum.GRADUADO;
+        const listoParaGraduado = await this.verificarRequisitosGraduacion(dto.expedienteId);
+        if (listoParaGraduado) {
+          expediente.estatusProceso = CivicStatusEnum.GRADUADO;
+        }
       }
 
       cambios = true;
     }
 
-    // Contar incidencias acumulativas y aplicar BAJA si >= 3
+    // Contar incidencias acumulativas TOTALES (Punto 6: Cualquier tipo cuenta para el acumulado) y aplicar BAJA si >= 3
     if (dto.incidencia) {
-      const incidenciasCount = await this.bitacoraRepo.count({
-        where: {
-          expedienteId: dto.expedienteId,
-          incidencia: dto.incidencia,
-        },
+      const totalIncidencias = await this.bitacoraRepo.count({
+        where: { expedienteId: dto.expedienteId },
       });
 
-      if (incidenciasCount >= 3) {
-        expediente.estatusProceso =
-          CivicStatusEnum.BAJA_POR_ACUMULACION_DE_INCIDENCIAS;
+      if (totalIncidencias >= 3) {
+        expediente.estatusProceso = CivicStatusEnum.BAJA_POR_ACUMULACION_DE_INCIDENCIAS;
         cambios = true;
       }
     }
@@ -123,6 +138,35 @@ export class BitacoraCivicaService {
     }
 
     return saved;
+  }
+
+  /**
+   * Verifica que F1, F2, F3 y F4 estén en estatus COMPLETADO/CERRADO, 
+   * y que el seguimiento psicológico (F5) haya sido marcado como cerrado.
+   */
+  private async verificarRequisitosGraduacion(expedienteId: string): Promise<boolean> {
+    const [exp, f1, f2, f3, f4] = await Promise.all([
+      this.expedienteRepo.findOne({ where: { idUUID: expedienteId } }),
+      this.f1Repo.findOne({ where: { expedienteId } }),
+      this.f2Repo.findOne({ where: { expedienteId } }),
+      this.f3Repo.findOne({ where: { expedienteId } }),
+      this.f4Repo.findOne({ where: { expedienteId } }),
+    ]);
+
+    if (!exp) return false;
+
+    // F5 Check
+    if (!exp.estatusF5Cerrado) return false;
+
+    // Status Check Helpers
+    const isClosed = (status?: FormStatusEnum) => status === FormStatusEnum.COMPLETADO || status === FormStatusEnum.CERRADO;
+
+    return (
+      isClosed(f1?.estatusF1) &&
+      isClosed(f2?.estatusF2) &&
+      isClosed(f3?.estatusF3) &&
+      isClosed(f4?.estatusF4)
+    );
   }
 
   // ── Validación de salud ────────────────────────────────────────────

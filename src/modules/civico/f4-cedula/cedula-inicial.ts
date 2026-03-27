@@ -32,40 +32,12 @@ import {
     coordinadorId!: number;
   
     // ── Datos de la cédula ────────────────────────────────────────────
-    @Column({ name: 'horas_a_cubrir', type: 'int' })
-    horasACubrir!: number;
-  
-    @Column({ name: 'modalidad_falta', type: 'varchar', length: 100, nullable: true })
-    modalidadFalta!: string | null;
-  
-    // ── Bloques JSONB por sección del F4 físico ───────────────────────
-    // Proceso de ingreso: datos generales del beneficiario al iniciar
-    @Column({ name: 'proceso_ingreso', type: 'jsonb', nullable: true })
-    procesoIngreso!: object | null;
+    @Column({ name: 'proceso_ingreso', type: 'text', nullable: true })
+    procesoIngreso!: string | null;
   
     // 5 categorías: EDUCATIVA, LABORAL, FAMILIAR, DEPORTIVO, CULTURAL
-    // [{ "categoria":"EDUCATIVA", "descripcion":"", "responsable":"", "horario":"" }, ...]
     @Column({ name: 'seguimiento_actividades', type: 'jsonb', nullable: true })
-    seguimientoActividades!: object | null;
-  
-    // { "personal":"", "familiar":"", "laboral":"",
-    //   "espiritual":"", "academico":"", "social":"" }
-    @Column({ name: 'proyecto_vida_f4', type: 'jsonb', nullable: true })
-    proyectoVidaF4!: object | null;
-  
-    // 8 categorías — misma estructura que actividades_plan del F3:
-    // {
-    //   "EDUCATIVA":   {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "PSICOSOCIAL": {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "PSICOLOGICA": {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "ADICCIONES":  {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "FAMILIAR":    {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "LABORAL":     {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "DEPORTIVA":   {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "CULTURAL":    {"estatus":"","objetivo":"","cumplimiento":""}
-    // }
-    @Column({ name: 'tabla_seguimiento_detallado', type: 'jsonb', nullable: true })
-    tablaSeguimientoDetallado!: object | null;
+    seguimientoActividades!: Record<string, string> | null;
   
     // ── Control ───────────────────────────────────────────────────────
     @Column({

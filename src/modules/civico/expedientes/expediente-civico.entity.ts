@@ -81,8 +81,8 @@ import {
     contactosFamiliares!: object | null;
   
     // ── Datos Legales ────────────────────────────────────────────────
-    @Column({ name: 'folio_incorporacion', type: 'varchar', length: 50, unique: true })
-    folioIncorporacion!: string;
+    @Column({ name: 'folio_expediente', type: 'varchar', length: 50, unique: true })
+    folioExpediente!: string;
   
     @Column({ name: 'num_juzgado_civico', type: 'varchar', length: 50, nullable: true })
     numJuzgadoCivico!: string | null;
@@ -111,13 +111,27 @@ import {
     @Column({ name: 'horas_sentencia', type: 'int' })
     horasSentencia!: number;
   
-    // ── Días y horario dictados por el Juez (JSONB) ──────────────────
-    // { "dias":["2025-08-02",...], "horas_por_dia":4, "horario":"mañana" }
-    @Column({ name: 'dias_asignados_juzgado', type: 'jsonb', nullable: true })
-    diasAsignadosJuzgado!: object | null;
+    // ── Días asignados por el Juez (solo fechas) ──────────────────────
+    // Ej: ["2025-08-02", "2025-08-03"]
+    @Column({ name: 'dias_asignados_juzgado', type: 'text', array: true, nullable: true })
+    diasAsignadosJuzgado!: string[] | null;
   
     @Column({ name: 'horas_por_dia', type: 'int', nullable: true })
     horasPorDia!: number | null;
+  
+    // ── Fechas del beneficio (oficio de incorporación) ─────────────────
+    @Column({ name: 'fecha_inicio_beneficio', type: 'date', nullable: true })
+    fechaInicioBeneficio!: Date | null;
+  
+    @Column({ name: 'fecha_termino_beneficio', type: 'date', nullable: true })
+    fechaTerminoBeneficio!: Date | null;
+  
+    @Column({ name: 'fecha_oficio_canalizacion', type: 'date', nullable: true })
+    fechaOficioCanalizacion!: Date | null;
+  
+    // "M" = masculino, "F" = femenino — para decidir Lcdo./Lcda. en oficios
+    @Column({ name: 'genero_juez', type: 'varchar', length: 1, nullable: true })
+    generoJuez!: string | null;
   
     // ── Control ──────────────────────────────────────────────────────
     @Column({
@@ -128,15 +142,21 @@ import {
     })
     estatusProceso!: CivicStatusEnum;
   
-    @Column({
-      name: 'avance_horas',
-      type: 'decimal',
-      precision: 5,
-      scale: 2,
-      default: 0.0,
-    })
+    @Column({ name: 'avance_horas', type: 'decimal', precision: 5, scale: 2, default: 0.0 })
     avanceHoras!: number;
   
+    @Column({ name: 'drive_folder_id', type: 'varchar', length: 100, nullable: true })
+    driveFolderId!: string | null;
+
+    @Column({ name: 'canalizacion_drive_id', type: 'varchar', length: 100, nullable: true })
+    canalizacionDriveId!: string | null;
+
+    @Column({ name: 'incorporacion_firmada_drive_id', type: 'varchar', length: 100, nullable: true })
+    incorporacionFirmadaDriveId!: string | null;
+
+    @Column({ name: 'estatus_f5_cerrado', type: 'boolean', default: false })
+    estatusF5Cerrado!: boolean;
+
     @CreateDateColumn({ name: 'creado_en' })
     creadoEn!: Date;
   }

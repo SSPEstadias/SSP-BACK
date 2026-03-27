@@ -54,12 +54,6 @@ import {
       return this.service.findByFolio(folio);
     }
   
-    // GET /civico/oficios/:id/modificaciones
-    @Get(':id/modificaciones')
-    @Roles('Admin', 'Guia')
-    findModificaciones(@Param('id', ParseUUIDPipe) id: string) {
-      return this.service.findModificaciones(id);
-    }
   
     // GET /civico/oficios/:id
     @Get(':id')

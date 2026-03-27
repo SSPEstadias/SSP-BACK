@@ -99,7 +99,7 @@ import {
     @IsString()
     @IsNotEmpty()
     @MaxLength(50)
-    folioIncorporacion!: string;
+    folioExpediente!: string;
   
     @IsString()
     @IsOptional()
@@ -144,15 +144,33 @@ import {
     @Min(1)
     horasSentencia!: number;
   
-    @IsObject()
     @IsOptional()
-    diasAsignadosJuzgado?: object;
-    // Ejemplo: { "dias":["2025-08-02"], "horas_por_dia":4, "horario":"mañana" }
+    @IsString({ each: true })
+    diasAsignadosJuzgado?: string[];
+    // Ejemplo: ["2025-08-02", "2025-08-03"]
   
     @IsInt()
     @IsOptional()
     @Min(1)
     horasPorDia?: number;
+  
+    // ── Fechas del beneficio ─────────────────────────────────────────
+    @IsDateString()
+    @IsOptional()
+    fechaInicioBeneficio?: string;
+  
+    @IsDateString()
+    @IsOptional()
+    fechaTerminoBeneficio?: string;
+  
+    @IsDateString()
+    @IsOptional()
+    fechaOficioCanalizacion?: string;
+  
+    @IsString()
+    @IsOptional()
+    @MaxLength(1)
+    generoJuez?: string; // "M" o "F"
   
     // ── Control ───────────────────────────────────────────────────────
     @IsEnum(CivicStatusEnum)

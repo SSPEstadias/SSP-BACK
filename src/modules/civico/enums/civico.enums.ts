@@ -53,5 +53,9 @@ export enum CivicStatusEnum {
     F4_CEDULA_INICIAL         = 'F4_CEDULA_INICIAL',
     LISTA_ASISTENCIA          = 'LISTA_ASISTENCIA',
     REPORTE_SEMANAL_GUIA      = 'REPORTE_SEMANAL_GUIA',
+    // Nuevos tipos añadidos para documentos generados por el módulo de PDFs
+    HOJA_PRESENTACION         = 'HOJA_PRESENTACION',
+    PLAN_VIDA                 = 'PLAN_VIDA',
+    NOTA_EVOLUCION_PSICOLOGICA = 'NOTA_EVOLUCION_PSICOLOGICA',
   }
   

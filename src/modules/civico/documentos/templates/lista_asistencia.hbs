@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Lista de Asistencia — {{nombreBeneficiario}}</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 21.59cm;
+      height: 27.94cm;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11pt;
+      color: #000;
+      line-height: 1.4;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ── Contenedor principal ── */
+    .pagina {
+      position: relative;
+      width: 21.59cm;
+      padding: 1.5cm 2cm 1.5cm 2cm;
+    }
+
+    .header-logos {
+      text-align: center;
+      margin-bottom: 20pt;
+    }
+
+    .img-logo-1 {
+      max-height: 150px;
+      width: auto;
+      margin-bottom: 5pt;
+    }
+
+    .img-logo-2 {
+      max-height: 180px;
+      width: auto;
+    }
+
+    .plan-title {
+      font-size: 11pt;
+      text-transform: uppercase;
+      margin-bottom: 12pt;
+      display: flex;
+      justify-content: flex-start;
+      gap: 6cm;
+      align-items: center;
+    }
+
+    .nombre-row {
+      margin-bottom: 10pt;
+      font-size: 11pt;
+    }
+
+    .underline-field {
+      border-bottom: 1px solid #000;
+      display: inline-block;
+      min-width: 450px;
+      padding-left: 5px;
+    }
+
+    /* ── Tabla Fija 4x4 ── */
+    .asistencia-table {
+      border: 1px solid #000;
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;
+      font-size: 10.5pt;
+    }
+
+    .asistencia-table th {
+      border: 1px solid #000;
+      padding: 6pt;
+      text-align: center;
+      font-weight: normal;
+      text-decoration: underline;
+      width: 25%;
+    }
+
+    .asistencia-table td {
+      border: 1px solid #000;
+      padding: 6pt;
+      vertical-align: middle;
+      height: 60pt; /* Altura fija para celdas de datos */
+      word-wrap: break-word;
+    }
+
+    .obs-label {
+      text-align: center;
+      vertical-align: middle;
+      font-size: 10pt;
+      height: 80pt; /* Altura para observaciones */
+    }
+
+    .obs-content {
+      height: 80pt;
+      vertical-align: top !important;
+      padding: 8pt;
+    }
+
+    /* ── Sección de Firmas ── */
+    .signatures-section {
+      margin-top: 80pt; /* Aumentado de 30pt a 80pt */
+      display: flex;
+      justify-content: space-between;
+      font-size: 10pt;
+      page-break-inside: avoid;
+    }
+    .signature-block {
+      width: 45%;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="pagina">
+
+    <div class="header-logos">
+      {{#if logoPresentacion1}}
+      <div><img src="{{logoPresentacion1}}" class="img-logo-1" alt="Secretaría" /></div>
+      {{/if}}
+      {{#if logoPresentacion2}}
+      <div><img src="{{logoPresentacion2}}" class="img-logo-2" alt="Reconecta" /></div>
+      {{/if}}
+    </div>
+
+    <div class="plan-title">
+      <span>PLAN DE TRABAJO: <u>PRESENTACIONES SOCIALES</u></span>
+      <span>FECHA: <u>{{#if fechaHoja}}{{fechaHoja}}{{else}}{{fecha}}{{/if}}</u></span>
+    </div>
+
+    <div class="nombre-row">
+      NOMBRE: <span class="underline-field">{{#if nombreBeneficiario}}{{nombreBeneficiario}}{{else}}&nbsp;{{/if}}</span>
+    </div>
+
+    <table class="asistencia-table">
+      <thead>
+        <tr>
+          <th>HORARIO</th>
+          <th>ACTIVIDAD</th>
+          <th>SEDE</th>
+          <th>FIRMA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Fila de Datos 1 -->
+        <tr>
+          <td>{{#if actividades.[0].horario}}{{actividades.[0].horario}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[0].actividad}}{{actividades.[0].actividad}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[0].sede}}{{actividades.[0].sede}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[0].firma}}{{actividades.[0].firma}}{{else}}&nbsp;{{/if}}</td>
+        </tr>
+        <!-- Fila de Datos 2 -->
+        <tr>
+          <td>{{#if actividades.[1].horario}}{{actividades.[1].horario}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[1].actividad}}{{actividades.[1].actividad}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[1].sede}}{{actividades.[1].sede}}{{else}}&nbsp;{{/if}}</td>
+          <td>{{#if actividades.[1].firma}}{{actividades.[1].firma}}{{else}}&nbsp;{{/if}}</td>
+        </tr>
+        <!-- Fila de OBSERVACIONES (Equivale a la 4ta "fila" en altura/lógica) -->
+        <tr>
+          <td class="obs-label">OBSERVACIONES</td>
+          <td colspan="3" class="obs-content">
+            {{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="signatures-section">
+      <div class="signature-block" style="text-align: left;">
+        GUÍA RESPONSABLE DE LA ACTIVIDAD:<br><br>
+        <strong>C. {{nombreGuia}}</strong>
+      </div>
+      <div class="signature-block" style="text-align: center;">
+        Vo.Bo.<br><br>
+        <strong>MTRA. LII YIO PÉREZ ZARATE</strong><br>
+        DIRECTORA DE PREVENCIÓN DEL DELITO Y<br>
+        PARTICIPACIÓN CIUDADANA
+      </div>
+    </div>
+
+  </div>
+
+</body>
+
+</html>

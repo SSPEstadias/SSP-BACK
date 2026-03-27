@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{tituloDocumento}}</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: 1.5cm 2cm 2.5cm 2cm;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 11pt;
+      color: #000;
+      line-height: 1.4;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .img-logo-1 { height: 70px; width: auto; margin-bottom: 25pt; }
+
+    /* ── Título Principal ── */
+    .doc-title {
+      font-size: 13pt;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20pt;
+    }
+
+    /* ── Block 1: Datos Personales + Foto ── */
+    .block-1-container {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 25pt;
+    }
+    
+    .personal-table-wrapper {
+      position: relative;
+      width: 68%;
+    }
+    .personal-table-watermark {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      z-index: -1;
+      opacity: 0.35;
+    }
+    .personal-table-watermark img { width: 100%; height: auto; }
+
+    .personal-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: transparent;
+      font-size: 10.5pt;
+    }
+    .personal-table td, .personal-table th {
+      border: 1px solid #000;
+      padding: 6pt;
+    }
+    .personal-table .lbl {
+      font-weight: bold;
+      background: #d9d9d9;
+      width: 40%;
+    }
+
+    .photo-box {
+      width: 25%;
+      border: 1px solid #000;
+      height: 160pt;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background-color: #fcfcfc;
+    }
+    .photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .photo-placeholder {
+      color: #999;
+      font-style: italic;
+    }
+
+    /* ── Block 2: Proceso Ingreso ── */
+    .ingreso-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20pt;
+      font-size: 10.5pt;
+    }
+    .ingreso-table td {
+      border: 1px solid #000;
+      padding: 6pt;
+    }
+
+    /* ── Block 3: Horas ── */
+    .horas-table {
+      width: 60%;
+      border-collapse: collapse;
+      margin-bottom: 30pt; /* Push page 1 content */
+      font-size: 10pt;
+    }
+    .horas-table td {
+      border: 1px solid #000;
+      padding: 6pt;
+      text-align: center;
+    }
+
+    /* ── Tablas Compartidas (F3 => F4) ── */
+    .section-table-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 25pt;
+    }
+    .full-watermark {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      z-index: -1;
+      opacity: 0.25;
+    }
+    .full-watermark img { width: 100%; height: auto; }
+
+    .shared-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 10.5pt;
+      background: transparent !important;
+    }
+    .shared-table th, .shared-table td {
+      border: 1px solid #000;
+      padding: 6pt;
+    }
+    .shared-table th {
+      font-weight: bold;
+      text-align: center;
+      vertical-align: middle;
+      background-color: #d9d9d9 !important;
+    }
+
+    .center-val { text-align: center; vertical-align: middle; }
+    .lbl-gray {
+      background-color: #d9d9d9 !important;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    /* ── Footer de Paginación ── */
+    .doc-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      font-size: 8pt;
+      color: #888;
+      text-align: left;
+      border-top: 1px solid #999;
+      padding-top: 3pt;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Marca de agua fija a toda la hoja (todas las páginas) -->
+  {{#if logoPresentacion2}}
+  <div style="position: fixed; top: -1.5cm; left: -2cm; width: 21.59cm; height: 27.94cm; z-index: -10; pointer-events: none; opacity: 0.25;">
+    <img src="{{logoPresentacion2}}" style="width: 100%; height: 100%; object-fit: fill;" alt="Reconecta" />
+  </div>
+  {{/if}}
+
+  <!-- Wrapper Global que repite el Header Logo en CADA página -->
+  <table style="width: 100%; border: none;">
+    <thead>
+      <tr>
+        <td style="border: none; padding-bottom: 10pt;">
+          {{#if logoPresentacion1}}
+          <img src="{{logoPresentacion1}}" class="img-logo-1" alt="Secretaría" />
+          {{/if}}
+        </td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="border: none; padding: 0;">
+
+          <!-- Título -->
+          <div class="doc-title">FICHA TECNICA DE SEGUIMIENTO</div>
+
+          <!-- BLOQUE 1: DATOS PERSONALES Y FOTO -->
+          <div class="block-1-container">
+            <div class="personal-table-wrapper">
+              <table class="personal-table">
+                <tr>
+                  <th colspan="2" style="background-color: #fff !important; font-size: 11pt;">DATOS PERSONALES</th>
+                </tr>
+                <tr><td class="lbl">NOMBRE</td><td>{{nombreBeneficiario}}</td></tr>
+                <tr><td class="lbl">EDAD</td><td>{{edad}}</td></tr>
+                <tr><td class="lbl">CURP</td><td>{{curp}}</td></tr>
+                <tr><td class="lbl">ESTADO CIVIL</td><td>{{estadoCivil}}</td></tr>
+                <tr><td class="lbl">DOMICILIO</td><td>{{domicilioCompleto}}</td></tr>
+                <tr><td class="lbl">CODIGO POSTAL</td><td>{{codigoPostal}}</td></tr>
+                <tr><td class="lbl">MUNICIPIO</td><td>{{municipio}}</td></tr>
+                <tr><td class="lbl">OCUPACIÓN</td><td>{{ocupacionActual}}</td></tr>
+                <tr><td class="lbl">FECHA DE INGRESO</td><td>{{fechaIngreso}}</td></tr>
+                <tr><td class="lbl">TELÉFONO</td><td>{{telefonoContacto}}</td></tr>
+              </table>
+            </div>
+
+            <div class="photo-box">
+              {{#if fotoBeneficiario}}
+                <img src="{{fotoBeneficiario}}" alt="Foto del beneficiario" />
+              {{else}}
+                <span class="photo-placeholder">FOTO</span>
+              {{/if}}
+            </div>
+          </div>
+
+          <!-- BLOQUE 2: PROCESO INGRESO -->
+          <table class="ingreso-table">
+            <tr>
+              <td class="lbl-gray" style="width: 25%;">Proceso de ingreso<br>a PREVENCIÓN</td>
+              <td style="width: 75%; font-weight: bold; text-align: justify; text-transform: uppercase;">
+                {{procesoIngreso}}
+              </td>
+            </tr>
+          </table>
+
+          <!-- BLOQUE 3: HORAS -->
+          <table class="horas-table">
+            <tr>
+              <td class="lbl-gray" style="width: 75%;">NÚMERO DE HORAS A CUBRIR EN EL PROGRAMA</td>
+              <td style="width: 25%; font-weight: bold;">{{horasSentencia}} HRS.</td>
+            </tr>
+          </table>
+
+
+          <!-- PAGE BREAK FORZADO O NATURAL PARA EMPEZAR LAS TABLAS DEL F3 -->
+          <div style="page-break-before: auto;"></div>
+
+          <!-- TABLA 4: FALTA ADMINISTRATIVA -->
+          <div class="section-table-wrapper">
+            <table class="shared-table">
+              <thead>
+                <tr>
+                  <th style="width: 60%;">FALTA ADMINISTRATIVA</th>
+                  <th style="width: 40%;">MODALIDAD</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="center-val" style="height: 35pt;">{{delitoImputado}}</td>
+                  <td class="center-val">{{modalidadFalta}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- TABLA 5: PROCESO DE SEGUIMIENTO HEREDADO DEL F3 -->
+          <div class="section-table-wrapper">
+
+            <table class="shared-table">
+              <thead>
+                <tr>
+                  <th colspan="2" style="font-size: 11pt;"> PROCESO DE SEGUIMIENTO </th>
+                </tr>
+                <tr>
+                  <th style="width: 25%;">ACTIVIDADES</th>
+                  <th style="width: 75%;">OBSERVACIONES</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">EDUCATIVA</td>
+                  <td style="text-align: left; vertical-align: middle; min-height: 25pt;">{{seguimientoActividades.EDUCATIVA}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">LABORAL</td>
+                  <td style="text-align: left; vertical-align: middle; min-height: 25pt;">{{seguimientoActividades.LABORAL}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">FAMILIAR</td>
+                  <td style="text-align: left; vertical-align: middle; min-height: 25pt;">{{seguimientoActividades.FAMILIAR}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">DEPORTIVO</td>
+                  <td style="text-align: left; vertical-align: middle; min-height: 25pt;">{{seguimientoActividades.DEPORTIVO}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">CULTURAL</td>
+                  <td style="text-align: left; vertical-align: middle; min-height: 25pt;">{{seguimientoActividades.CULTURAL}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- PROYECTO DE VIDA (Heredado de F3) -->
+          <div class="section-table-wrapper">
+            <table class="shared-table">
+              <thead>
+                <tr>
+                  <th colspan="2" style="font-size: 11pt;">PROYECTO DE VIDA</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight: bold; text-align: center; width: 25%;">PERSONAL</td>
+                  <td style="text-align: left; text-transform: uppercase;">{{proyectoVida.personal}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">FAMILIAR</td>
+                  <td style="text-align: left; text-transform: uppercase;">{{proyectoVida.familiar}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">SOCIAL</td>
+                  <td style="text-align: left; text-transform: uppercase;">{{proyectoVida.social}}</td>
+                </tr>
+                <tr>
+                  <th colspan="2" style="font-size: 11pt;">METAS POR CUMPLIR CON EL PROGRAMA:</th>
+                </tr>
+                <tr>
+                  <td colspan="2" style="height: 50pt; text-align: justify; vertical-align: top; text-transform: uppercase;">
+                    {{metasPrograma}}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Proceso 8 Categorías -->
+          <div class="section-table-wrapper">
+
+            <table class="shared-table">
+              <thead>
+                <tr>
+                  <th colspan="4" style="font-size: 11pt;"> PROCESO DE SEGUIMIENTO DE ACTIVIDADES DEL PROGRAMA "RECONECTA CON LA PAZ." </th>
+                </tr>
+                <tr>
+                  <th style="width: 25%;">ACTIVIDAD</th>
+                  <th style="width: 25%;">ESTATUS</th>
+                  <th style="width: 25%;">OBJETIVO</th>
+                  <th style="width: 25%;">CUMPLIMIENTO</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">EDUCATIVA</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.EDUCATIVA.estatus}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.EDUCATIVA.objetivo}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.EDUCATIVA.cumplimiento}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">PSICOSOCIAL<br>RED DE APOYO</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.PSICOSOCIAL.estatus}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.PSICOSOCIAL.objetivo}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.PSICOSOCIAL.cumplimiento}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">PSICOLÓGICA</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.PSICOLOGICA.estatus}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.PSICOLOGICA.objetivo}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.PSICOLOGICA.cumplimiento}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">ADICCIONES</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.ADICCIONES.estatus}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.ADICCIONES.objetivo}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.ADICCIONES.cumplimiento}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">FAMILIAR</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.FAMILIAR.estatus}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.FAMILIAR.objetivo}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.FAMILIAR.cumplimiento}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">LABORAL</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.LABORAL.estatus}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.LABORAL.objetivo}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.LABORAL.cumplimiento}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">DEPORTIVA</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.DEPORTIVA.estatus}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.DEPORTIVA.objetivo}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.DEPORTIVA.cumplimiento}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">CULTURAL</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.CULTURAL.estatus}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.CULTURAL.objetivo}}</td>
+                  <td class="center-val" style="text-transform: uppercase;">{{actividadesPlan.CULTURAL.cumplimiento}}</td>
+                </tr>
+                <tr>
+                  <td style="font-weight: bold; text-align: center;">OBSERVACIONES</td>
+                  <td colspan="3" style="text-align: justify; vertical-align: top; height: 40pt; padding: 6pt; text-transform: uppercase;">
+                    {{observacionesPlan}}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
