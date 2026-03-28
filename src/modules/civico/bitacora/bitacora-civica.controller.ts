@@ -28,52 +28,27 @@ import {
     @ApiBody({
       description: 'Registrar asistencia en bitácora — RF-011, RF-012, RF-013',
       examples: {
-        'Asistencia completa': {
+        'Asistencia Completa (Yahir Leon)': {
           value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-            guiaId: 5,
-            fechaActividad: '2026-04-07',
-            actividadId: 3,
-            horasCubiertas: 4,
+            expedienteId: '{{EXPEDIENTE_UUID}}',
+            guiaId: 3,
+            fechaActividad: '2025-04-07',
+            actividadId: 1,
+            horasCubiertas: 4.5,
             asistencia: 'PRESENTE',
-            observaciones: 'Excelente participación en taller de liderazgo',
+            observaciones: 'Participó activamente en el Tequio por la seguridad.'
           },
         },
-        'Asistencia parcial con incidencia': {
+        'Incidencia - Retardo': {
           value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-            guiaId: 5,
-            fechaActividad: '2026-04-08',
-            actividadId: 3,
-            horasCubiertas: 2,
+            expedienteId: '{{EXPEDIENTE_UUID}}',
+            guiaId: 3,
+            fechaActividad: '2025-04-08',
+            actividadId: 1,
+            horasCubiertas: 3,
             asistencia: 'PRESENTE_PARCIAL',
             incidencia: 'RETARDO',
-            detalleIncidencia: 'Se presentó 45 minutos tarde sin justificación',
-            observaciones: 'Primera incidencia registrada',
-          },
-        },
-        'Falta injustificada': {
-          value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-            guiaId: 5,
-            fechaActividad: '2026-04-09',
-            horasCubiertas: 0,
-            asistencia: 'FALTA_INJUSTIFICADA',
-            incidencia: 'FALTA_INJUSTIFICADA',
-            detalleIncidencia: 'No se presentó sin previo aviso',
-            observaciones: 'Segunda incidencia — se notifica al juzgado',
-          },
-        },
-        'Tercera incidencia (genera BAJA automática)': {
-          value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-            guiaId: 5,
-            fechaActividad: '2026-04-10',
-            actividadId: 3,
-            horasCubiertas: 2,
-            asistencia: 'PRESENTE_PARCIAL',
-            incidencia: 'CONDUCTA_INAPROPIADA',
-            detalleIncidencia: 'Tercera incidencia acumulativa — el sistema cambiará estatusProceso a BAJA_POR_ACUMULACION_DE_INCIDENCIAS',
+            detalleIncidencia: 'Llegó 1 hora tarde a la reforestación.'
           },
         },
       },

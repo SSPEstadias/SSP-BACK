@@ -1,77 +1,260 @@
 ---
-title: Tabla de Endpoints
-description: Referencia rápida de todos los endpoints del sistema con método, ruta y roles permitidos
+title: Mega-Referencia de la API "Reconecta con la Paz"
+description: Guía técnica exhaustiva para Frontend y Backend con DTOs, Enums y Ejemplos.
 ---
 
-## Autenticación
+## 📖 Diccionario de Datos Global (Enums)
 
-| Método | Ruta | Descripción | Roles |
-|--------|------|-------------|-------|
-| `POST` | `/auth/login` | Obtener token JWT | Público |
+Antes de consumir la API, familiarízate con los estados y tipos permitidos.
 
-## Beneficiarios (Shared)
+| Enum | Valores Posibles |
+| :--- | :--- |
+| **CivicStatusEnum** | `INDUCCION`, `DIAGNOSTICO`, `PLANEACION`, `EN_SEGUIMIENTO`, `GRADUADO`, `BAJA_POR_ACUMULACION_DE_INCIDENCIAS`, `BAJA_VOLUNTARIA`, `HISTORICO` |
+| **FormStatusEnum** | `PENDIENTE`, `EN_PROCESO`, `COMPLETADO`, `CERRADO` |
+| **IncidenciaTipoEnum** | `FALTA_INJUSTIFICADA`, `RETARDO`, `CONDUCTA_INAPROPIADA`, `INCUMPLIMIENTO_TAREA`, `INASISTENCIA_JUSTIFICADA`, `RETIRO_ANTICIPADO` |
+| **AsistenciaEnum** | `PRESENTE`, `FALTA_JUSTIFICADA`, `FALTA_INJUSTIFICADA`, `PRESENTE_PARCIAL` |
 
-| Método | Ruta | Descripción | Roles |
-|--------|------|-------------|-------|
-| `POST` | `/beneficiarios` | Registrar beneficiario | Admin |
-| `GET` | `/beneficiarios` | Listar todos | Admin, Psicologo, TrabajoSocial |
-| `GET` | `/beneficiarios/filtrar?unidad=HORAS` | Filtrar por módulo | Admin |
-| `GET` | `/beneficiarios/:id` | Obtener por ID | Admin, Psicologo, TrabajoSocial |
-| `PATCH` | `/beneficiarios/:id` | Actualizar | Admin |
+---
 
-## Actividades (Shared)
+## 🔐 Autenticación y Usuarios
 
-| Método | Ruta | Descripción | Roles |
-|--------|------|-------------|-------|
-| `POST` | `/actividades` | Crear actividad | Admin |
-| `GET` | `/actividades` | Listar activas | Todos |
-| `GET` | `/actividades/todas` | Listar todas (incl. inactivas) | Admin |
-| `GET` | `/actividades/categoria?cat=...` | Filtrar por categoría | Todos |
-| `GET` | `/actividades/:id` | Obtener por ID | Todos |
-| `PATCH` | `/actividades/:id` | Actualizar | Admin |
+### `POST /auth/login`
+**Propósito**: Obtener el Bearer Token para todas las peticiones.
+- **Request Body**:
+  ```json
+  {
+    "username": "usuario_ejemplo",
+    "password": "password123"
+  }
+  ```
+- **Response**: `201 Created` con `{ "access_token": "..." }`.
 
-## Salud (Shared)
+### `GET /users`
+**Propósito**: Gestión del personal (Psicólogos, Trabajo Social, Guías, Admin).
 
-| Método | Ruta | Descripción | Roles |
-|--------|------|-------------|-------|
-| `POST` | `/salud` | Crear perfil de salud | Admin, Psicologo |
-| `GET` | `/salud` | Listar todos | Admin |
-| `GET` | `/salud/beneficiario/:id` | Por beneficiario | Admin, Psicologo |
-| `GET` | `/salud/aptitud?esApto=true` | Filtrar por aptitud | Admin |
-| `GET` | `/salud/:id` | Por ID | Admin, Psicologo |
-| `PATCH` | `/salud/:id` | Actualizar | Admin, Psicologo |
-| `PATCH` | `/salud/beneficiario/:id` | Actualizar por beneficiario | Admin, Psicologo |
+---
 
-## Expedientes Cívicos
+## 👥 Beneficiarios (Shared)
+La base de todas las personas registradas en el sistema.
 
-| Método | Ruta | Descripción | Roles |
-|--------|------|-------------|-------|
-| `POST` | `/civico/expedientes` | Crear expediente | Admin |
-| `GET` | `/civico/expedientes` | Listar todos | Todos |
-| `GET` | `/civico/expedientes/caratulas` | Lista con JOIN beneficiario | Todos |
-| `GET` | `/civico/expedientes/curp/:curp` | Buscar por CURP | Todos |
-| `GET` | `/civico/expedientes/:id` | Expediente completo | Todos |
-| `GET` | `/civico/expedientes/:id/caratula` | Carátula individual | Todos |
-| `PATCH` | `/civico/expedientes/:id` | Actualizar | Admin |
-| `DELETE` | `/civico/expedientes/:id` | Desactivar | Admin |
+### `POST /beneficiarios`
+**Campos Críticos**:
+- `nombre` (string): Nombre completo.
+- `tiempoAsignado` (number): Basado en su sentencia.
+- `unidadTiempo` (Enum): `HORAS` o `MESES`.
 
-## Bitácora
+---
 
-| Método | Ruta | Descripción | Roles |
-|--------|------|-------------|-------|
-| `POST` | `/civico/bitacora` | Registrar asistencia/falta | Admin, Guia |
-| `GET` | `/civico/bitacora/expediente/:id` | Historial del expediente | Todos |
-| `GET` | `/civico/bitacora/expediente/:id/horas` | Resumen de horas | Todos |
-| `GET` | `/civico/bitacora/:id` | Registro individual | Todos |
-| `DELETE` | `/civico/bitacora/:id` | Eliminar registro | Admin |
+## 📁 Expediente Cívico (El Corazón del Sistema)
 
-## Incidencias
+### `POST /civico/expedientes`
+Este endpoint crea el vínculo legal. Es un DTO extenso.
 
-| Método | Ruta | Descripción | Roles |
-|--------|------|-------------|-------|
-| `POST` | `/civico/incidencias` | Registrar incidencia | Admin, Guia |
-| `GET` | `/civico/incidencias/expediente/:id` | Por expediente | Todos |
-| `GET` | `/civico/incidencias/expediente/:id/strikes` | Conteo de strikes | Todos |
-| `GET` | `/civico/incidencias/:id` | Individual | Todos |
-| `PATCH` | `/civico/incidencias/:id` | Actualizar | Admin |
-| `PATCH` | `/civico/incidencias/:id/resolver` | Marcar como resuelta | Admin, Guia |
+**Campos Destacados**:
+- `beneficiarioId` (number): ID retornado por `/beneficiarios`.
+- `curp` (string(18)): Identidad única.
+- `folioExpediente` (string): Identificador interno (ej: "EXP-2025-001").
+- `causaPenal` (string): Referencia legal.
+- `horasSentencia` (number): Total de horas a cumplir.
+- `contactosFamiliares` (jsonb): Objeto con datos de contacto.
+- `diasAsignadosJuzgado` (string[]): Ej: `["2025-05-10", "2025-05-11"]`.
+
+---
+## 📝 Detalle de Formatos Técnicos (F1 - F5)
+
+Cada formato tiene campos obligatorios y bloques JSONB flexibles. Aquí tienes los templates exactos para el Frontend.
+
+### `F1` - Entrevista Clínica Psicológica
+**Endpoint**: `POST /civico/f1`
+```json
+{
+  "expedienteId": "UUID-HERE",
+  "psicologoId": 1,
+  "fechaEntrevista": "2025-03-28",
+  "consentimientoInformado": true,
+  "riesgoSuicida": false,
+  "consumeSustancias": true,
+  "motivoConsulta": "Referido por el juez cívico por falta administrativa.",
+  "generalesEntrevista": {
+    "lugarNacimiento": "Oaxaca",
+    "viveCon": ["Padre", "Madre"]
+  },
+  "sustanciasDetalle": {
+    "tipo": "Alcohol",
+    "frecuencia": "Fin de semana",
+    "ultimoConsumo": "2025-03-20"
+  }
+}
+```
+
+### `F2` - Estudio Socioeconómico
+**Endpoint**: `POST /civico/f2`
+```json
+{
+  "expedienteId": "UUID-HERE",
+  "trabajadorSocialId": 2,
+  "ingresoMensual": 8500.50,
+  "nivelSocioeconomico": "MEDIO_BAJO",
+  "grupoFamiliar": "EXTENSO",
+  "huboViolenciaIntrafamiliar": false,
+  "generalesF2": {
+    "tipoVivienda": "Propia",
+    "numHabitaciones": 3
+  }
+}
+```
+
+### `F3` - Plan de Trabajo Individual (PTI)
+**Endpoint**: `POST /civico/f3`
+```json
+{
+  "expedienteId": "UUID-HERE",
+  "coordinadorId": 1,
+  "fechaInicioEstimada": "2025-04-01",
+  "fechaTerminoEstimada": "2025-06-01",
+  "actividadesPlan": {
+    "EDUCATIVA": { "objetivo": "Terminar secundaria", "estatus": "PENDIENTE" },
+    "PSICOLOGICA": { "objetivo": "Control de impulsos", "estatus": "PENDIENTE" }
+  },
+  "metasPrograma": "Lograr la reinserción social efectiva y cumplimiento de horas."
+}
+```
+
+### `F4` - Cédula Inicial de Seguimiento
+**Endpoint**: `POST /civico/f4`
+```json
+{
+  "expedienteId": "UUID-HERE",
+  "coordinadorId": 1,
+  "procesoIngreso": "Se presentó puntualmente a la inducción.",
+  "seguimientoActividades": {
+    "LABORAL": "Se vinculó a taller de carpintería",
+    "CULTURAL": "Asiste a clases de música"
+  }
+}
+```
+
+### `F5` - Seguimiento de Sesiones (Nota de Evolución)
+**Endpoint**: `POST /civico/f5`
+```json
+{
+  "expedienteId": "UUID-HERE",
+  "psicologoId": 1,
+  "numSesion": 1,
+  "fechaSesion": "2025-04-05",
+  "temaSesion": "Autoestima y control de ira",
+  "descripcionIntervencion": "Se trabajó la técnica de respiración profunda.",
+  "avancePercibido": "SATISFACTORIO"
+}
+```
+
+---
+
+## 🛠️ Módulos Compartidos (Referencia de Datos)
+
+### Salud (`/salud`)
+Registra el estado de salud del beneficiario para asignar actividades aptas.
+- **DTO**:
+  ```json
+  {
+    "beneficiarioId": 1,
+    "esAptoFisico": true,
+    "padecEnfermedad": false,
+    "restriccionesCategorias": ["ACCIÓN_SOCIAL_PESADA"]
+  }
+  ```
+
+### Actividades (`/actividades`)
+Catálogo de talleres disponibles.
+- **Categorías**: `EDUCATIVA`, `LABORAL`, `CULTURAL`, `DEPORTIVA`, `SOCIAL`.
+
+
+---
+
+## 📅 Operaciones en Campo (Bitácora e Incidencias)
+
+### Bitácora (Asistencia Diaria)
+**Endpoint**: `POST /civico/bitacora`
+```json
+{
+  "expedienteId": "UUID-HERE",
+  "guiaId": 3,
+  "actividadId": 10,
+  "fechaActividad": "2025-04-10",
+  "horasCubiertas": 4.5,
+  "asistencia": "PRESENTE",
+  "observaciones": "Llegó puntual y participó activamente."
+}
+```
+> [!IMPORTANT]
+> **Regla RF-011**: El sistema rechazará cualquier registro con `horasCubiertas > 8`.
+
+### Incidencias (Control de Strikes)
+**Endpoint**: `POST /civico/incidencias`
+```json
+{
+  "expedienteId": "UUID-HERE",
+  "guiaId": 3,
+  "tipo": "FALTA_INJUSTIFICADA",
+  "fechaIncidencia": "2025-04-12",
+  "descripcionHechos": "No se presentó a la actividad sin previo aviso.",
+  "esAcumulativa": true
+}
+```
+> [!CAUTION]
+> Si `esAcumulativa: true` y el conteo llega a **3 strikes**, el sistema cambiará el estatus del expediente a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` automáticamente.
+
+---
+
+## ⚖️ Gestión de Horas (Lógica de Negocio)
+### `GET /civico/bitacora/expediente/:id/horas`
+Devuelve el progreso exacto:
+```json
+{
+  "horasSentencia": 48.0,
+  "horasCumplidas": 12.5,
+  "porcentajeAvance": 26.04,
+  "estatus": "EN_SEGUIMIENTO"
+}
+```
+
+---
+
+## 📄 Generación de Documentos (Modelo Híbrido)
+
+### 1. Previsualización (GET)
+Endpoints como `GET /civico/documentos/oficio-incorporacion/:id` retornan un **Stream de PDF** para ver o imprimir. **No guarda nada en Drive**.
+
+### 2. Registro y Sincronización (POST)
+Endpoints como `POST /civico/documentos/lista-asistencia` realizan:
+1. Generan el PDF.
+2. Lo suben a la carpeta del beneficiario en **Google Drive**.
+3. Registran el `driveFileId` en la tabla `oficios_generados`.
+
+### 3. Paquete Federal (Enlaces Consolidados)
+**Endpoint**: `GET /civico/documentos/expediente/:id/paquete-forms`
+
+---
+
+## 🚨 Manejo de Errores y Validaciones
+
+| Código | Razón | Solución para el Front |
+| :--- | :--- | :--- |
+| `400 Bad Request` | Faltan campos obligatorios o formato inválido. | Revisa el `message` de la respuesta (usamos `class-validator`). |
+| `401 Unauthorized` | Token ausente o expirado. | Re-dirigir al `/login`. |
+| `403 Forbidden` | El usuario no tiene rol para esta acción. | Ocultar botones según `user.roles`. |
+| `404 Not Found` | El ID (UUID o numérico) no existe en BD. | Verificar que el UUID en la ruta sea correcto. |
+| `500 Server Error` | Error crítico (ej: Drive API caída). | Notificar al usuario que intente más tarde. |
+
+---
+
+## 💡 Guía para Compañeros de Backend
+
+### Estructura del CivicoGoogleDriveService
+Si necesitas subir archivos desde un nuevo módulo (ej. Penal), inyecta el servicio y usa:
+- `getOrCreateFolder(nombre)`: Crea carpeta raíz si no existe.
+- `uploadFile(buffer, nombre, parentId)`: Sube el PDF a la carpeta especificada.
+
+### Validaciones Prohibidas (Check Constraints)
+- **Horas Diarias**: BD no acepta > 8 horas por registro en la bitácora.
+- **Folios**: Los folios de oficios deben seguir el patrón `SSyPC/SPRS/DGPDyPC/XXXX/YYYY`.

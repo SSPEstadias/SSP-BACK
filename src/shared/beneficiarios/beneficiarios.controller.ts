@@ -10,16 +10,32 @@ import {
   ValidationPipe,
   Query,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { BeneficiariosService } from './beneficiarios.service';
 import { CreateBeneficiarioDto } from './dto/create-beneficiario.dto';
 import { UpdateBeneficiarioDto } from './dto/update-beneficiario.dto';
 
+@ApiTags('👥 Beneficiarios')
 @Controller('beneficiarios')
 export class BeneficiariosController {
   constructor(private readonly beneficiariosService: BeneficiariosService) {}
 
   // ── POST /beneficiarios ───────────────────────────────────────────
   @Post()
+  @ApiOperation({ summary: 'Registrar un nuevo beneficiario' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      example: {
+        nombre: 'YAHIR LEON',
+        curp: 'LEOY880101HDFRRN01',
+        sexo: 'HOMBRE',
+        fechaNacimiento: '1988-01-01',
+        tiempoAsignado: 48,
+        unidadTiempo: 'HORAS'
+      }
+    }
+  })
   create(@Body(ValidationPipe) dto: CreateBeneficiarioDto) {
     return this.beneficiariosService.create(dto);
   }

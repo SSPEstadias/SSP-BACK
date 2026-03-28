@@ -30,25 +30,18 @@ import {
     @ApiBody({
       description: 'Crear Cédula Inicial (F4) — RF-009',
       examples: {
-        'Cédula completa': {
+        'Cédula Completa (Yahir Leon)': {
           value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
+            expedienteId: '{{EXPEDIENTE_ID}}',
             coordinadorId: 1,
-            horasACubrir: 40,
+            horasACubrir: 48,
             modalidadFalta: 'Falta administrativa por alteración al orden público',
             procesoIngreso: {
-              fechaIngreso: '2026-04-01',
+              fechaIngreso: '2025-04-01',
               lugarAsignado: 'Centro Comunitario Norte',
-              observaciones: 'Ingresa en condiciones adecuadas',
+              observaciones: 'Ingresa en condiciones adecuadas para el servicio'
             },
-            estatusF4: 'EN_PROCESO',
-          },
-        },
-        'Cédula mínima': {
-          value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-            coordinadorId: 1,
-            horasACubrir: 40,
+            estatusF4: 'COMPLETADO'
           },
         },
       },

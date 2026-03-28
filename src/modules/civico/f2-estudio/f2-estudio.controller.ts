@@ -31,22 +31,16 @@ import {
     @ApiBody({
       description: 'Crear Estudio Socioeconómico (F2) — RF-005',
       examples: {
-        'Estudio completo': {
+        'Estudio Completo (Yahir Leon)': {
           value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-            trabajadorSocialId: 4,
+            expedienteId: '{{EXPEDIENTE_UUID}}',
+            trabajadorSocialId: 1,
             ingresoMensual: 8500.00,
             nivelSocioeconomico: 'MEDIO_BAJO',
             grupoFamiliar: 'FUNCIONAL',
             huboViolenciaIntrafamiliar: false,
-            diagnosticoSocial: 'Familia nuclear funcional con recursos económicos limitados. Red de apoyo presente.',
-            estatusF2: 'EN_PROCESO',
-          },
-        },
-        'Estudio mínimo': {
-          value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-            trabajadorSocialId: 4,
+            diagnosticoSocial: 'Familia nuclear estable, red de apoyo presente en la Ciudad de México.',
+            estatusF2: 'COMPLETADO'
           },
         },
       },

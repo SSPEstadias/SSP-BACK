@@ -25,7 +25,7 @@ import { ValoracionPsicologica } from './modules/penal/valoracion-psicologica/en
         autoLoadEntities: true,
         synchronize: false,
 
-        // dropSchema:        false,
+        dropSchema: false,
         migrationsRun: true,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),
