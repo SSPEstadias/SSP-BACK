@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Carátula Penal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      margin: 30px;
+      color: #111;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 25px;
+    }
+
+    .section {
+      margin-bottom: 14px;
+    }
+
+    .label {
+      font-weight: bold;
+    }
+
+    .box {
+      border: 1px solid #000;
+      padding: 10px;
+      margin-top: 4px;
+      min-height: 22px;
+    }
+
+    .row {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CARÁTULA DE EXPEDIENTE PENAL</h1>
+
+  <div class="section">
+    <div class="row"><span class="label">Nombre:</span></div>
+    <div class="box">{{nombre}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Alias:</span></div>
+    <div class="box">{{alias}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Causa penal:</span></div>
+    <div class="box">{{cPenal}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Expediente técnico:</span></div>
+    <div class="box">{{expedienteTecnico}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Folio de expediente:</span></div>
+    <div class="box">{{folioExpediente}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Juzgado:</span></div>
+    <div class="box">{{juzgado}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Delito:</span></div>
+    <div class="box">{{delito}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Agraviado:</span></div>
+    <div class="box">{{agraviado}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Fecha de ingreso al programa:</span></div>
+    <div class="box">{{formatDate fechaIngresoPrograma}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Fecha de suspensión del proceso:</span></div>
+    <div class="box">{{formatDate fechaSuspensionProceso}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Fecha de fin de supervisión:</span></div>
+    <div class="box">{{formatDate fechaFinSupervision}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Medida cautelar:</span></div>
+    <div class="box">{{medidaCautelar}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Observaciones:</span></div>
+    <div class="box">{{observaciones}}</div>
+  </div>
+
+  <div class="section">
+    <div class="row"><span class="label">Fecha de creación de carátula:</span></div>
+    <div class="box">{{formatDate creadoEn}}</div>
+  </div>
+</body>
+</html>

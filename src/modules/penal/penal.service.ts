@@ -111,6 +111,7 @@ export class PenalService {
     const expediente = await this.findOne(id);
     await this.penalRepo.remove(expediente);
   }
+
   async getResumenExpediente(id: number) {
     const expediente = await this.penalRepo.findOne({
       where: { id },
@@ -131,6 +132,8 @@ export class PenalService {
       await import('./plan-trabajo-detalle/entities/plan-trabajo-detalle.entity');
     const { ExpedienteCaratula } =
       await import('./expediente-caratula/entities/expediente-caratula.entity');
+    const { IncidenciaPenal } =
+      await import('./incidencia-penal/entities/incidencia-penal.entity');
 
     const valoracionRepo = this.penalRepo.manager.getRepository(
       ValoracionPsicologica,
@@ -142,6 +145,8 @@ export class PenalService {
       this.penalRepo.manager.getRepository(PlanTrabajoDetalle);
     const caratulaRepo =
       this.penalRepo.manager.getRepository(ExpedienteCaratula);
+    const incidenciaRepo =
+      this.penalRepo.manager.getRepository(IncidenciaPenal);
 
     const f1 = await valoracionRepo.findOne({
       where: { expediente: { id } },
@@ -176,6 +181,12 @@ export class PenalService {
       relations: ['expediente'],
     });
 
+    const incidencias = await incidenciaRepo.find({
+      where: { expediente: { id } },
+      relations: ['expediente', 'registradoPor'],
+      order: { fecha: 'DESC', id: 'DESC' },
+    });
+
     const resumenPlanes = planes.map((plan) => ({
       ...plan,
       detalles: detalles.filter((d) => d.planTrabajo.id === plan.id),
@@ -186,6 +197,7 @@ export class PenalService {
     const tieneF3 = planes.length > 0;
     const tieneDetalleF3 = detalles.length > 0;
     const tieneCaratula = !!caratula;
+    const tieneIncidencias = incidencias.length > 0;
 
     return {
       expediente,
@@ -194,12 +206,14 @@ export class PenalService {
       f2,
       planes: resumenPlanes,
       caratula,
+      incidencias,
       validaciones: {
         tieneF1,
         tieneF2,
         tieneF3,
         tieneDetalleF3,
         tieneCaratula,
+        tieneIncidencias,
         caratulaHabilitada: tieneF1 && tieneF2 && tieneF3 && tieneDetalleF3,
       },
     };

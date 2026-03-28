@@ -12,6 +12,8 @@ import { ExpedienteCaratulaModule } from './expediente-caratula/expediente-carat
 import { FichaSeguimientoModule } from './ficha-seguimiento/ficha-seguimiento.module';
 import { HistorialSupervisionModule } from './historial-supervision/historial-supervision.module';
 import { NotaEvolucionPsicologicaModule } from './nota-evolucion-psicologica/nota-evolucion-psicologica.module';
+import { IncidenciasPenalModule } from './incidencia-penal/incidencia-penal.module';
+import { DocumentosPenalModule } from './documentos-penal/documentos-penal.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { NotaEvolucionPsicologicaModule } from './nota-evolucion-psicologica/not
     FichaSeguimientoModule,
     HistorialSupervisionModule,
     NotaEvolucionPsicologicaModule,
+    IncidenciasPenalModule,
+    DocumentosPenalModule,
   ],
   controllers: [PenalController],
   providers: [PenalService],
