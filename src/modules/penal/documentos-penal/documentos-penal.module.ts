@@ -6,6 +6,7 @@ import { ExpedienteCaratula } from '../expediente-caratula/entities/expediente-c
 import { PenalExpediente } from '../entities/penal.entity';
 import { Beneficiario } from '../../../shared/beneficiarios/beneficiario.entity';
 import { FichaSeguimiento } from '../ficha-seguimiento/entities/ficha-seguimiento.entity';
+import { NotaEvolucionPsicologica } from '../nota-evolucion-psicologica/entities/nota-evolucion-psicologica.entity';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { FichaSeguimiento } from '../ficha-seguimiento/entities/ficha-seguimient
       PenalExpediente,
       Beneficiario,
       FichaSeguimiento,
+      NotaEvolucionPsicologica,
     ]),
   ],
   controllers: [DocumentosPenalController],

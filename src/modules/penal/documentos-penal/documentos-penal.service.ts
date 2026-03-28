@@ -16,6 +16,7 @@ import { ExpedienteCaratula } from '../expediente-caratula/entities/expediente-c
 import { PenalExpediente } from '../entities/penal.entity';
 import { Beneficiario } from '../../../shared/beneficiarios/beneficiario.entity';
 import { FichaSeguimiento } from '../ficha-seguimiento/entities/ficha-seguimiento.entity';
+import { NotaEvolucionPsicologica } from '../nota-evolucion-psicologica/entities/nota-evolucion-psicologica.entity';
 
 function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '—';
@@ -56,6 +57,8 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
     private readonly beneficiarioRepo: Repository<Beneficiario>,
     @InjectRepository(FichaSeguimiento)
     private readonly fichaRepo: Repository<FichaSeguimiento>,
+    @InjectRepository(NotaEvolucionPsicologica)
+    private readonly notaEvolucionRepo: Repository<NotaEvolucionPsicologica>,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -220,6 +223,50 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
       .trim();
 
     const filename = `FICHA_SEGUIMIENTO - ${safeNombre.toUpperCase()} - PERIODO_${ficha.periodo}.pdf`;
+
+    return { buffer, filename };
+  }
+
+  async generarNotaEvolucionPsicologicaPdf(id: number): Promise<{
+    buffer: Buffer;
+    filename: string;
+  }> {
+    const nota = await this.notaEvolucionRepo.findOne({
+      where: { id },
+      relations: ['expediente', 'expediente.beneficiario', 'psicologo'],
+    });
+
+    if (!nota) {
+      throw new NotFoundException(
+        'Nota de evolución psicológica no encontrada',
+      );
+    }
+
+    const expediente = nota.expediente;
+    const beneficiario = expediente?.beneficiario;
+
+    const buffer = await this.generarPdf('nota_evolucion_psicologica', {
+      folioExpediente: expediente?.folioExpediente ?? '—',
+      expedienteTecnico: expediente?.expedienteTecnico ?? '—',
+      cPenal: expediente?.cPenal ?? '—',
+      nombreBeneficiario: beneficiario?.nombre ?? '—',
+      fecha: nota.fecha,
+      numeroSesion: nota.numeroSesion ?? '—',
+      psicologo: nota.psicologo?.nombre ?? '—',
+      objetivoSesion: nota.objetivoSesion ?? '—',
+      descripcionSesion: nota.descripcionSesion ?? '—',
+      tecnicasAplicadas: nota.tecnicasAplicadas ?? '—',
+      avances: nota.avances ?? '—',
+      observaciones: nota.observaciones ?? '—',
+      proximaSesion: nota.proximaSesion ?? null,
+      creadoEn: nota.creadoEn,
+    });
+
+    const safeNombre = (beneficiario?.nombre ?? 'BENEFICIARIO')
+      .replace(/[\\/:*?"<>|]/g, '')
+      .trim();
+
+    const filename = `NOTA_EVOLUCION_PSICOLOGICA - ${safeNombre.toUpperCase()} - SESION_${nota.numeroSesion}.pdf`;
 
     return { buffer, filename };
   }
