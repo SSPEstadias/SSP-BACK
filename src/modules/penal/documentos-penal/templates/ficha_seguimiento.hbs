@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      margin: 20px;
+    }
+
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    .section {
+      margin-top: 15px;
+    }
+
+    .box {
+      border: 1px solid #000;
+      padding: 8px;
+      margin-top: 5px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .col {
+      width: 48%;
+    }
+
+    .label {
+      font-weight: bold;
+    }
+
+    .line {
+      border-bottom: 1px solid #000;
+      margin-top: 10px;
+      padding-bottom: 3px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>FICHA DE SEGUIMIENTO</h1>
+  <h2>PROGRAMA PENAL</h2>
+
+  <div class="section box">
+    <div><span class="label">Folio:</span> {{folioExpediente}}</div>
+    <div><span class="label">Nombre:</span> {{nombre}}</div>
+    <div><span class="label">Periodo:</span> {{periodo}}</div>
+    <div><span class="label">Fecha:</span> {{formatDate fecha}}</div>
+    <div><span class="label">Guía:</span> {{guia}}</div>
+  </div>
+
+  <div class="section">
+    <h3>Datos personales</h3>
+    <div class="box">
+      {{#each datos}}
+        <div><span class="label">{{@key}}:</span> {{this}}</div>
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Cumplimiento general</h3>
+    <div class="box">{{cumplimientoGeneral}}</div>
+  </div>
+
+  <div class="section">
+    <h3>Comportamiento</h3>
+    <div class="box">{{comportamiento}}</div>
+  </div>
+
+  <div class="section">
+    <h3>Observaciones</h3>
+    <div class="box">{{observaciones}}</div>
+  </div>
+
+  <div class="section">
+    <h3>Incidencias</h3>
+    <div class="box">
+      {{#each incidencias}}
+        <div><span class="label">{{@key}}:</span> {{this}}</div>
+      {{/each}}
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Recomendaciones</h3>
+    <div class="box">{{recomendaciones}}</div>
+  </div>
+
+  <div class="section">
+    <div class="line">Firma del guía</div>
+  </div>
+
+</body>
+</html>
