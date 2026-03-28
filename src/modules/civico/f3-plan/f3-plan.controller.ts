@@ -31,30 +31,19 @@ import {
     @ApiBody({
       description: 'Crear Plan de Trabajo (F3) — RF-006. Requiere F1 y F2 COMPLETADOS.',
       examples: {
-        'Plan completo': {
+        'Plan Completo (Yahir Leon)': {
           value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
+            expedienteId: '{{EXPEDIENTE_UUID}}',
             coordinadorId: 1,
-            fechaInicioEstimada: '2026-04-01',
-            fechaTerminoEstimada: '2026-06-01',
+            fechaInicioEstimada: '2025-04-01',
+            fechaTerminoEstimada: '2025-06-01',
             diasAsignados: 'Lunes, Miércoles, Viernes',
-            metasPrograma: 'Cumplir con las 40 horas de servicio comunitario asignadas por el juzgado',
+            metasPrograma: 'Cumplir con las 48 horas de servicio comunitario y concluir el taller de reeducación.',
             actividadesPlan: {
-              EDUCATIVA: { estatus: 'PENDIENTE', objetivo: 'Participar en talleres de educación cívica', cumplimiento: '' },
-              LABORAL: { estatus: 'PENDIENTE', objetivo: 'Realizar actividades de mantenimiento comunitario', cumplimiento: '' },
+              TRABAJO_COMUNITARIO: { objetivo: 'Participar en 3 tequios de rescate de espacios', idActividad: 1 },
+              EDUCACION_PARA_LA_VIDA: { objetivo: 'Acreditar el Manual Fénix', idActividad: 5 }
             },
-            estatusF3: 'EN_PROCESO',
-          },
-        },
-        'Plan mínimo': {
-          value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-            coordinadorId: 1,
-            fechaInicioEstimada: '2026-04-01',
-            fechaTerminoEstimada: '2026-06-01',
-            actividadesPlan: {
-              EDUCATIVA: { estatus: 'PENDIENTE', objetivo: 'Talleres cívicos', cumplimiento: '' },
-            },
+            estatusF3: 'COMPLETADO'
           },
         },
       },

@@ -23,9 +23,9 @@ import { ValoracionPsicologica } from './modules/penal/valoracion-psicologica/en
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
-        synchronize: false,
+        synchronize: true,
 
-        // dropSchema:        false,
+        dropSchema: false,
         migrationsRun: true,
         migrations: [__dirname + '/migrations/*{.ts,.js}'],
       }),

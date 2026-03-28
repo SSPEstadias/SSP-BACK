@@ -85,6 +85,40 @@ subirEscaneado(expedienteId: string, tipo: string, file: File) {
 }
 ```
 
-## 📝 Tips de Rendimiento
-- **Signals**: Usa `computed()` para filtrar listas en el frontend sin peticiones extra.
-- **Deferrable Views**: Utiliza `@defer` en tus templates de Angular para cargar componentes pesados (como gráficos o tablas grandes) solo cuando sean visibles.
+## 5. Flujo de Vida del Expediente (Business Logic)
+
+Para que el Frontend sea coherente con las reglas del negocio, sigue este orden de operaciones:
+
+### Paso 1: Autenticación e Inicio
+- El usuario hace login. El sistema devuelve un token y los **roles**.
+- Si el rol es `Guia`, la vista principal debería ser la **Bitácora**.
+- Si el rol es `Admin`, `Psicologo` o `TrabajoSocial`, la vista principal es el **Listado de Carátulas**.
+
+### Paso 2: Registro de Beneficiario
+- **Antes de crear un expediente**, verifica si la persona ya existe buscando por **CURP**.
+- Si no existe, crea la persona en `/beneficiarios`.
+
+### Paso 3: Apertura de Expediente
+- Con el `beneficiarioId`, crea el expediente cívico en `/civico/expedientes`.
+- El estatus inicial será `INDUCCION`.
+
+### Paso 4: Diagnóstico (La "Llave" de Proceso)
+1.  **F1 (Psicología)**: El psicólogo llena la entrevista.
+2.  **F2 (Trabajo Social)**: El trabajador social llena el estudio.
+3.  **Cambio de Estado**: Cuando ambos están `COMPLETADO`, el expediente pasa a `PLANEACION`.
+
+### Paso 5: Planeación y Seguimiento
+- El Admin crea el **F3 (Plan)** y el **F4 (Cédula)**.
+- El expediente pasa a `EN_SEGUIMIENTO`.
+- **Bitácora**: El Guía registra asistencias diarias. El frontend debe mostrar la barra de progreso basada en `avanceHoras / horasSentencia`.
+
+### Paso 6: Graduación o Baja
+- El sistema cambia a `GRADUADO` automáticamente cuando las horas se cumplen.
+- El sistema cambia a `BAJA` automáticamente si se registran 3 incidencias.
+
+---
+
+## 📝 Tips Premium para el Front
+- **Barra de Progreso Dinámica**: Usa un Signal computado para recalcular el `%` de avance en tiempo real.
+- **Validación Atómica**: No permitas que el botón de "Crear Plan F3" sea clickeable si los servicios de consulta de F1/F2 no retornan estatus `COMPLETADO`.
+- **Skeleton Screens**: Muestra sombras de carga mientras se obtienen los JSONB pesados de los formatos F1/F2 para mejorar la percepción de velocidad.

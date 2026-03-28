@@ -30,29 +30,22 @@ export class F1EntrevistaController {
   @ApiBody({
     description: 'Crear Entrevista Clínica Inicial (F1) — RF-004',
     examples: {
-      'Entrevista completa': {
+      'Entrevista Completa (Yahir Leon)': {
         value: {
-          expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-          psicologoId: 2,
-          fechaEntrevista: '2026-03-24',
+          expedienteId: '{{EXPEDIENTE_ID}}',
+          psicologoId: 1,
+          fechaEntrevista: '2025-03-28',
           consentimientoInformado: true,
           riesgoSuicida: false,
-          consumeSustancias: false,
+          consumeSustancias: true,
           padeceEnfermedadCronica: false,
           necesitaApoyoPsicologico: true,
-          motivoConsulta: 'Derivado por juzgado cívico — falta administrativa',
-          antecedentesClinicos: 'Sin antecedentes relevantes',
-          examenMental: 'Orientado, lenguaje coherente, afecto eutímico',
-          impresionDiagnostica: 'Sin patología mayor detectada',
-          estatusF1: 'EN_PROCESO',
-        },
-      },
-      'Entrevista mínima': {
-        value: {
-          expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-          psicologoId: 2,
-          fechaEntrevista: '2026-03-24',
-          consentimientoInformado: true,
+          motivoConsulta: 'Remitido por el juzgado cívico por faltas a la convivencia ciudadana.',
+          antecedentesClinicos: 'Sin antecedentes de gravedad.',
+          examenMental: 'Orientado en las tres esferas, lenguaje coherente, afecto eutímico.',
+          impresionDiagnostica: 'Consumo problemático de alcohol, se recomienda tratamiento reeducativo.',
+          generalesEntrevista: { escolaridad: 'Licenciatura', ocupacion: 'Estudiante' },
+          estatusF1: 'COMPLETADO'
         },
       },
     },
