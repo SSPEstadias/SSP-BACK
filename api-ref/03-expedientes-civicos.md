@@ -2,60 +2,78 @@
 
 El expediente es el elemento central del sistema. Contiene los datos de identidad, legales y es el punto de partida para los formatos F1–F5.
 
-## 1. Listar Expedientes (Carátulas)
+## 1. Gestión de Expedientes
 
-Para la vista principal del listado, utiliza el endpoint de carátulas para evitar cargar objetos pesados innecesarios.
+### 📋 Listado de Carátulas
+Ideal para la vista principal del CRM. Devuelve datos ligeros y el avance de horas.
+- **Ruta:** `GET /civico/expedientes/caratulas`
+- **Roles:** Admin, Psicologo, TrabajoSocial, Guia
 
-**Ruta:** `GET /civico/expedientes/caratulas`
+### 🔍 Búsqueda por CURP
+Útil para evitar duplicados en el registro inicial.
+- **Ruta:** `GET /civico/expedientes/curp/:curp`
 
-**Respuesta (Array):**
-```json
-[
-  {
-    "idUUID": "uuid...",
-    "folioExpediente": "CIV-2026-001",
-    "estatusProceso": "EN_SEGUIMIENTO",
-    "avanceHoras": 12.5,
-    "horasSentencia": 24,
-    "beneficiario": {
-      "nombre": "JUAN PÉREZ LÓPEZ",
-      "curp": "..."
-    }
-  }
-]
-```
+### 🆕 Crear Expediente
+- **Ruta:** `POST /civico/expedientes`
+- **Roles:** Admin
+- **Body:** `beneficiarioId`, `curp`, `fechaNacimiento`, `domicilioCompleto`, `horasSentencia`, `causaPenal`.
 
-## 2. Crear Expediente
+---
 
-Requiere rol `Admin`.
+## 2. Flujo de Formatos (F1 - F5)
 
-**Ruta:** `POST /civico/expedientes`
+El sistema sigue un orden lógico de diagnóstico y seguimiento:
 
-**Cuerpo (Campos obligatorios):**
-- `beneficiarioId` (int)
-- `curp` (string)
-- `fechaNacimiento` (date, YYYY-MM-DD)
-- `domicilioCompleto` (string)
-- `horasSentencia` (int)
-- `causaPenal` (string)
+| Formato | Propósito | Endpoint Base | Permiso |
+| :--- | :--- | :--- | :--- |
+| **F1** | Entrevista Clínica | `/civico/f1` | Psicólogo |
+| **F2** | Estudio Socioeconómico | `/civico/f2` | Trabajo Social |
+| **F3** | Plan de Trabajo | `/civico/f3` | Admin |
+| **F4** | Cédula Inicial | `/civico/f4` | Admin |
+| **F5** | Seg. Psicológico | `/civico/f5` | Psicólogo |
 
-## 3. Estados del Proceso (`CivicStatusEnum`)
+> [!IMPORTANT]
+> **Candado RF-008**: No se puede crear un **F3 (Plan)** si el **F1** y **F2** no están marcados como `COMPLETADO`.
 
-El frontend debe reaccionar según el estado del expediente:
+---
 
-- `INDUCCION`: Falta realizar F1 y F2.
-- `DIAGNOSTICO`: F1 y F2 en proceso.
-- `PLANEACION`: F1 y F2 completos, falta F3/F4.
-- `EN_SEGUIMIENTO`: Horas en curso.
-- `GRADUADO`: Proceso completado exitosamente.
-- `BAJA_POR_ACUMULACION_DE_INCIDENCIAS`: El sistema lo bloqueó por mal comportamiento.
+## 3. Bitácora y Asistencia
 
-## 4. Búsqueda por CURP
+La bitácora controla el avance de horas del beneficiario.
 
-Útil para verificar si un beneficiario ya tiene un expediente previo.
+- **Registrar Asistencia:** `POST /civico/bitacora`
+- **Calcular Horas:** `GET /civico/bitacora/expediente/:id/horas`
+- **Historial:** `GET /civico/bitacora/expediente/:id`
 
-**Ruta:** `GET /civico/expedientes/curp/:curp`
+### Estados de Asistencia:
+- `PRESENTE`: Suma el total de horas cubiertas.
+- `PRESENTE_PARCIAL`: Suma horas y permite registrar una incidencia (ej. Retardo).
+- `FALTA_INJUSTIFICADA`: 0 horas, genera incidencia automática.
 
-## 📊 Tips para el Front
-- **Barra de Progreso**: Calcula el porcentaje usando `(avanceHoras / horasSentencia) * 100`.
-- **Filtros**: El backend soporta filtrado por estado. Úsalo para separar "Activos" de "Históricos".
+---
+
+## 4. Incidencias y Sistema de "Strikes"
+
+El sistema monitorea el comportamiento. Las incidencias pueden ser manuales o automáticas desde la bitácora.
+
+- **Crear Incidencia Manual:** `POST /civico/incidencias`
+- **Ver "Strikes":** `GET /civico/incidencias/expediente/:id/strikes`
+
+> [!WARNING]
+> **Baja Automática**: Al acumular **3 incidencias**, el expediente cambia automáticamente su estatus a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS`.
+
+---
+
+## 5. Diccionario: Tabla `expediente_civico`
+
+Campos clave que el Frontend debe manejar:
+
+| Campo | Tipo | Descripción |
+| :--- | :--- | :--- |
+| `idUUID` | UUID | Identificador único para rutas. |
+| `folioExpediente` | String | Formato: `CIV-YYYY-XXX`. |
+| `estatusProceso` | Enum | `INDUCCION`, `DIAGNOSTICO`, `PLANEACION`, `EN_SEGUIMIENTO`, `GRADUADO`, `BAJA`. |
+| `avanceHoras` | Decimal | Total de horas acumuladas en bitácora. |
+| `horasSentencia` | Integer | Meta de horas a cumplir. |
+| `oficioCanalizacionUrl` | String | Link a Drive del documento firmado. |
+| `oficioIncorporacionUrl` | String | Link a Drive del documento firmado. |

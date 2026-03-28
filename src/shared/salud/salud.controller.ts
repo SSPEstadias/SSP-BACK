@@ -13,7 +13,7 @@ import {
 import { SaludService } from './salud.service';
 import { CreateSaludDto } from './dto/create-salud.dto';
 import { UpdateSaludDto } from './dto/update-salud.dto';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody } from '@nestjs/swagger';
 @ApiTags('🏥 Salud')
 @ApiBearerAuth('JWT-Auth')
 @Controller('salud')
@@ -21,9 +21,20 @@ export class SaludController {
   constructor(private readonly saludService: SaludService) {}
 
   // ── POST /salud ────────────────────────────────────────────────────
-  // Crear nuevo perfil de salud para un beneficiario
-  // RF-005: Perfil de salud compartido Cívico-Penal
   @Post()
+  @ApiOperation({ summary: 'Registrar perfil de salud y aptitud física' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      example: {
+        beneficiarioId: 1,
+        esAptoFisico: true,
+        padecEnfermedad: false,
+        restriccionesCategorias: [],
+        observacionesMedicas: "Sin patologías aparentes. Apto para cualquier actividad comunitaria."
+      }
+    }
+  })
   create(@Body(ValidationPipe) dto: CreateSaludDto) {
     return this.saludService.create(dto);
   }

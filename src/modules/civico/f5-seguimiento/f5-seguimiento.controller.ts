@@ -31,30 +31,19 @@ import {
     @ApiBody({
       description: 'Crear Seguimiento Psicológico (F5) — RF-010',
       examples: {
-        'Sesión completa': {
+        'Sesión Completa (Yahir Leon)': {
           value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-            psicologoId: 2,
+            expedienteId: '{{EXPEDIENTE_UUID}}',
+            psicologoId: 1,
             numSesion: 1,
-            fechaSesion: '2026-04-07',
+            fechaSesion: '2025-04-07',
             horaSesion: '10:00',
-            fechaProximaSesion: '2026-04-14',
-            objetivoSesion: 'Evaluar estado emocional inicial y establecer rapport',
-            conductaDisposicion: 'Colaborador, con disposición al cambio',
-            descripcionIntervencion: 'Se realizó entrevista motivacional y establecimiento de metas',
-            temaSesion: 'Evaluación inicial y encuadre terapéutico',
-            estrategiaAplicada: 'Entrevista Motivacional — Miller y Rollnick',
-            planTerapeutico: 'Sesión 2: Explorar factores de riesgo y protectores',
-            avancePercibido: 'Inicial',
-            observaciones: 'Buen pronóstico, paciente motivado al cambio',
-          },
-        },
-        'Sesión mínima': {
-          value: {
-            expedienteId: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
-            psicologoId: 2,
-            numSesion: 1,
-            fechaSesion: '2026-04-07',
+            objetivoSesion: 'Evaluar estado emocional inicial y compromiso con el plan de trabajo.',
+            conductaDisposicion: 'Colaborador, con disposición al cambio y reconocimiento de la falta.',
+            descripcionIntervencion: 'Se realizó encuadre terapéutico y técnica de respiración diafragmática.',
+            temaSesion: 'Control de impulsos y autoreflexión.',
+            avancePercibido: 'SATISFACTORIO',
+            observaciones: 'Buen pronóstico, se recomienda continuar con el Manual Fénix.'
           },
         },
       },

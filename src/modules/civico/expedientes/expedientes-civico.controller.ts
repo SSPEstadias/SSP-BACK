@@ -15,7 +15,7 @@ import { Roles } from '../../../shared/common/decorators/roles.decorator';
 import { ExpedientesCivicoService } from './expedientes-civico.service';
 import { CreateExpedienteCivicoDto } from './dto/create-expediente-civico.dto';
 import { UpdateExpedienteCivicoDto } from './dto/update-expediente-civico.dto';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody } from '@nestjs/swagger';
 @ApiTags('📁 Expedientes Cívico')   
 @ApiBearerAuth('JWT-Auth')   
 
@@ -27,6 +27,23 @@ export class ExpedientesCivicoController {
   // ── POST /civico/expedientes ──────────────────────────────────────
   @Post()
   @Roles('Admin')
+  @ApiOperation({ summary: 'Crear un nuevo expediente cívico' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      example: {
+        beneficiarioId: 1,
+        folioExpediente: "EXP-2025-0001",
+        causaPenal: "CP-2025-AX-99",
+        juezCivico: "Lic. Roberto Gomez",
+        fechaInicioSentencia: "2025-03-28",
+        horasSentencia: 48,
+        contactosFamiliares: {
+          madre: { nombre: "Maria Lopez", telefono: "555-0102" }
+        }
+      }
+    }
+  })
   create(@Body() dto: CreateExpedienteCivicoDto) {
     return this.service.create(dto);
   }
