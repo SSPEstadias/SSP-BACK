@@ -5,11 +5,15 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { PenalExpediente } from '../../entities/penal.entity';
 import { User } from '../../../../shared/users/entities/user.entity';
 
 @Entity('penal_ficha_seguimiento')
+@Index('UQ_ficha_expediente_periodo', ['expediente', 'periodo'], {
+  unique: true,
+})
 export class FichaSeguimiento {
   @PrimaryGeneratedColumn('identity')
   id: number;
@@ -25,7 +29,7 @@ export class FichaSeguimiento {
   @Column({ type: 'date', nullable: false })
   fecha: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: false })
   periodo: string;
 
   @Column({

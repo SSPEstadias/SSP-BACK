@@ -46,9 +46,11 @@ export class FichaSeguimientoController {
     RolUsuario.PSICOLOGO,
     RolUsuario.TRABAJO_SOCIAL,
   )
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<FichaSeguimiento> {
-    return this.fichaService.findOne(id);
+  @Get('expediente/:expedienteId')
+  findByExpediente(
+    @Param('expedienteId', ParseIntPipe) expedienteId: number,
+  ): Promise<FichaSeguimiento[]> {
+    return this.fichaService.findByExpediente(expedienteId);
   }
 
   @Roles(
@@ -57,11 +59,9 @@ export class FichaSeguimientoController {
     RolUsuario.PSICOLOGO,
     RolUsuario.TRABAJO_SOCIAL,
   )
-  @Get('expediente/:expedienteId')
-  findByExpediente(
-    @Param('expedienteId', ParseIntPipe) expedienteId: number,
-  ): Promise<FichaSeguimiento[]> {
-    return this.fichaService.findByExpediente(expedienteId);
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<FichaSeguimiento> {
+    return this.fichaService.findOne(id);
   }
 
   @Roles(RolUsuario.ADMIN, RolUsuario.GUIA)

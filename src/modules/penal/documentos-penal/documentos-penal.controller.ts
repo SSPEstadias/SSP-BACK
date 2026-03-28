@@ -42,4 +42,26 @@ export class DocumentosPenalController {
 
     res.end(buffer);
   }
+  @Roles(
+    RolUsuario.ADMIN,
+    RolUsuario.PSICOLOGO,
+    RolUsuario.TRABAJO_SOCIAL,
+    RolUsuario.GUIA,
+  )
+  @Get('ficha-seguimiento/:id/pdf')
+  async descargarFichaSeguimientoPdf(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename } =
+      await this.documentosPenalService.generarFichaSeguimientoPdf(id);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': buffer.length,
+    });
+
+    res.end(buffer);
+  }
 }

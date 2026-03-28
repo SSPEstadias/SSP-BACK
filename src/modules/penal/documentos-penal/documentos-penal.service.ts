@@ -15,6 +15,7 @@ import * as puppeteer from 'puppeteer';
 import { ExpedienteCaratula } from '../expediente-caratula/entities/expediente-caratula.entity';
 import { PenalExpediente } from '../entities/penal.entity';
 import { Beneficiario } from '../../../shared/beneficiarios/beneficiario.entity';
+import { FichaSeguimiento } from '../ficha-seguimiento/entities/ficha-seguimiento.entity';
 
 function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '—';
@@ -53,6 +54,8 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
     private readonly expedienteRepo: Repository<PenalExpediente>,
     @InjectRepository(Beneficiario)
     private readonly beneficiarioRepo: Repository<Beneficiario>,
+    @InjectRepository(FichaSeguimiento)
+    private readonly fichaRepo: Repository<FichaSeguimiento>,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -170,6 +173,53 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
       .trim();
 
     const filename = `CARATULA_PENAL - ${safeNombre.toUpperCase()} - EXP_${expediente.id}.pdf`;
+
+    return { buffer, filename };
+  }
+  async generarFichaSeguimientoPdf(id: number): Promise<{
+    buffer: Buffer;
+    filename: string;
+  }> {
+    const ficha = await this.fichaRepo.findOne({
+      where: { id },
+      relations: ['expediente', 'expediente.beneficiario', 'guia'],
+    });
+
+    if (!ficha) {
+      throw new NotFoundException('Ficha de seguimiento no encontrada');
+    }
+
+    const expediente = ficha.expediente;
+    const beneficiario = expediente?.beneficiario;
+
+    const buffer = await this.generarPdf('ficha_seguimiento', {
+      // DATOS GENERALES
+      folioExpediente: expediente?.folioExpediente ?? '—',
+      nombre: beneficiario?.nombre ?? '—',
+      periodo: ficha.periodo ?? '—',
+      fecha: ficha.fecha,
+      guia: ficha.guia?.nombre ?? '—',
+
+      // DATOS PERSONALES (JSONB)
+      datos: ficha.datosPersonalesJsonb ?? {},
+
+      // CAMPOS TEXTUALES
+      cumplimientoGeneral: ficha.cumplimientoGeneral ?? '—',
+      comportamiento: ficha.comportamiento ?? '—',
+      observaciones: ficha.observaciones ?? '—',
+      recomendaciones: ficha.recomendaciones ?? '—',
+
+      // INCIDENCIAS
+      incidencias: ficha.incidenciasJsonb ?? {},
+
+      creadoEn: ficha.creadoEn,
+    });
+
+    const safeNombre = (beneficiario?.nombre ?? 'BENEFICIARIO')
+      .replace(/[\\/:*?"<>|]/g, '')
+      .trim();
+
+    const filename = `FICHA_SEGUIMIENTO - ${safeNombre.toUpperCase()} - PERIODO_${ficha.periodo}.pdf`;
 
     return { buffer, filename };
   }

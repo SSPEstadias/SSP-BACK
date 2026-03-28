@@ -4,6 +4,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  MaxLength,
 } from 'class-validator';
 
 export class CreateFichaSeguimientoDto {
@@ -16,9 +17,9 @@ export class CreateFichaSeguimientoDto {
   @IsDateString()
   fecha: string;
 
-  @IsOptional()
   @IsString()
-  periodo?: string;
+  @MaxLength(50)
+  periodo: string;
 
   @IsObject()
   datosPersonalesJsonb: Record<string, any>;

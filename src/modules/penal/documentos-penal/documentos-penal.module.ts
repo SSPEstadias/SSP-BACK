@@ -5,6 +5,7 @@ import { DocumentosPenalController } from './documentos-penal.controller';
 import { ExpedienteCaratula } from '../expediente-caratula/entities/expediente-caratula.entity';
 import { PenalExpediente } from '../entities/penal.entity';
 import { Beneficiario } from '../../../shared/beneficiarios/beneficiario.entity';
+import { FichaSeguimiento } from '../ficha-seguimiento/entities/ficha-seguimiento.entity';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { Beneficiario } from '../../../shared/beneficiarios/beneficiario.entity'
       ExpedienteCaratula,
       PenalExpediente,
       Beneficiario,
+      FichaSeguimiento,
     ]),
   ],
   controllers: [DocumentosPenalController],
