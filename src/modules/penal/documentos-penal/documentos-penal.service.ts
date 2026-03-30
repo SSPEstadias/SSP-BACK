@@ -17,14 +17,20 @@ import { PenalExpediente } from '../entities/penal.entity';
 import { Beneficiario } from '../../../shared/beneficiarios/beneficiario.entity';
 import { FichaSeguimiento } from '../ficha-seguimiento/entities/ficha-seguimiento.entity';
 import { NotaEvolucionPsicologica } from '../nota-evolucion-psicologica/entities/nota-evolucion-psicologica.entity';
+import { PlanTrabajo } from '../plan-trabajo/entities/plan-trabajo.entity';
+import { PlanTrabajoDetalle } from '../plan-trabajo-detalle/entities/plan-trabajo-detalle.entity';
 
 function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '—';
+
   const d = typeof value === 'string' ? new Date(value) : value;
+
   if (isNaN(d.getTime())) return String(value);
+
   const dd = String(d.getDate()).padStart(2, '0');
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const yyyy = d.getFullYear();
+
   return `${dd}/${mm}/${yyyy}`;
 }
 
@@ -59,6 +65,10 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
     private readonly fichaRepo: Repository<FichaSeguimiento>,
     @InjectRepository(NotaEvolucionPsicologica)
     private readonly notaEvolucionRepo: Repository<NotaEvolucionPsicologica>,
+    @InjectRepository(PlanTrabajo)
+    private readonly planTrabajoRepo: Repository<PlanTrabajo>,
+    @InjectRepository(PlanTrabajoDetalle)
+    private readonly planTrabajoDetalleRepo: Repository<PlanTrabajoDetalle>,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -96,6 +106,7 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
     const html = template(data);
 
     const page = await this.browser.newPage();
+
     try {
       await page.setContent(html, { waitUntil: 'networkidle0' });
 
@@ -114,6 +125,35 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
     } finally {
       await page.close();
     }
+  }
+
+  private formatearValorPdf(valor: unknown): string {
+    if (valor === null || valor === undefined) return '—';
+
+    if (Array.isArray(valor)) {
+      return valor.length
+        ? valor.map((item) => this.formatearValorPdf(item)).join('\n')
+        : '—';
+    }
+
+    if (typeof valor === 'object') {
+      return Object.entries(valor as Record<string, unknown>)
+        .map(([key, val]) => `${key}: ${this.formatearValorPdf(val)}`)
+        .join('\n');
+    }
+
+    return String(valor);
+  }
+
+  private mapearObjetoALista(
+    obj: Record<string, any> | null | undefined,
+  ): Array<{ key: string; value: string }> {
+    if (!obj || typeof obj !== 'object') return [];
+
+    return Object.entries(obj).map(([key, value]) => ({
+      key: key.replace(/_/g, ' '),
+      value: this.formatearValorPdf(value),
+    }));
   }
 
   async generarCaratulaPenalPdf(expedienteId: number): Promise<{
@@ -179,6 +219,7 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
 
     return { buffer, filename };
   }
+
   async generarFichaSeguimientoPdf(id: number): Promise<{
     buffer: Buffer;
     filename: string;
@@ -196,25 +237,17 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
     const beneficiario = expediente?.beneficiario;
 
     const buffer = await this.generarPdf('ficha_seguimiento', {
-      // DATOS GENERALES
       folioExpediente: expediente?.folioExpediente ?? '—',
       nombre: beneficiario?.nombre ?? '—',
       periodo: ficha.periodo ?? '—',
       fecha: ficha.fecha,
       guia: ficha.guia?.nombre ?? '—',
-
-      // DATOS PERSONALES (JSONB)
       datos: ficha.datosPersonalesJsonb ?? {},
-
-      // CAMPOS TEXTUALES
       cumplimientoGeneral: ficha.cumplimientoGeneral ?? '—',
       comportamiento: ficha.comportamiento ?? '—',
       observaciones: ficha.observaciones ?? '—',
       recomendaciones: ficha.recomendaciones ?? '—',
-
-      // INCIDENCIAS
       incidencias: ficha.incidenciasJsonb ?? {},
-
       creadoEn: ficha.creadoEn,
     });
 
@@ -222,7 +255,11 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
       .replace(/[\\/:*?"<>|]/g, '')
       .trim();
 
-    const filename = `FICHA_SEGUIMIENTO - ${safeNombre.toUpperCase()} - PERIODO_${ficha.periodo}.pdf`;
+    const periodoSeguro = (ficha.periodo ?? 'SIN_PERIODO')
+      .replace(/[\\/:*?"<>|]/g, '')
+      .trim();
+
+    const filename = `FICHA_SEGUIMIENTO - ${safeNombre.toUpperCase()} - PERIODO_${periodoSeguro.toUpperCase()}.pdf`;
 
     return { buffer, filename };
   }
@@ -267,6 +304,74 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
       .trim();
 
     const filename = `NOTA_EVOLUCION_PSICOLOGICA - ${safeNombre.toUpperCase()} - SESION_${nota.numeroSesion}.pdf`;
+
+    return { buffer, filename };
+  }
+
+  async generarPlanTrabajoPdf(id: number): Promise<{
+    buffer: Buffer;
+    filename: string;
+  }> {
+    const plan = await this.planTrabajoRepo.findOne({
+      where: { id },
+      relations: ['expediente', 'expediente.beneficiario', 'guia'],
+    });
+
+    if (!plan) {
+      throw new NotFoundException('Plan de trabajo no encontrado');
+    }
+
+    const expediente = plan.expediente;
+    const beneficiario = expediente?.beneficiario;
+
+    const detalles = await this.planTrabajoDetalleRepo.find({
+      where: {
+        planTrabajo: { id: plan.id },
+      },
+      relations: ['actividad'],
+      order: {
+        id: 'ASC',
+      },
+    });
+
+    const datosPlan = this.mapearObjetoALista(plan.datosJsonb);
+
+    const detallesFormateados = detalles.map((detalle, index) => ({
+      numero: index + 1,
+      actividad: detalle.actividad?.nombre ?? '—',
+      estatus: detalle.estatus ?? '—',
+      objetivo: detalle.objetivo ?? '—',
+      cumplimiento: detalle.cumplimiento ?? '—',
+      observaciones: detalle.observaciones ?? '—',
+      fechaAsignacion: detalle.fechaAsignacion ?? null,
+      fechaCumplimiento: detalle.fechaCumplimiento ?? null,
+    }));
+
+    const buffer = await this.generarPdf('plan_trabajo', {
+      folioExpediente: expediente?.folioExpediente ?? '—',
+      expedienteTecnico: expediente?.expedienteTecnico ?? '—',
+      cPenal: expediente?.cPenal ?? '—',
+      nombreBeneficiario: beneficiario?.nombre ?? '—',
+      guia: plan.guia?.nombre ?? '—',
+      periodo: plan.periodo ?? '—',
+      fechaInicio: plan.fechaInicio ?? null,
+      fechaFin: plan.fechaFin ?? null,
+      creadoEn: plan.creadoEn,
+      datosPlan,
+      tieneDatosPlan: datosPlan.length > 0,
+      detalles: detallesFormateados,
+      tieneDetalles: detallesFormateados.length > 0,
+    });
+
+    const safeNombre = (beneficiario?.nombre ?? 'BENEFICIARIO')
+      .replace(/[\\/:*?"<>|]/g, '')
+      .trim();
+
+    const periodoSeguro = (plan.periodo ?? 'SIN_PERIODO')
+      .replace(/[\\/:*?"<>|]/g, '')
+      .trim();
+
+    const filename = `PLAN_TRABAJO - ${safeNombre.toUpperCase()} - ${periodoSeguro.toUpperCase()}.pdf`;
 
     return { buffer, filename };
   }

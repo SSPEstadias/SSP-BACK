@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      margin: 20px;
+      color: #000;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    h2 {
+      font-size: 14px;
+      margin-bottom: 14px;
+      font-weight: normal;
+    }
+
+    h3 {
+      font-size: 13px;
+      margin-top: 18px;
+      margin-bottom: 8px;
+      text-align: left;
+    }
+
+    .grid {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+
+    .grid td,
+    .grid th {
+      border: 1px solid #000;
+      padding: 6px;
+      vertical-align: top;
+    }
+
+    .grid th {
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .label {
+      font-weight: bold;
+    }
+
+    .box {
+      border: 1px solid #000;
+      padding: 8px;
+      min-height: 20px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .small {
+      font-size: 11px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .firma {
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    .linea-firma {
+      width: 260px;
+      margin: 0 auto;
+      border-top: 1px solid #000;
+      padding-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>PLAN DE TRABAJO</h1>
+  <h2>MÓDULO PENAL</h2>
+
+  <table class="grid">
+    <tr>
+      <td><span class="label">Folio de expediente:</span> {{folioExpediente}}</td>
+      <td><span class="label">Expediente técnico:</span> {{expedienteTecnico}}</td>
+    </tr>
+    <tr>
+      <td><span class="label">C. Penal:</span> {{cPenal}}</td>
+      <td><span class="label">Beneficiario:</span> {{nombreBeneficiario}}</td>
+    </tr>
+    <tr>
+      <td><span class="label">Guía responsable:</span> {{guia}}</td>
+      <td><span class="label">Periodo:</span> {{periodo}}</td>
+    </tr>
+    <tr>
+      <td><span class="label">Fecha de inicio:</span> {{formatDate fechaInicio}}</td>
+      <td><span class="label">Fecha de fin:</span> {{formatDate fechaFin}}</td>
+    </tr>
+  </table>
+
+  <h3>Datos generales del plan</h3>
+  <table class="grid">
+    <thead>
+      <tr>
+        <th style="width: 35%;">Campo</th>
+        <th>Valor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#if tieneDatosPlan}}
+        {{#each datosPlan}}
+          <tr>
+            <td><span class="label">{{key}}</span></td>
+            <td class="small">{{value}}</td>
+          </tr>
+        {{/each}}
+      {{else}}
+        <tr>
+          <td colspan="2">No hay datos generales registrados.</td>
+        </tr>
+      {{/if}}
+    </tbody>
+  </table>
+
+  <h3>Detalle del plan de trabajo</h3>
+  {{#if tieneDetalles}}
+    <table class="grid">
+      <thead>
+        <tr>
+          <th style="width: 5%;">#</th>
+          <th style="width: 18%;">Actividad</th>
+          <th style="width: 12%;">Estatus</th>
+          <th style="width: 18%;">Objetivo</th>
+          <th style="width: 18%;">Cumplimiento</th>
+          <th style="width: 14%;">F. asignación</th>
+          <th style="width: 14%;">F. cumplimiento</th>
+          <th>Observaciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each detalles}}
+          <tr>
+            <td>{{numero}}</td>
+            <td>{{actividad}}</td>
+            <td>{{estatus}}</td>
+            <td>{{objetivo}}</td>
+            <td>{{cumplimiento}}</td>
+            <td>{{formatDate fechaAsignacion}}</td>
+            <td>{{formatDate fechaCumplimiento}}</td>
+            <td>{{observaciones}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    <div class="box">No existen actividades registradas en el detalle del plan.</div>
+  {{/if}}
+
+  <div class="firma">
+    <div class="linea-firma">{{guia}}</div>
+    <div>Guía responsable</div>
+  </div>
+
+</body>
+</html>
