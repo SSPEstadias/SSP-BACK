@@ -9,11 +9,29 @@ export class CivicoGoogleDriveService {
   private drive: drive_v3.Drive | null = null;
   private rootFolderId: string | null = null;
 
+  private normalizeFolderId(value?: string | null): string | null {
+    if (!value) {
+      return null;
+    }
+
+    const trimmed = value.trim();
+
+    const folderMatch = trimmed.match(/(?:\/folders\/|id=)([a-zA-Z0-9_-]+)/i);
+    if (folderMatch?.[1]) {
+      return folderMatch[1];
+    }
+
+    const segments = trimmed.split('/').filter(Boolean);
+    return segments.length > 0 ? segments[segments.length - 1] : null;
+  }
+
   constructor(private readonly configService: ConfigService) {
     const clientId = this.configService.get<string>('GOOGLE_DRIVE_CLIENT_ID');
     const clientSecret = this.configService.get<string>('GOOGLE_DRIVE_CLIENT_SECRET');
     const refreshToken = this.configService.get<string>('GOOGLE_DRIVE_REFRESH_TOKEN');
-    this.rootFolderId = this.configService.get<string>('CIVICO_DRIVE_FOLDER_ID') ?? null;
+    this.rootFolderId = this.normalizeFolderId(
+      this.configService.get<string>('CIVICO_DRIVE_FOLDER_ID'),
+    );
 
     if (!clientId || !clientSecret || !refreshToken || !this.rootFolderId) {
       this.logger.warn('Credenciales OAuth2 de Google Drive incompletas. La integración será desactivada.');
@@ -37,7 +55,13 @@ export class CivicoGoogleDriveService {
    */
   async getOrCreateFolder(name: string, parentId?: string): Promise<string> {
     if (!this.drive) return 'DRIVE_DISABLED';
-    const parent = parentId || this.rootFolderId;
+    const parent = this.normalizeFolderId(parentId) || this.rootFolderId;
+
+    if (!parent) {
+      throw new InternalServerErrorException(
+        'No se pudo resolver la carpeta padre de Google Drive',
+      );
+    }
 
     try {
       // 1. Buscar si ya existe
@@ -57,7 +81,7 @@ export class CivicoGoogleDriveService {
       const folderMetadata = {
         name,
         mimeType: 'application/vnd.google-apps.folder',
-        parents: [parent!],
+        parents: [parent],
       };
 
       const folder = await this.drive.files.create({

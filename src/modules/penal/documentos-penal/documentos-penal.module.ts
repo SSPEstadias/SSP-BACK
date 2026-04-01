@@ -9,6 +9,7 @@ import { FichaSeguimiento } from '../ficha-seguimiento/entities/ficha-seguimient
 import { NotaEvolucionPsicologica } from '../nota-evolucion-psicologica/entities/nota-evolucion-psicologica.entity';
 import { PlanTrabajo } from '../plan-trabajo/entities/plan-trabajo.entity';
 import { PlanTrabajoDetalle } from '../plan-trabajo-detalle/entities/plan-trabajo-detalle.entity';
+import { CivicoGoogleDriveModule } from '../../../shared/google-drive/civico-google-drive.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PlanTrabajoDetalle } from '../plan-trabajo-detalle/entities/plan-trabaj
       PlanTrabajo,
       PlanTrabajoDetalle,
     ]),
+    CivicoGoogleDriveModule,
   ],
   controllers: [DocumentosPenalController],
   providers: [DocumentosPenalService],

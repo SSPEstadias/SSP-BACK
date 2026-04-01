@@ -19,6 +19,7 @@ import { FichaSeguimiento } from '../ficha-seguimiento/entities/ficha-seguimient
 import { NotaEvolucionPsicologica } from '../nota-evolucion-psicologica/entities/nota-evolucion-psicologica.entity';
 import { PlanTrabajo } from '../plan-trabajo/entities/plan-trabajo.entity';
 import { PlanTrabajoDetalle } from '../plan-trabajo-detalle/entities/plan-trabajo-detalle.entity';
+import { CivicoGoogleDriveService } from '../../../shared/google-drive/civico-google-drive.service';
 
 function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '—';
@@ -87,6 +88,7 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
     private readonly planTrabajoRepo: Repository<PlanTrabajo>,
     @InjectRepository(PlanTrabajoDetalle)
     private readonly planTrabajoDetalleRepo: Repository<PlanTrabajoDetalle>,
+    private readonly driveService: CivicoGoogleDriveService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -170,9 +172,43 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  private async subirPdfAGoogleDrive(
+    expedienteId: number,
+    buffer: Buffer,
+    filename: string,
+  ): Promise<{ driveFileId: string; urlArchivo: string }> {
+    const parentFolderId = process.env.PENAL_DRIVE_FOLDER_ID;
+
+    if (!parentFolderId) {
+      throw new InternalServerErrorException(
+        'La variable de entorno PENAL_DRIVE_FOLDER_ID no está configurada',
+      );
+    }
+
+    try {
+      const folderId = await this.driveService.getOrCreateFolder(
+        `EXP-${expedienteId}`,
+        parentFolderId,
+      );
+
+      return await this.driveService.uploadFile(buffer, filename, folderId);
+    } catch (error: any) {
+      console.error(
+        `[DocumentosPenalService] No se pudo subir ${filename} a Drive: ${error.message}`,
+      );
+
+      return {
+        driveFileId: '',
+        urlArchivo: '',
+      };
+    }
+  }
+
   async generarCaratulaPenalPdf(expedienteId: number): Promise<{
     buffer: Buffer;
     filename: string;
+    driveFileId: string;
+    urlArchivo: string;
   }> {
     const expediente = await this.expedienteRepo.findOne({
       where: { id: expedienteId },
@@ -231,12 +267,20 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
 
     const filename = `CARATULA_PENAL - ${safeNombre.toUpperCase()} - EXP_${expediente.id}.pdf`;
 
-    return { buffer, filename };
+    const { driveFileId, urlArchivo } = await this.subirPdfAGoogleDrive(
+      expediente.id,
+      buffer,
+      filename,
+    );
+
+    return { buffer, filename, driveFileId, urlArchivo };
   }
 
   async generarFichaSeguimientoPdf(id: number): Promise<{
     buffer: Buffer;
     filename: string;
+    driveFileId: string;
+    urlArchivo: string;
   }> {
     const ficha = await this.fichaRepo.findOne({
       where: { id },
@@ -277,12 +321,20 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
 
     const filename = `FICHA_SEGUIMIENTO - ${safeNombre.toUpperCase()} - PERIODO_${periodoSeguro.toUpperCase()}.pdf`;
 
-    return { buffer, filename };
+    const { driveFileId, urlArchivo } = await this.subirPdfAGoogleDrive(
+      expediente?.id ?? id,
+      buffer,
+      filename,
+    );
+
+    return { buffer, filename, driveFileId, urlArchivo };
   }
 
   async generarNotaEvolucionPsicologicaPdf(id: number): Promise<{
     buffer: Buffer;
     filename: string;
+    driveFileId: string;
+    urlArchivo: string;
   }> {
     const nota = await this.notaEvolucionRepo.findOne({
       where: { id },
@@ -321,12 +373,20 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
 
     const filename = `NOTA_EVOLUCION_PSICOLOGICA - ${safeNombre.toUpperCase()} - SESION_${nota.numeroSesion}.pdf`;
 
-    return { buffer, filename };
+    const { driveFileId, urlArchivo } = await this.subirPdfAGoogleDrive(
+      expediente?.id ?? id,
+      buffer,
+      filename,
+    );
+
+    return { buffer, filename, driveFileId, urlArchivo };
   }
 
   async generarPlanTrabajoPdf(id: number): Promise<{
     buffer: Buffer;
     filename: string;
+    driveFileId: string;
+    urlArchivo: string;
   }> {
     const plan = await this.planTrabajoRepo.findOne({
       where: { id },
@@ -385,6 +445,12 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
 
     const filename = `PLAN_TRABAJO - ${safeNombre.toUpperCase()} - ${periodoSeguro.toUpperCase()}.pdf`;
 
-    return { buffer, filename };
+    const { driveFileId, urlArchivo } = await this.subirPdfAGoogleDrive(
+      expediente?.id ?? id,
+      buffer,
+      filename,
+    );
+
+    return { buffer, filename, driveFileId, urlArchivo };
   }
 }
