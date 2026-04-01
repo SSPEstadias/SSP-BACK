@@ -34,25 +34,43 @@ function formatDate(value: Date | string | null | undefined): string {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-function resolveTemplatesRoot(): string {
-  if (fs.existsSync(path.join(__dirname, 'templates'))) return __dirname;
+function resolveTemplatePath(templateName: string): string {
+  const candidates = [
+    path.join(__dirname, 'templates', `${templateName}.hbs`),
+    path.join(
+      process.cwd(),
+      'src',
+      'modules',
+      'penal',
+      'documentos-penal',
+      'templates',
+      `${templateName}.hbs`,
+    ),
+    path.join(
+      process.cwd(),
+      'dist',
+      'modules',
+      'penal',
+      'documentos-penal',
+      'templates',
+      `${templateName}.hbs`,
+    ),
+  ];
 
-  const srcRoot = path.join(
-    process.cwd(),
-    'src',
-    'modules',
-    'penal',
-    'documentos-penal',
-  );
+  const found = candidates.find((p) => fs.existsSync(p));
+  if (!found) {
+    throw new InternalServerErrorException(
+      `No se encontró el template ${templateName}.hbs`,
+    );
+  }
 
-  if (fs.existsSync(path.join(srcRoot, 'templates'))) return srcRoot;
-
-  return __dirname;
+  return found;
 }
 
 @Injectable()
 export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
   private browser!: puppeteer.Browser;
+  private logoEncabezado: string = '';
 
   constructor(
     @InjectRepository(ExpedienteCaratula)
@@ -72,38 +90,63 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   async onModuleInit(): Promise<void> {
+    this.browser = await puppeteer.launch();
+
+    // Cargar logo institucional en Base64
+    const assetsDir = path.join(
+      process.cwd(),
+      'src',
+      'modules',
+      'civico',
+      'documentos',
+      'assets',
+    );
+    const logoPath = path.join(
+      assetsDir,
+      'logoencabezado_con_margen_derecho.png',
+    );
+
+    if (fs.existsSync(logoPath)) {
+      const buffer = fs.readFileSync(logoPath);
+      this.logoEncabezado = `data:image/png;base64,${buffer.toString('base64')}`;
+    }
+
+    // Registrar helpers de Handlebars
     if (!Handlebars.helpers['formatDate']) {
       Handlebars.registerHelper('formatDate', (v: unknown) =>
         formatDate(v as Date | string | null),
       );
     }
-
-    this.browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+    if (!Handlebars.helpers['add']) {
+      Handlebars.registerHelper('add', (a: number, b: number) => a + b);
+    }
   }
 
   async onModuleDestroy(): Promise<void> {
-    await this.browser?.close();
+    if (this.browser) {
+      await this.browser.close();
+    }
+  }
+
+  private getLogos(): Record<string, unknown> {
+    return {
+      logoEncabezado: this.logoEncabezado,
+    };
   }
 
   private async generarPdf(
     templateName: string,
     data: Record<string, unknown>,
   ): Promise<Buffer> {
-    const root = resolveTemplatesRoot();
-    const templatePath = path.join(root, 'templates', `${templateName}.hbs`);
-
-    if (!fs.existsSync(templatePath)) {
-      throw new InternalServerErrorException(
-        `No se encontró el template ${templateName}.hbs`,
-      );
-    }
+    const templatePath = resolveTemplatePath(templateName);
 
     const source = fs.readFileSync(templatePath, 'utf-8');
     const template = Handlebars.compile(source);
-    const html = template(data);
+
+    const html = template({
+      ...data,
+      ...this.getLogos(),
+    });
 
     const page = await this.browser.newPage();
 
@@ -125,35 +168,6 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
     } finally {
       await page.close();
     }
-  }
-
-  private formatearValorPdf(valor: unknown): string {
-    if (valor === null || valor === undefined) return '—';
-
-    if (Array.isArray(valor)) {
-      return valor.length
-        ? valor.map((item) => this.formatearValorPdf(item)).join('\n')
-        : '—';
-    }
-
-    if (typeof valor === 'object') {
-      return Object.entries(valor as Record<string, unknown>)
-        .map(([key, val]) => `${key}: ${this.formatearValorPdf(val)}`)
-        .join('\n');
-    }
-
-    return String(valor);
-  }
-
-  private mapearObjetoALista(
-    obj: Record<string, any> | null | undefined,
-  ): Array<{ key: string; value: string }> {
-    if (!obj || typeof obj !== 'object') return [];
-
-    return Object.entries(obj).map(([key, value]) => ({
-      key: key.replace(/_/g, ' '),
-      value: this.formatearValorPdf(value),
-    }));
   }
 
   async generarCaratulaPenalPdf(expedienteId: number): Promise<{
@@ -238,16 +252,18 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
 
     const buffer = await this.generarPdf('ficha_seguimiento', {
       folioExpediente: expediente?.folioExpediente ?? '—',
-      nombre: beneficiario?.nombre ?? '—',
+      expedienteTecnico: expediente?.expedienteTecnico ?? '—',
+      cPenal: expediente?.cPenal ?? '—',
+      nombreBeneficiario: beneficiario?.nombre ?? '—',
       periodo: ficha.periodo ?? '—',
       fecha: ficha.fecha,
-      guia: ficha.guia?.nombre ?? '—',
-      datos: ficha.datosPersonalesJsonb ?? {},
+      guiaResponsable: ficha.guia?.nombre ?? '—',
+      datosPersonalesJsonb: ficha.datosPersonalesJsonb ?? {},
       cumplimientoGeneral: ficha.cumplimientoGeneral ?? '—',
       comportamiento: ficha.comportamiento ?? '—',
       observaciones: ficha.observaciones ?? '—',
       recomendaciones: ficha.recomendaciones ?? '—',
-      incidencias: ficha.incidenciasJsonb ?? {},
+      incidenciasJsonb: ficha.incidenciasJsonb ?? {},
       creadoEn: ficha.creadoEn,
     });
 
@@ -334,8 +350,6 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
       },
     });
 
-    const datosPlan = this.mapearObjetoALista(plan.datosJsonb);
-
     const detallesFormateados = detalles.map((detalle, index) => ({
       numero: index + 1,
       actividad: detalle.actividad?.nombre ?? '—',
@@ -352,15 +366,13 @@ export class DocumentosPenalService implements OnModuleInit, OnModuleDestroy {
       expedienteTecnico: expediente?.expedienteTecnico ?? '—',
       cPenal: expediente?.cPenal ?? '—',
       nombreBeneficiario: beneficiario?.nombre ?? '—',
-      guia: plan.guia?.nombre ?? '—',
+      guiaResponsable: plan.guia?.nombre ?? '—',
       periodo: plan.periodo ?? '—',
       fechaInicio: plan.fechaInicio ?? null,
       fechaFin: plan.fechaFin ?? null,
+      datosJsonb: plan.datosJsonb ?? {},
       creadoEn: plan.creadoEn,
-      datosPlan,
-      tieneDatosPlan: datosPlan.length > 0,
-      detalles: detallesFormateados,
-      tieneDetalles: detallesFormateados.length > 0,
+      actividades: detallesFormateados,
     });
 
     const safeNombre = (beneficiario?.nombre ?? 'BENEFICIARIO')
