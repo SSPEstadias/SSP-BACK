@@ -104,7 +104,7 @@ import {
       }
   
       // Verificar F2
-      const f2Completo = await this.f2Service.verificarCandadoF3(expedienteId);
+      const { canCrearF3: f2Completo } = await this.f2Service.verificarCandadoF3(expedienteId);
   
       if (!f1Completo || !f2Completo) {
         throw new BadRequestException(
