@@ -45,7 +45,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
             expedienteId: EXAMPLE_EXP_ID,
             trabajadorSocialId: 3,
             ingresoMensual: 8500.00,
-            nivelSocioeconomico: 'MEDIO_BAJO',
+            nivelSocioeconomico: 'BAJO',
             grupoFamiliar: 'FUNCIONAL',
             huboViolenciaIntrafamiliar: false,
             diagnosticoSocial: 'Familia nuclear estable, red de apoyo presente en CDMX. El beneficiario cuenta con soporte familiar para completar el programa.',
@@ -93,13 +93,14 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
           idUUID: { type: 'string', format: 'uuid', example: 'b2c3d4e5-f6a7-8901-bcde-f12345678901' },
           expedienteId: { type: 'string', format: 'uuid', example: EXAMPLE_EXP_ID },
           trabajadorSocialId: { type: 'number', example: 3 },
-          nivelSocioeconomico: { type: 'string', example: 'MEDIO_BAJO', enum: ['ALTO', 'MEDIO', 'MEDIO_BAJO', 'BAJO'] },
+          nivelSocioeconomico: { type: 'string', example: 'BAJO', enum: ['ALTO', 'MEDIO', 'BAJO'] },
           grupoFamiliar: { type: 'string', example: 'FUNCIONAL', enum: ['FUNCIONAL', 'DISFUNCIONAL'] },
           estatusF2: { type: 'string', example: 'COMPLETADO', enum: ['PENDIENTE', 'EN_PROCESO', 'COMPLETADO', 'CERRADO'] },
         },
       },
     })
     @ApiResponse({ status: 409, description: 'Ya existe un F2 para este expediente (relación 1:1)' })
+    @ApiResponse({ status: 404, description: 'No existe un expediente con ese UUID' })
     create(@Body() dto: CreateEstudioSocioeconomicoDto) {
       return this.service.create(dto);
     }

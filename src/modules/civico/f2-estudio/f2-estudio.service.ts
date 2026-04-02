@@ -7,6 +7,7 @@ import {
   import { InjectRepository } from '@nestjs/typeorm';
   import { Repository } from 'typeorm';
   import { EstudioSocioeconomico } from './estudio-socioeconomico.entity';
+  import { ExpedienteCivico } from '../expedientes/expediente-civico.entity';
   import { CreateEstudioSocioeconomicoDto } from './dto/create-estudio-socioeconomico.dto';
   import { UpdateEstudioSocioeconomicoDto } from './dto/update-estudio-socioeconomico.dto';
   import { FormStatusEnum } from '../enums/civico.enums';
@@ -16,10 +17,21 @@ import {
     constructor(
       @InjectRepository(EstudioSocioeconomico)
       private readonly f2Repo: Repository<EstudioSocioeconomico>,
+      @InjectRepository(ExpedienteCivico)
+      private readonly expedienteRepo: Repository<ExpedienteCivico>,
     ) {}
   
     // ── Crear F2 (1:1 → solo uno por expediente) ──────────────────────
     async create(dto: CreateEstudioSocioeconomicoDto): Promise<EstudioSocioeconomico> {
+      const expediente = await this.expedienteRepo.findOne({
+        where: { idUUID: dto.expedienteId },
+      });
+      if (!expediente) {
+        throw new NotFoundException(
+          `No existe un expediente con id ${dto.expedienteId}`,
+        );
+      }
+
       const existe = await this.f2Repo.findOne({
         where: { expedienteId: dto.expedienteId },
       });
