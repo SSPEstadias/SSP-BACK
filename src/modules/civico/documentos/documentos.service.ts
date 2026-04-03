@@ -385,12 +385,14 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Sube un documento escaneado/firmado a Drive y actualiza el expediente.
+   * Sube un documento escaneado/firmado a Drive, actualiza el expediente
+   * y registra el documento en oficios_generados con esExterno=true.
    */
   async subirDocumentoEscaneado(
     expedienteId: string,
     tipo: 'CANALIZACION' | 'INCORPORACION',
     file: Express.Multer.File,
+    userId: number,
   ): Promise<{ driveFileId: string; urlArchivo: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
@@ -410,6 +412,21 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       exp.incorporacionFirmadaDriveId = driveData.driveFileId;
     }
     await this.expedienteRepo.save(exp);
+
+    // 4. Registrar en oficios_generados con esExterno=true
+    const tipoDoc = tipo === 'CANALIZACION'
+      ? TipoDocumentoEnum.OFICIO_CANALIZACION
+      : TipoDocumentoEnum.OFICIO_INCORPORACION;
+    const folioEscaneado = `${tipo}-FIRMADO-${exp.folioExpediente}`;
+    await this.registrarOficio({
+      expedienteId,
+      generadoPorId: userId,
+      tipoDocumento: tipoDoc,
+      folioOficio: folioEscaneado,
+      nombreArchivoFederal: filename,
+      urlArchivo: driveData.urlArchivo,
+      esExterno: true,
+    });
 
     return driveData;
   }
@@ -459,6 +476,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     buffer?: Buffer;
     nombreArchivoFederal: string;
     urlArchivo?: string;
+    esExterno?: boolean;
   }): Promise<OficioGenerado> {
     const { expedienteId, tipoDocumento, folioOficio, buffer, nombreArchivoFederal } = params;
 
@@ -477,6 +495,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
         folioOficio,
         nombreArchivoFederal,
         urlArchivo: params.urlArchivo || '',
+        esExterno: params.esExterno ?? false,
       });
     } else {
       // Si ya existe (mismo folio), actualizamos el nombre
@@ -1095,7 +1114,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
    * Genera el siguiente número correlativo para un tipo de documento y expediente.
    */
   private async obtenerSiguienteNumeroDocumento(expedienteId: string, tipo: TipoDocumentoEnum): Promise<number> {
-    const count = await this.oficioRepo.count({ where: { expedienteId, tipoDocumento: tipo } });
+    const count = await this.oficioRepo.count({
+      where: { expedienteId, tipoDocumento: tipo, folioOficio: Not(Like('PLANT-%')) },
+    });
     return count + 1;
   }
 
@@ -1240,6 +1261,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       asistencia: asistencia || AsistenciaEnum.PRESENTE,
       observaciones: observaciones || '',
       actividadId: actividadId || null,
+      sede: sede || null,
     });
 
     // 2. Determinar número incremental

@@ -59,6 +59,7 @@ export class BeneficiariosController {
           nombre: 'YAHIR LEON REYES',
           tiempoAsignado: 48,
           unidadTiempo: 'HORAS',
+          urlFoto: 'https://drive.google.com/file/d/foto_001/view',
         },
       },
       'Beneficiario con meses (medida cautelar larga)': {

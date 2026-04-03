@@ -52,6 +52,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
             asistencia: 'PRESENTE',
             sede: 'Centro Comunitario Oriente',
             observaciones: 'Participó activamente en el Tequio por la seguridad. Actitud positiva.',
+            evidenciaUrl: 'https://drive.google.com/file/d/evidencia_001/view',
           },
         },
         'Escenario 2 — Presente parcial con retardo': {
@@ -67,6 +68,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
             incidencia: 'RETARDO',
             detalleIncidencia: 'Llegó 1 hora tarde a la actividad de reforestación sin justificación previa.',
             observaciones: 'Se le hizo un llamado de atención verbal.',
+            evidenciaUrl: 'https://drive.google.com/file/d/evidencia_002/view',
           },
         },
         'Escenario 3 — Falta injustificada (¡cuenta como strike!)': {
@@ -110,6 +112,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
             incidencia: 'CONDUCTA_INAPROPIADA',
             detalleIncidencia: 'Usó lenguaje ofensivo hacia compañeros de actividad. Se retiró antes de completar.',
             observaciones: 'Se reportó el incidente. Se recomienda sesión de seguimiento con el psicólogo.',
+            evidenciaUrl: 'https://drive.google.com/file/d/evidencia_005/view',
           },
         },
       },
@@ -130,6 +133,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
           detalleIncidencia: { type: 'string', nullable: true, example: null },
           sede: { type: 'string', nullable: true, example: 'Centro Comunitario Oriente' },
           observaciones: { type: 'string', nullable: true, example: 'Participó activamente.' },
+          evidenciaUrl: { type: 'string', nullable: true, example: 'https://drive.google.com/file/d/evidencia_001/view' },
           createdAt: { type: 'string', format: 'date-time', example: '2025-04-07T08:00:00.000Z' },
         },
       },

@@ -364,7 +364,8 @@ export class DocumentosController {
     @Body('expedienteId', ParseUUIDPipe) expedienteId: string,
     @Body('tipo') tipo: 'CANALIZACION' | 'INCORPORACION',
     @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() userId: number,
   ) {
-    return this.documentosService.subirDocumentoEscaneado(expedienteId, tipo, file);
+    return this.documentosService.subirDocumentoEscaneado(expedienteId, tipo, file, userId);
   }
 }
