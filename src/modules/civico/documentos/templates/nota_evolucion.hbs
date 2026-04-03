@@ -42,11 +42,10 @@
     }
 
     /*
-     * El <thead> contiene el ENCABEZADO REAL (no un espaciador vacío).
-     * Chromium repite el thead al inicio de cada página nueva de forma nativa,
-     * con lo que el encabezado siempre aparece y el tbody nunca se superpone.
-     * El padding-top de la celda thead posiciona el texto como si fuera
-     * el antiguo "position: fixed; top: 1.8cm".
+     * El <thead> contiene el ENCABEZADO REAL y se repite en cada página.
+     * Cada sesión ocupa su propio <tr> en el <tbody>, de modo que los saltos
+     * de página ocurren ENTRE filas (no dentro de una celda). Esto garantiza
+     * que Chromium repita el <thead> en la página 2, 3… sin excepciones.
      */
     .page-spacer-wrapper {
       width: 100%;
@@ -58,8 +57,13 @@
       border: none;
       vertical-align: top;
     }
-    .page-spacer-wrapper > tbody > tr > td {
-      padding: 0 2cm 1.5cm 2.2cm;
+    /* Cada fila de sesión */
+    .session-row {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .session-row > td {
+      padding: 0 2cm 0 2.2cm;
       border: none;
       vertical-align: top;
     }
@@ -94,9 +98,7 @@
     /* ── Tablas de Sesión ── */
     .session-block {
       width: 100%;
-      margin-top: 15pt;
-      margin-bottom: 20pt;
-      page-break-inside: avoid;
+      margin: 15pt 0 20pt 0;
       padding-right: 1.2cm;
     }
     .data-table {
@@ -183,10 +185,11 @@
         </div>
 
       </td></tr></thead>
-      <tbody><tr><td>
 
-        <!-- Iteración de Sesiones -->
-        {{#each sesiones}}
+      <!-- Cada sesión en su propio <tr> para que el salto de página ocurra
+           ENTRE filas y Chromium repita el <thead> con certeza en páginas 2+ -->
+      {{#each sesiones}}
+      <tr class="session-row"><td>
         <div class="session-block">
           <table class="data-table">
             <tr>
@@ -257,9 +260,9 @@
             </tr>
           </table>
         </div>
-        {{/each}}
+      </td></tr>
+      {{/each}}
 
-      </td></tr></tbody>
     </table>
 
   </div>
