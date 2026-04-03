@@ -1,252 +1,173 @@
-# 🧪 Plan de Pruebas por Roles — Guion Completo
+# 🧪 Plan de Pruebas por Roles
 
-> **Truco para no perder tiempo copiando IDs**: Antes de empezar, abre Swagger en `http://localhost:3000/api-docs`. Ejecuta el Paso 0 → copia el `idUUID` del expediente → usa `Ctrl+H` en este archivo para reemplazar todas las ocurrencias de `{{EXP_UUID}}` por ese valor. Así todo el guion queda listo para pegar sin buscar el ID una y otra vez.
+Guía para probar el sistema con usuarios de diferentes roles y cómo ahorrar tiempo al pasar IDs entre pruebas.
 
 ---
 
-## 🔑 Credenciales por Rol (ajusta según tu seed)
+## 🔑 Credenciales de Prueba
 
-| Rol | Usuario | Contraseña |
+| Rol | `nomUsuario` | Contraseña | `userId` |
+| :--- | :--- | :--- | :--- |
+| Admin | `admin` | `Admin1234` | 1 |
+| Psicólogo | `psico_ana` | `Admin1234` | 2 |
+| Trabajo Social | `social_pedro` | `Admin1234` | 3 |
+| Guia | `guia_roberto` | `Admin1234` | 4 |
+
+---
+
+## ⚡ Cómo No Perder Tiempo Re-Pegando IDs
+
+### Opción A — Variables en Postman (recomendado para pruebas iterativas)
+1. Crea un **Environment** llamado `SSP-LOCAL`
+2. Variables iniciales: `BASE_URL = http://localhost:3000`, `TOKEN = `, `BENEF_ID = `, `EXP_UUID = `
+3. En la pestaña **Tests** de cada petición, agrega:
+
+```javascript
+// Después de POST /beneficiarios:
+pm.environment.set("BENEF_ID", pm.response.json().id);
+
+// Después de POST /civico/expedientes:
+pm.environment.set("EXP_UUID", pm.response.json().idUUID);
+
+// Después de POST /auth/login:
+pm.environment.set("TOKEN", pm.response.json().access_token);
+```
+
+4. En todas las peticiones usa `{{BASE_URL}}/civico/expedientes/{{EXP_UUID}}` y `Bearer {{TOKEN}}`
+
+### Opción B — Ctrl+H en Swagger
+1. Copia los payloads de `12-payloads-swagger.md`
+2. Abre un editor de texto y reemplaza `{{EXP_UUID}}` con el UUID real
+3. Pega en el campo de Swagger
+
+### Opción C — GET de consulta rápida
+Si perdiste el UUID, búscalo por CURP:
+```
+GET /civico/expedientes/curp/LEOY880101HDFRRN01
+```
+O lista todos:
+```
+GET /civico/expedientes/caratulas
+```
+
+---
+
+## 🟦 Prueba: ROL ADMIN — Flujo Completo
+
+El Admin puede hacer **todo**. Sigue el guion de `11-plan-pruebas-asesor.md`.
+
+**Verificaciones clave:**
+- [ ] `POST /auth/login` → obtiene token
+- [ ] `POST /users` → crea psicólogo, TS, guía
+- [ ] `POST /beneficiarios` → crea beneficiario
+- [ ] `POST /salud` → perfil de salud
+- [ ] `POST /civico/expedientes` → expediente con UUID
+- [ ] `GET /civico/expedientes/caratulas` → lista carátulas
+- [ ] `POST /civico/f1` → F1 COMPLETADO
+- [ ] `POST /civico/f2` → F2 COMPLETADO
+- [ ] `GET /civico/f2/expediente/{{EXP_UUID}}/candado-f3` → `canCrearF3: true`
+- [ ] `POST /civico/f3` → Plan de Trabajo con 8 claves JSONB
+- [ ] `POST /civico/f4` → Cédula con 5 claves JSONB
+- [ ] `POST /civico/documentos/lista-asistencia` → devuelve PDF + sube a Drive
+- [ ] `GET /civico/bitacora/expediente/{{EXP_UUID}}/horas` → muestra avance
+- [ ] `POST /civico/f5` → primera sesión psicológica
+- [ ] `GET /civico/documentos/oficio-incorporacion/{{EXP_UUID}}` → PDF
+- [ ] `POST /civico/incidencias` x3 → tercer strike → baja automática
+
+---
+
+## 🟣 Prueba: ROL PSICÓLOGO
+
+**Login:** `{ "nomUsuario": "psico_ana", "contrasena": "Admin1234" }`
+
+**Puede:**
+- [ ] `GET /civico/expedientes/caratulas` ✅
+- [ ] `GET /civico/expedientes/{{EXP_UUID}}` ✅
+- [ ] `POST /beneficiarios` ✅
+- [ ] `GET /salud/beneficiario/1` ✅
+- [ ] `POST /civico/f1` ✅
+- [ ] `PATCH /civico/f1/:id` ✅
+- [ ] `POST /civico/f5` ✅
+- [ ] `GET /civico/f2/expediente/{{EXP_UUID}}` ✅ (solo lectura)
+- [ ] `GET /civico/documentos/plan-vida/{{EXP_UUID}}` ✅
+- [ ] `GET /civico/documentos/nota-evolucion/{{EXP_UUID}}` ✅
+- [ ] `GET /civico/documentos/f3-plan-trabajo/{{EXP_UUID}}` ✅
+
+**NO puede:**
+- [ ] `POST /civico/expedientes` → 403 ❌
+- [ ] `POST /civico/f3` → 403 ❌
+- [ ] `POST /civico/bitacora` → 403 ❌
+- [ ] `GET /civico/documentos/oficio-incorporacion/{{EXP_UUID}}` → 403 ❌
+
+---
+
+## 🟢 Prueba: ROL TRABAJO SOCIAL
+
+**Login:** `{ "nomUsuario": "social_pedro", "contrasena": "Admin1234" }`
+
+**Puede:**
+- [ ] `GET /civico/expedientes/caratulas` ✅
+- [ ] `POST /beneficiarios` ✅
+- [ ] `POST /civico/f2` ✅
+- [ ] `PATCH /civico/f2/:id` ✅
+- [ ] `GET /civico/f1/expediente/{{EXP_UUID}}` ✅ (solo lectura)
+- [ ] `GET /civico/documentos/oficio-incorporacion/{{EXP_UUID}}` ✅
+- [ ] `GET /civico/documentos/oficio-conclusion/{{EXP_UUID}}` ✅
+- [ ] `POST /civico/documentos/subir-escaneado` ✅
+
+**NO puede:**
+- [ ] `POST /civico/expedientes` → 403 ❌
+- [ ] `POST /civico/f1` → 403 ❌
+- [ ] `POST /civico/f3` → 403 ❌
+- [ ] `POST /civico/bitacora` → 403 ❌
+- [ ] `GET /civico/documentos/plan-vida/{{EXP_UUID}}` → 403 ❌
+
+---
+
+## 🟡 Prueba: ROL GUÍA
+
+**Login:** `{ "nomUsuario": "guia_roberto", "contrasena": "Admin1234" }`
+
+**Puede:**
+- [ ] `GET /civico/expedientes/caratulas` ✅
+- [ ] `POST /civico/bitacora` ✅ (requiere `guiaId: 4`)
+- [ ] `GET /civico/bitacora/expediente/{{EXP_UUID}}` ✅
+- [ ] `GET /civico/bitacora/expediente/{{EXP_UUID}}/horas` ✅
+- [ ] `POST /civico/documentos/lista-asistencia` ✅
+- [ ] `POST /civico/documentos/reporte-semanal` ✅
+- [ ] `GET /civico/documentos/lista-asistencia/{{EXP_UUID}}` ✅ (plantilla)
+- [ ] `POST /civico/incidencias` ✅
+- [ ] `PATCH /civico/incidencias/:id/resolver` ✅
+- [ ] `GET /civico/incidencias/expediente/{{EXP_UUID}}/strikes` ✅
+
+**NO puede:**
+- [ ] `POST /civico/expedientes` → 403 ❌
+- [ ] `POST /civico/f1` → 403 ❌
+- [ ] `POST /civico/f2` → 403 ❌
+- [ ] `POST /civico/f3` → 403 ❌
+- [ ] `GET /civico/documentos/oficio-incorporacion/{{EXP_UUID}}` → 403 ❌
+- [ ] `POST /users` → 403 ❌
+
+---
+
+## ⚠️ Casos Borde para Probar
+
+| Escenario | Endpoint | Resultado esperado |
 | :--- | :--- | :--- |
-| Admin | `admin@ssp.gob` | `Admin1234!` |
-| Guia | `guia@ssp.gob` | `Guia1234!` |
-| Psicólogo | `psi@ssp.gob` | `Psi1234!` |
-| Trabajo Social | `ts@ssp.gob` | `Ts1234!` |
+| Crear F3 sin F1/F2 COMPLETADO | `POST /civico/f3` | `403 Forbidden — RF-008` |
+| Crear segundo F1 en mismo expediente | `POST /civico/f1` | `409 Conflict` |
+| Registrar >8 horas en bitácora | `POST /civico/bitacora` | `400 Bad Request` |
+| 3ª incidencia acumulativa | `POST /civico/incidencias` | expediente → `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` |
+| CURP duplicada en expediente | `POST /civico/expedientes` | `409 Conflict` |
+| `guiaId` con rol que no es guia | `POST /civico/bitacora` | `400 Bad Request` |
+| Foto con barras invertidas | `POST /beneficiarios` | `400 / JSON parse error` |
 
 ---
 
-## 🛠️ Paso 0 (Admin) — Preparación inicial
+## 💡 Consejos para la Demo con el Asesor
 
-> Ejecuta esto UNA VEZ antes de los demás escenarios.
-
-**1. Login**
-```
-POST /auth/login
-{ "email": "admin@ssp.gob", "password": "Admin1234!" }
-```
-→ Copia el `access_token` y autoriza en Swagger.
-
-**2. Crear Beneficiario**
-```
-POST /beneficiarios
-{
-  "nombre": "JUAN CARLOS PEREZ LOPEZ",
-  "curp": "PERJ880101HDFRRN01",
-  "sexo": "HOMBRE",
-  "fechaNacimiento": "1988-01-01",
-  "tiempoAsignado": 48,
-  "unidadTiempo": "HORAS"
-}
-```
-→ Anota el `id` (número entero, ej. `1`).
-
-**3. Crear Expediente**
-```
-POST /civico/expedientes
-{
-  "beneficiarioId": 1,
-  "folioExpediente": "CIV-2026-001",
-  "causaPenal": "CP-2026-AX-01",
-  "juezCivico": "Lic. Roberto Gomez",
-  "fechaInicioSentencia": "2026-04-06",
-  "horasSentencia": 48
-}
-```
-→ Anota el `idUUID` (UUID, ej. `e92b7bc0-6e59-...`).  
-→ **Haz el reemplazo global de `{{EXP_UUID}}` ahora.**
-
----
-
-## 👨‍⚕️ Escenario A — Rol: Psicólogo
-
-### A1. Login
-```
-POST /auth/login
-{ "email": "psi@ssp.gob", "password": "Psi1234!" }
-```
-
-### A2. Registrar F1 (Entrevista Clínica)
-```
-POST /civico/f1
-{
-  "expedienteId": "{{EXP_UUID}}",
-  "motivoConsulta": "Remitido por el juzgado cívico por alteración del orden.",
-  "consistencia": "ORIENTADO",
-  "riesgoSuicida": false,
-  "consumeSustancias": false
-}
-```
-
-### A3. Registrar F5 (Nota de Evolución)
-```
-POST /civico/f5
-{
-  "expedienteId": "{{EXP_UUID}}",
-  "numSesion": 1,
-  "temaSesion": "Manejo de ira",
-  "descripcionIntervencion": "Se identificaron detonantes emocionales.",
-  "avancePercibido": "SATISFACTORIO"
-}
-```
-
-### A4. Ver PDF Plan de Vida
-```
-GET /civico/documentos/plan-vida/{{EXP_UUID}}
-```
-→ Descarga el PDF directamente desde Swagger.
-
----
-
-## 👩‍💼 Escenario B — Rol: Trabajo Social
-
-### B1. Login
-```
-POST /auth/login
-{ "email": "ts@ssp.gob", "password": "Ts1234!" }
-```
-
-### B2. Registrar F2 (Estudio Socioeconómico)
-```
-POST /civico/f2
-{
-  "expedienteId": "{{EXP_UUID}}",
-  "ingresoMensual": 6500,
-  "egresoMensual": 6000,
-  "nivelSocioeconomico": "MEDIO_BAJO",
-  "condicionesVivienda": "Casa rentada con servicios básicos."
-}
-```
-
-### B3. Generar Oficio de Incorporación (PDF + Drive)
-```
-GET /civico/documentos/oficio-incorporacion/{{EXP_UUID}}
-```
-> [!NOTE]
-> Este GET genera el PDF sin guardarlo. Para guardarlo en Drive, usa el POST correspondiente desde el Admin.
-
-### B4. Ver Historial de Documentos
-```
-GET /civico/documentos/historial/{{EXP_UUID}}
-```
-→ Muestra todos los documentos generados y sus URLs de Drive.
-
----
-
-## 👨‍🏫 Escenario C — Rol: Guia
-
-### C1. Login
-```
-POST /auth/login
-{ "email": "guia@ssp.gob", "password": "Guia1234!" }
-```
-
-### C2. Registrar Asistencia #1 (genera PDF + sube a Drive)
-```
-POST /civico/documentos/lista-asistencia
-{
-  "expedienteId": "{{EXP_UUID}}",
-  "fecha": "2026-04-07",
-  "horasCubiertas": 4,
-  "asistencia": "PRESENTE",
-  "horario": "08:00 - 12:00",
-  "sede": "Sede Central",
-  "actividadNombre": "Taller de Valores",
-  "observaciones": "Asistencia puntual."
-}
-```
-→ La respuesta es un PDF. El `avanceHoras` del expediente ahora muestra 4.
-
-### C3. Registrar Asistencia #2 (falta injustificada)
-```
-POST /civico/documentos/lista-asistencia
-{
-  "expedienteId": "{{EXP_UUID}}",
-  "fecha": "2026-04-08",
-  "horasCubiertas": 0,
-  "asistencia": "FALTA_INJUSTIFICADA",
-  "horario": "08:00 - 12:00",
-  "sede": "Sede Central",
-  "actividadNombre": "Tequio de Limpieza",
-  "observaciones": "No se presentó sin aviso."
-}
-```
-→ El sistema genera 1 incidencia automáticamente.
-
-### C4. Verificar incidencias
-```
-GET /civico/incidencias/expediente/{{EXP_UUID}}/strikes
-```
-→ Debe mostrar `count: 1`.
-
-### C5. Reporte Semanal
-```
-POST /civico/documentos/reporte-semanal
-{
-  "expedienteId": "{{EXP_UUID}}",
-  "semana": "07 al 11 de abril 2026",
-  "actividades": ["Taller de Valores", "Tequio de Limpieza"],
-  "observaciones": "Semana con asistencia irregular."
-}
-```
-
----
-
-## 🔑 Escenario D — Rol: Admin (avanzado)
-
-### D1. Crear F3 Plan de Trabajo (solo después de tener F1 y F2)
-```
-POST /civico/f3
-{
-  "expedienteId": "{{EXP_UUID}}",
-  "coordinadorId": 1,
-  "fechaInicioEstimada": "2026-04-10",
-  "fechaTerminoEstimada": "2026-06-10",
-  "metasPrograma": "Reintegración comunitaria."
-}
-```
-
-### D2. Paquete Federal Completo
-```
-GET /civico/documentos/expediente/{{EXP_UUID}}/paquete-forms
-```
-→ Devuelve URLs de Drive de todos los documentos del expediente en un solo JSON.
-
-### D3. Simular Baja por Acumulación
-- Repite el Paso C3 dos veces más (3 faltas en total).
-- Consulta:
-```
-GET /civico/expedientes/{{EXP_UUID}}
-```
-→ `estatusProceso` debe cambiar automáticamente a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS`.
-
----
-
-## ⚡ Atajos para no Re-Pegar IDs
-
-| Situación | Solución |
-| :--- | :--- |
-| Muchas llamadas con el mismo `expedienteId` | Usar variable en Postman/Insomnia: `{{EXP_UUID}}` |
-| Buscar expediente por nombre del beneficiario | `GET /civico/expedientes/caratulas` → filtra por nombre |
-| Buscar por CURP | `GET /civico/expedientes/curp/PERJ880101HDFRRN01` |
-| Ver todos los documentos del expediente | `GET /civico/documentos/historial/{{EXP_UUID}}` |
-| Olvidé el ID del expediente | `GET /civico/expedientes/caratulas` → campo `idUUID` |
-
-> [!TIP]
-> **En Postman**: Crea un Environment con variable `EXP_UUID`. Después del Paso 0, escribe un test script:
-> ```js
-> pm.environment.set("EXP_UUID", pm.response.json().idUUID);
-> ```
-> Todas las llamadas siguientes usan `{{EXP_UUID}}` automáticamente sin copiar y pegar.
-
----
-
-## 📊 Checklist de Validación Final
-
-- [ ] Login funciona para los 4 roles
-- [ ] F1, F2, F3, F4, F5 se crean sin errores
-- [ ] `POST /civico/documentos/lista-asistencia` guarda `sede` en BD
-- [ ] `avanceHoras` se actualiza con cada asistencia
-- [ ] 3 faltas inyustificadas → `estatusProceso` cambia a BAJA automáticamente
-- [ ] PDFs se abren correctamente (no vacíos)
-- [ ] URLs de Drive son accesibles (carpetas creadas automáticamente)
-- [ ] Oficio de Incorporación se genera con folio que empieza desde `0001` (no desde `0020`)
+1. **Pantalla dividida**: Swagger en la izquierda, Drive en la derecha. Cuando generes un PDF, aparece en Drive en segundos.
+2. **Muestra los logs**: Deja visible la consola de `npm run start:dev`. Se ven los logs de subida a Drive en tiempo real.
+3. **Demuestra el candado**: Intenta crear el F3 sin el F1/F2 COMPLETADO y muestra el `403`.
+4. **Demuestra la baja automática**: Registra 3 incidencias acumulativas y verifica el `estatusProceso`.
+5. **Muestra el paquete Federal**: `GET /civico/documentos/expediente/{{EXP_UUID}}/paquete-forms` — todas las URLs de Drive consolidadas.

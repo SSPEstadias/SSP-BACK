@@ -1,50 +1,109 @@
 # 🔐 Autenticación y Seguridad
 
-El sistema utiliza **JSON Web Tokens (JWT)** para la seguridad. Cada petición a un endpoint protegido (la mayoría en `/civico/*`) debe incluir un token válido.
+Todo el sistema usa **JWT Bearer Token**. Sin token, todas las rutas devuelven `401 Unauthorized`.
 
-## 1. Obtener Token (Login)
+---
 
-**Ruta:** `POST /auth/login`
+## 1. Login — `POST /auth/login`
 
-**Cuerpo:**
+**Roles:** Público (sin token)
+
+```json
+{ "nomUsuario": "admin", "contrasena": "Admin1234" }
+```
+
+**Respuesta exitosa (`200`):**
 ```json
 {
-  "nomUsuario": "nombre_de_usuario",
-  "contrasena": "tu_password"
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "userId": 1,
+  "rol": "admin",
+  "nombre": "Administrador del Sistema"
 }
 ```
 
-**Respuesta Exitosa (200 OK):**
+> ⚠️ El token dura **8 horas**. Si ves `401` en endpoints que antes funcionaban, vuélvete a loguear.
+
+---
+
+## 2. Credenciales del Seed (`npm run seed:admin`)
+
+Después de ejecutar el seeder, estos usuarios existen por defecto:
+
+| `nomUsuario` | Contraseña | Rol | `id` del usuario |
+| :--- | :--- | :--- | :--- |
+| `admin` | `Admin1234` | `admin` | 1 |
+| `psico_ana` | `Admin1234` | `psicologo` | 2 |
+| `social_pedro` | `Admin1234` | `trabajo_social` | 3 |
+| `guia_roberto` | `Admin1234` | `guia` | 4 |
+
+> Usa `GET /users` (solo Admin) para ver todos los usuarios e IDs actuales.
+
+---
+
+## 3. Cómo Autorizar en Swagger
+
+1. Ejecuta `POST /auth/login`
+2. Copia el valor de `access_token` (sin comillas)
+3. Haz clic en el botón 🔒 **Authorize** (arriba a la derecha en Swagger)
+4. Escribe: `Bearer <pega_el_token_aquí>`
+5. Clic en **Authorize** → **Close**
+
+---
+
+## 4. Tabla de Permisos por Rol
+
+| Endpoint | Admin | Psicólogo | T.Social | Guia |
+| :--- | :---: | :---: | :---: | :---: |
+| `POST /users` | ✅ | ❌ | ❌ | ❌ |
+| `POST /beneficiarios` | ✅ | ✅ | ✅ | ❌ |
+| `POST /salud` | ✅ | ✅ | ❌ | ❌ |
+| `POST /civico/expedientes` | ✅ | ❌ | ❌ | ❌ |
+| `GET /civico/expedientes/**` | ✅ | ✅ | ✅ | ✅ |
+| `POST /civico/f1` | ✅ | ✅ | ❌ | ❌ |
+| `POST /civico/f2` | ✅ | ❌ | ✅ | ❌ |
+| `POST /civico/f3` (candado RF-008) | ✅ | ❌ | ❌ | ❌ |
+| `POST /civico/f4` | ✅ | ❌ | ❌ | ❌ |
+| `POST /civico/f5` | ✅ | ✅ | ❌ | ❌ |
+| `POST /civico/bitacora` | ✅ | ❌ | ❌ | ✅ |
+| `POST /civico/incidencias` | ✅ | ❌ | ❌ | ✅ |
+| `GET /civico/incidencias/**` | ✅ | ✅ | ✅ | ✅ |
+| `POST /civico/documentos/lista-asistencia` | ✅ | ❌ | ❌ | ✅ |
+| `POST /civico/documentos/reporte-semanal` | ✅ | ❌ | ❌ | ✅ |
+| `GET /civico/documentos/oficio-*` | ✅ | ❌ | ✅ | ❌ |
+| `GET /civico/documentos/f3-*` | ✅ | ✅ | ✅ | ❌ |
+| `GET /civico/documentos/f4-*` | ✅ | ✅ | ✅ | ❌ |
+| `GET /civico/documentos/plan-vida/*` | ✅ | ✅ | ❌ | ❌ |
+| `GET /civico/documentos/nota-evolucion/*` | ✅ | ✅ | ❌ | ❌ |
+| `GET /civico/documentos/historial/*` | ✅ | ✅ | ✅ | ✅ |
+| `POST /civico/documentos/subir-escaneado` | ✅ | ❌ | ✅ | ❌ |
+| `GET /civico/documentos/expediente/*/paquete-forms` | ✅ | ✅ | ✅ | ❌ |
+
+---
+
+## 5. Crear Usuarios del Sistema — `POST /users`
+
+**Roles:** Solo Admin
+
 ```json
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+  "nomUsuario": "guia_carlos",
+  "nombre": "Carlos Torres Guía",
+  "rol": "guia",
+  "contrasena": "Admin1234"
 }
 ```
 
-## 2. Uso del Token
+**Roles válidos:** `admin` · `psicologo` · `trabajo_social` · `guia`
 
-Debes incluir el token en el encabezado `Authorization` usando el esquema `Bearer`:
+> El `id` retornado se usa en F1/F5 como `psicologoId`, en F2 como `trabajadorSocialId`, en bitácora e incidencias como `guiaId`.
 
-```http
-Authorization: Bearer <access_token>
-```
+---
 
-> [!WARNING]
-> Si omites este encabezado o el token ha expirado, el servidor responderá con `401 Unauthorized`.
+## 6. Errores de Autenticación
 
-## 3. Roles del Sistema
-
-El acceso a las funcionalidades está restringido por el rol asignado al usuario en el sistema.
-
-| Rol | Descripción | Acceso Principal |
+| Código HTTP | Causa | Solución |
 | :--- | :--- | :--- |
-| **Admin** | Acceso Total | Gestión de usuarios, configuración y baja definitiva. |
-| **Psicólogo** | Clínico | F1 (Entrevista), F5 (Notas de Evolución), Perfil de Salud. |
-| **TrabajoSocial** | Socioeconómico | F2 (Estudio Socioeconómico), Entrevistas de Inducción. |
-| **Guía** | Operatividad | Bitácora de asistencia, Registro de incidencias. |
-
-## 4. Expiración y Sesión
-
-- **Duración**: Por defecto el token dura **8 horas**.
-- **Comportamiento**: Al expirar, recibirás un error `401`. Se recomienda capturar este error en un **Interceptor de Angular** para redirigir al usuario al login automáticamente.
-- **Configuración**: El tiempo de vida se define en el `.env` del servidor mediante `JWT_EXPIRES_IN`.
+| `401 Unauthorized` | Sin token o expirado | Volver a hacer `POST /auth/login` |
+| `403 Forbidden` | Tu rol no tiene permiso | Revisar la tabla de permisos |
+| `409 Conflict` (en POST /users) | `nomUsuario` duplicado | Usar un nombre diferente |

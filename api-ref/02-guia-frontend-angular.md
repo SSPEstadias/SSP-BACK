@@ -1,124 +1,201 @@
-# 🅰️ Guía para Frontend (Angular 21.1.0)
+# 🅰️ Guía para Frontend Angular
 
-Esta sección describe los patrones recomendados para consumir la API de **Reconecta con la Paz** utilizando las características modernas de Angular.
+Esta guía contiene los errores comunes, mejores prácticas y consejos específicos para el proyecto.
 
-## 1. Configuración de HttpClient (Signals & Standalone)
+---
 
-Se recomienda el uso de **Signals** para manejar el estado y `inject()` para la inyección de dependencias.
+## 1. ⚠️ Fotos de Beneficiarios — Barras Invertidas
 
-### Interceptor de Autenticación
-Debes configurar un interceptor para añadir el token JWT a todas las peticiones automáticamente.
+**Este es el error más común al registrar beneficiarios con URL de foto local.**
+
+Si usas rutas de Windows con barras invertidas `\`, el JSON las interpreta como caracteres de escape y el servidor lanzará un error de parseo.
+
+### ✅ Forma CORRECTA (barras hacia adelante `/`)
+```json
+{
+  "urlFoto": "C:/Users/yahir/Downloads/yoimage.jpeg"
+}
+```
+
+### ❌ Forma INCORRECTA (barras invertidas `\`)
+```json
+{
+  "urlFoto": "C:\Users\yahir\Downloads\yoimage.jpeg"
+}
+```
+
+> **Nota**: Las URLs de internet (Drive, Cloudinary, etc.) siempre vienen con `/` y no tienen este problema. Solo las rutas locales de Windows necesitan esta corrección.
+
+---
+
+## 2. Flujo de IDs — Lo que Debes Guardar
+
+El mayor riesgo de error es perder los IDs entre pasos. Usa este mapa:
+
+```
+POST /users           → guarda: id (psicologoId, trabajadorSocialId, guiaId)
+POST /beneficiarios   → guarda: id (beneficiarioId para expediente y salud)
+POST /civico/expedientes → guarda: idUUID (expedienteId para TODO lo demás)
+```
+
+**En Angular, guarda estos en un servicio o en el store de la sesión:**
+```typescript
+// session.service.ts
+beneficiarioId = signal<number | null>(null);
+expedienteUUID = signal<string | null>(null);
+```
+
+---
+
+## 3. Respuestas PDF — Cómo Manejar `application/pdf`
+
+Los endpoints de documentos devuelven el PDF directamente como `application/pdf`. En Angular:
+
+```typescript
+// documentos.service.ts
+generarOficioIncorporacion(expedienteId: string): Observable<Blob> {
+  return this.http.get(
+    `${this.apiUrl}/civico/documentos/oficio-incorporacion/${expedienteId}`,
+    { responseType: 'blob', headers: this.authHeaders() }
+  );
+}
+
+// En el componente:
+this.documentosService.generarOficioIncorporacion(uuid).subscribe(blob => {
+  const url = window.URL.createObjectURL(blob);
+  window.open(url); // abre en nueva pestaña
+  // O para forzar descarga:
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'oficio-incorporacion.pdf';
+  a.click();
+});
+```
+
+---
+
+## 4. Autenticación con Interceptor
 
 ```typescript
 // auth.interceptor.ts
-import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from './services/auth.service';
-
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
-  const token = authService.token(); // Signal del token
-
+intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+  const token = this.authService.getToken(); // guardado en localStorage
   if (token) {
-    const cloned = req.clone({
+    const authReq = req.clone({
       setHeaders: { Authorization: `Bearer ${token}` }
     });
-    return next(cloned);
+    return next.handle(authReq);
   }
-  return next(req);
-};
-```
-
-## 2. Consumo de Servicios
-
-Utiliza el patrón de servicios para centralizar las peticiones.
-
-```typescript
-// expediente.service.ts
-import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
-
-@Injectable({ providedIn: 'root' })
-export class ExpedienteService {
-  private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/civico/expedientes`;
-
-  // Signal para almacenar la lista de expedientes
-  expedientes = signal<any[]>([]);
-
-  cargarExpedientes() {
-    this.http.get<any[]>(`${this.apiUrl}/caratulas`).subscribe(data => {
-      this.expedientes.set(data);
-    });
-  }
+  return next.handle(req);
 }
 ```
 
-## 3. Manejo de Documentos (PDF)
+---
 
-Para los endpoints de tipo `GET` que retornan un PDF (como `/oficio-incorporacion/:id`), utiliza el tipo de respuesta `blob`:
+## 5. Validar Candado RF-008 Antes de F3
 
-```typescript
-descargarPdf(expedienteId: string) {
-  this.http.get(`${this.apiUrl}/oficio-incorporacion/${expedienteId}`, {
-    responseType: 'blob'
-  }).subscribe(blob => {
-    const url = window.URL.createObjectURL(blob);
-    window.open(url); // Abre en pestaña nueva
-  });
+Antes de mostrar el formulario del F3, siempre consulta:
+
+```
+GET /civico/f2/expediente/{expedienteId}/candado-f3
+```
+
+**Respuesta:**
+```json
+{
+  "canCrearF3": true,
+  "f1Completado": true,
+  "f2Completado": true,
+  "mensaje": "F1 y F2 completados. Puede proceder a crear el F3."
 }
 ```
 
-## 4. Carga de Archivos (Multipart/Form-Data)
+Si `canCrearF3 = false`, muestra un mensaje al usuario con qué falta completar.
 
-Para el endpoint de **Subir Escaneados**, no uses JSON. Usa `FormData`:
+---
+
+## 6. Alertas de Incidencias (Contador de Strikes)
+
+Consulta periódicamente o después de cada asistencia:
+
+```
+GET /civico/incidencias/expediente/{expedienteId}/strikes
+```
+
+**Respuesta:**
+```json
+{
+  "strikes": 2,
+  "limite": 3,
+  "enRiesgo": true,
+  "bajaActivada": false
+}
+```
+
+**Lógica de colores sugerida:**
+- `strikes = 0` → verde
+- `strikes = 1` → amarillo
+- `strikes >= 2` → naranja + alerta "¡A 1 falta de la baja!"
+- `bajaActivada = true` → rojo + badge "BAJA AUTOMÁTICA APLICADA"
+
+---
+
+## 7. Progreso de Horas en Tiempo Real
+
+Después de cada `POST /civico/documentos/lista-asistencia`, recarga:
+
+```
+GET /civico/bitacora/expediente/{expedienteId}/horas
+```
+
+**Respuesta:**
+```json
+{
+  "horasAcumuladas": 36.5,
+  "horasSentencia": 48,
+  "porcentajeAvance": 76.04
+}
+```
+
+Usa `porcentajeAvance` para una barra de progreso.
+
+---
+
+## 8. Subida de Archivos Escaneados (multipart/form-data)
 
 ```typescript
-subirEscaneado(expedienteId: string, tipo: string, file: File) {
+subirEscaneado(expedienteId: string, tipo: 'CANALIZACION' | 'INCORPORACION', file: File) {
   const formData = new FormData();
   formData.append('expedienteId', expedienteId);
   formData.append('tipo', tipo);
   formData.append('file', file);
-
-  return this.http.post(`${this.apiUrl}/subir-escaneado`, formData);
+  return this.http.post(`${this.apiUrl}/civico/documentos/subir-escaneado`, formData, {
+    headers: { Authorization: `Bearer ${this.authService.getToken()}` }
+    // ⚠️ NO pongas Content-Type manualmente — Angular lo agrega con el boundary automáticamente
+  });
 }
 ```
 
-## 5. Flujo de Vida del Expediente (Business Logic)
-
-Para que el Frontend sea coherente con las reglas del negocio, sigue este orden de operaciones:
-
-### Paso 1: Autenticación e Inicio
-- El usuario hace login. El sistema devuelve un token y los **roles**.
-- Si el rol es `Guia`, la vista principal debería ser la **Bitácora**.
-- Si el rol es `Admin`, `Psicologo` o `TrabajoSocial`, la vista principal es el **Listado de Carátulas**.
-
-### Paso 2: Registro de Beneficiario
-- **Antes de crear un expediente**, verifica si la persona ya existe buscando por **CURP**.
-- Si no existe, crea la persona en `/beneficiarios`.
-
-### Paso 3: Apertura de Expediente
-- Con el `beneficiarioId`, crea el expediente cívico en `/civico/expedientes`.
-- El estatus inicial será `INDUCCION`.
-
-### Paso 4: Diagnóstico (La "Llave" de Proceso)
-1.  **F1 (Psicología)**: El psicólogo llena la entrevista.
-2.  **F2 (Trabajo Social)**: El trabajador social llena el estudio.
-3.  **Cambio de Estado**: Cuando ambos están `COMPLETADO`, el expediente pasa a `PLANEACION`.
-
-### Paso 5: Planeación y Seguimiento
-- El Admin crea el **F3 (Plan)** y el **F4 (Cédula)**.
-- El expediente pasa a `EN_SEGUIMIENTO`.
-- **Bitácora**: El Guía registra asistencias diarias. El frontend debe mostrar la barra de progreso basada en `avanceHoras / horasSentencia`.
-
-### Paso 6: Graduación o Baja
-- El sistema cambia a `GRADUADO` automáticamente cuando las horas se cumplen.
-- El sistema cambia a `BAJA` automáticamente si se registran 3 incidencias.
-
 ---
 
-## 📝 Tips Premium para el Front
-- **Barra de Progreso Dinámica**: Usa un Signal computado para recalcular el `%` de avance en tiempo real.
-- **Validación Atómica**: No permitas que el botón de "Crear Plan F3" sea clickeable si los servicios de consulta de F1/F2 no retornan estatus `COMPLETADO`.
-- **Skeleton Screens**: Muestra sombras de carga mientras se obtienen los JSONB pesados de los formatos F1/F2 para mejorar la percepción de velocidad.
+## 9. Tip Clave: Atajos para No Re-Pegar IDs
+
+**En Swagger durante pruebas:**
+- Usa `Ctrl+H` en tu editor de texto para reemplazar `{{EXP_UUID}}` con el UUID real.
+
+**En Postman:**
+```javascript
+// Agrega esto en la pestaña "Tests" del POST /civico/expedientes:
+pm.environment.set("EXP_UUID", pm.response.json().idUUID);
+pm.environment.set("BENEF_ID", pm.response.json().beneficiarioId);
+// Luego todas las rutas usan {{EXP_UUID}} automáticamente
+```
+
+**En Angular (ngOnInit del componente de expediente):**
+```typescript
+// Extrae el UUID de los parámetros de ruta y guárdalo:
+this.route.params.subscribe(params => {
+  this.expedienteId = params['id'];
+  this.cargarTodo(this.expedienteId);
+});
+```
