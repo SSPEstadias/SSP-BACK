@@ -1318,7 +1318,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       sexo:               (exp.genero || '—').charAt(0).toUpperCase(),
       folioExpediente:    exp.folioExpediente,
       sesiones,
-      logoEncabezado:     this.logoEncabezadoSspc,
+      logoEncabezado:     this.logoEncabezado,
       logoGrecas:         this.logoGrecas,
     });
 
