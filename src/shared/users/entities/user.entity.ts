@@ -11,6 +11,8 @@ export enum RolUsuario {
   PSICOLOGO = 'psicologo',
   TRABAJO_SOCIAL = 'trabajo_social',
   GUIA = 'guia',
+  COORDINADOR = 'coordinador',
+  TALLERISTA = 'tallerista',
 }
 
 @Entity('usuarios')
