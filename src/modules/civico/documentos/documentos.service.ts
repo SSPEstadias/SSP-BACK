@@ -99,7 +99,12 @@ function fechaLarga(): string {
 // Ej: "domingo 22 de marzo de 2026"
 function fechaLargaDesde(value: Date | string | null | undefined): string {
   if (!value) return '—';
-  const d = typeof value === 'string' ? new Date(value) : value;
+  // Para strings "YYYY-MM-DD" construir con constructor local para evitar desfase UTC.
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, d] = value.split('-').map(Number);
+    value = new Date(y, m - 1, d);
+  }
+  const d = typeof value === 'string' ? new Date(value) : value as Date;
   if (isNaN(d.getTime())) return String(value);
   return d.toLocaleDateString('es-MX', {
     weekday: 'long',
@@ -114,7 +119,12 @@ function fechaLargaDesde(value: Date | string | null | undefined): string {
 // Ej: "22 de marzo de 2026"
 function fechaLargaSinDia(value: Date | string | null | undefined): string {
   if (!value) return '—';
-  const d = typeof value === 'string' ? new Date(value) : value;
+  // Para strings "YYYY-MM-DD" construir con constructor local para evitar desfase UTC.
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, d] = value.split('-').map(Number);
+    value = new Date(y, m - 1, d);
+  }
+  const d = typeof value === 'string' ? new Date(value) : value as Date;
   if (isNaN(d.getTime())) return String(value);
   return d.toLocaleDateString('es-MX', {
     day: 'numeric',
@@ -1162,6 +1172,13 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
             if (act) nombreActividad = act.nombre;
           }
 
+          // Iniciales del nombre del beneficiario para simular firma
+          const inicialesBit = ben.nombre
+            .split(/\s+/)
+            .filter(Boolean)
+            .map(w => w[0].toUpperCase())
+            .join('');
+
           const bufferLista = await this.generarPdf('lista_asistencia', {
             numOficio:          folioUnico,
             logoPresentacion1:  this.logoPresentacion1,
@@ -1173,10 +1190,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
             observaciones:      bit.observaciones || '',
             actividades: [
               {
-                horario:        bit.horasCubiertas != null ? String(bit.horasCubiertas) : '—',
+                horario:        bit.horasCubiertas != null ? `${bit.horasCubiertas} HORAS` : '—',
                 actividad:      nombreActividad,
-                sede:           '—',
-                firma:          '',
+                sede:           bit.sede || '—',
+                firma:          inicialesBit,
                 asistencia:     bit.asistencia || '—',
                 evidenciaUrl:   bit.evidenciaUrl || '',
               },
@@ -1241,6 +1258,13 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       if (act) nombreActividad = act.nombre;
     }
 
+    // Iniciales del nombre del beneficiario para simular firma
+    const inicialesPost = ben.nombre
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(w => w[0].toUpperCase())
+      .join('');
+
     const buffer = await this.generarPdf('lista_asistencia', {
       numOficio:          folioUnico,
       logoPresentacion1:  this.logoPresentacion1,
@@ -1252,10 +1276,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       observaciones,
       actividades: [
         {
-          horario:        horasCubiertas != null ? String(horasCubiertas) : '—',
+          horario:        horasCubiertas != null ? `${horasCubiertas} HORAS` : '—',
           actividad:      nombreActividad,
           sede:           sede || '—',
-          firma:          '',
+          firma:          inicialesPost,
           asistencia:     asistencia || '—',
           evidenciaUrl:   '',   // en POST no hay evidencia todavía
         },
@@ -1565,24 +1589,35 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const map = new Map<string, { isoSemana: number; inicio: Date; fin: Date; registros: BitacoraCivica[] }>();
 
     for (const r of records) {
-      const d = new Date(r.fechaActividad);
-      // Calcular el lunes de la semana (clave)
-      const dayOfWeek = d.getDay(); // 0=Dom, 1=Lun...
-      const diff = d.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-      const monday = new Date(d.getFullYear(), d.getMonth(), diff);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
+      // Parsear la fecha en UTC puro para evitar desfase de zona horaria.
+      // TypeORM devuelve columnas `date` como string "YYYY-MM-DD" o como Date UTC midnight.
+      let yyyy: number, mo: number, dd: number;
+      if (typeof r.fechaActividad === 'string') {
+        [yyyy, mo, dd] = (r.fechaActividad as string).split('-').map(Number);
+        mo -= 1; // 0-indexed
+      } else {
+        const dtmp = r.fechaActividad as Date;
+        yyyy = dtmp.getUTCFullYear();
+        mo   = dtmp.getUTCMonth();
+        dd   = dtmp.getUTCDate();
+      }
 
-      // Número ISO de semana
-      const thursdayOfWeek = new Date(monday);
-      thursdayOfWeek.setDate(monday.getDate() + 3);
-      const jan4 = new Date(thursdayOfWeek.getFullYear(), 0, 4);
+      // Todo el cálculo usando Date.UTC para mantener coherencia.
+      const d = new Date(Date.UTC(yyyy, mo, dd));
+      const dayOfWeek = d.getUTCDay(); // 0=Dom, 1=Lun...
+      const diffToMonday = dd - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+      const monday = new Date(Date.UTC(yyyy, mo, diffToMonday));
+      const sunday = new Date(Date.UTC(yyyy, mo, diffToMonday + 6));
+
+      // Número ISO de semana (ISO 8601)
+      const thursdayOfWeek = new Date(Date.UTC(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate() + 3));
+      const jan4 = new Date(Date.UTC(thursdayOfWeek.getUTCFullYear(), 0, 4));
       const isoSemana =
         1 +
         Math.round(
           ((thursdayOfWeek.getTime() - jan4.getTime()) / 86400000 -
             3 +
-            ((jan4.getDay() + 6) % 7)) /
+            ((jan4.getUTCDay() + 6) % 7)) /
             7,
         );
 
