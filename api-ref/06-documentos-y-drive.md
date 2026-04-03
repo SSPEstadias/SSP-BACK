@@ -43,7 +43,37 @@ Para el trámite federal, el front no tiene que hacer 7 llamadas. Usa este endpo
 }
 ```
 
-## 3. Subida de Archivos Escaneados
+## 3. Lista de Asistencia
+
+### ✅ `GET /civico/documentos/lista-asistencia/:expedienteId`
+Genera una plantilla PDF en blanco para impresión. No guarda nada en BD ni Drive.
+
+**Roles:** Admin, Guia, TrabajoSocial, Psicologo
+
+### ✅ `POST /civico/documentos/lista-asistencia`
+Registra la asistencia en la bitácora, actualiza avance de horas, sube el PDF a Drive y lo devuelve.
+
+**Roles:** Admin, Guia
+
+**Cuerpo:**
+```json
+{
+  "expedienteId": "{{EXPEDIENTE_UUID}}",
+  "fecha": "2026-04-06",
+  "horasCubiertas": 4,
+  "asistencia": "PRESENTE",
+  "horario": "08:00 - 12:00",
+  "sede": "Sede Central",
+  "actividadNombre": "Taller de Valores",
+  "observaciones": "Asistencia puntual."
+}
+```
+
+> [!NOTE]
+> Si envías `actividadId` (número entero del catálogo), tiene prioridad sobre `actividadNombre`.  
+> El campo `sede` se persiste en `civic_bitacora_civica`. Requiere que la columna exista en BD (ver migración `1743638040000-AddSedeToBitacora`).
+
+---
 
 Para subir documentos que el beneficiario entregó ya firmados físicamente:
 

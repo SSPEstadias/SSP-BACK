@@ -28,6 +28,8 @@ Bienvenido a la documentación técnica del sistema **Reconecta con la Paz**. Es
    - Guion detallado con flujos de Salud, Actividades y Drive.
 12. [**12. Centro de Payloads Maestros**](./12-payloads-swagger.md)
    - Todos los JSONs realistas listos para copiar y pegar en Swagger.
+13. [**13. Plan de Pruebas por Roles**](./13-plan-pruebas-roles.md)
+   - Guion completo por rol (Admin, Guia, Psicólogo, Trabajo Social) con atajos para no re-pegar IDs.
 
 ## 🚀 Conceptos Clave
 

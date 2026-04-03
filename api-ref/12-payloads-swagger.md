@@ -103,19 +103,23 @@ Usa este documento para copiar y pegar los JSONs en Swagger durante tu demostrac
 }
 ```
 
-### PASO 7: Registro de Asistencia (Bitácora)
-**Endpoint**: `POST /civico/bitacora`
+### PASO 7: Registro de Asistencia (Lista de Asistencia)
+**Endpoint**: `POST /civico/documentos/lista-asistencia`  
+**Roles**: Admin, Guia  
+*Usa `{{EXPEDIENTE_UUID}}` obtenido en el Paso 2*
 ```json
 {
   "expedienteId": "{{EXPEDIENTE_UUID}}",
-  "guiaId": 3,
-  "actividadId": 1,
-  "fechaActividad": "2025-04-05",
-  "horasCubiertas": 4.5,
+  "fecha": "2026-04-06",
+  "horasCubiertas": 4,
   "asistencia": "PRESENTE",
-  "observaciones": "Participó en el tequio de reforestación del parque central."
+  "horario": "08:00 - 12:00",
+  "sede": "Sede Central",
+  "actividadNombre": "Taller de Valores",
+  "observaciones": "Asistencia puntual."
 }
 ```
+*La respuesta es un PDF. En el front, descárgalo o ábrelo en una pestaña nueva.*
 
 ---
 

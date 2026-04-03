@@ -1,5 +1,8 @@
 -- Agrega el campo 'sede' a la tabla de bitácora cívica.
--- Ejecutar manualmente en la base de datos antes de desplegar la nueva versión del servicio.
+-- Este script es solo referencia; la migración oficial se aplica vía TypeORM.
+-- Para ejecutar manualmente en PostgreSQL:
 
 ALTER TABLE civic_bitacora_civica
-  ADD COLUMN sede VARCHAR(150) NULL COMMENT 'Lugar o sede donde se realizó la actividad';
+  ADD COLUMN IF NOT EXISTS sede VARCHAR(150) NULL;
+
+COMMENT ON COLUMN civic_bitacora_civica.sede IS 'Lugar o sede donde se realizó la actividad';

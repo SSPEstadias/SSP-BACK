@@ -41,9 +41,13 @@ El sistema sigue un orden lógico de diagnóstico y seguimiento:
 
 La bitácora controla el avance de horas del beneficiario.
 
-- **Registrar Asistencia:** `POST /civico/bitacora`
+> [!IMPORTANT]
+> El endpoint principal para registrar asistencia es **`POST /civico/documentos/lista-asistencia`**, no `/civico/bitacora`. Ese endpoint hace todo en un paso: guarda en BD, actualiza horas, sube a Drive y devuelve el PDF.
+
+- **Registrar Asistencia:** `POST /civico/documentos/lista-asistencia`
+- **Plantilla en blanco:** `GET /civico/documentos/lista-asistencia/:expedienteId`
+- **Ver historial de bitácora:** `GET /civico/bitacora/expediente/:id`
 - **Calcular Horas:** `GET /civico/bitacora/expediente/:id/horas`
-- **Historial:** `GET /civico/bitacora/expediente/:id`
 
 ### Estados de Asistencia:
 - `PRESENTE`: Suma el total de horas cubiertas.

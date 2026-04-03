@@ -613,8 +613,6 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       .getOne();
 
     let nextNum = 1;
-    // Para oficios oficiales de SSyPC empezamos en 20 por requerimiento previo
-    if (prefix.includes('SSyPC')) nextNum = 20; 
 
     if (last) {
       // Extraer número: SSyPC/.../0025/2026 o F3-0005/2026
