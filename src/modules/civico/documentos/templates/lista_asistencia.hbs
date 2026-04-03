@@ -88,6 +88,7 @@
       text-align: center;
       font-weight: normal;
       text-decoration: underline;
+      width: 25%;
     }
 
     .asistencia-table td {
@@ -119,6 +120,28 @@
       padding: 8pt;
     }
 
+    /* ── Logo Reconecta como fondo ── */
+    .logo-fondo-wrapper {
+      position: relative;
+    }
+
+    .img-logo-fondo {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      max-height: 220px;
+      width: auto;
+      opacity: 0.12;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .contenido-sobre-fondo {
+      position: relative;
+      z-index: 1;
+    }
+
     /* ── Sección de Firmas ── */
     .signatures-section {
       margin-top: 80pt; /* Aumentado de 30pt a 80pt */
@@ -141,57 +164,64 @@
       {{#if logoPresentacion1}}
       <div><img src="{{logoPresentacion1}}" class="img-logo-1" alt="Secretaría" /></div>
       {{/if}}
+    </div>
+
+    <div class="logo-fondo-wrapper">
       {{#if logoPresentacion2}}
-      <div><img src="{{logoPresentacion2}}" class="img-logo-2" alt="Reconecta" /></div>
+      <img src="{{logoPresentacion2}}" class="img-logo-fondo" alt="" aria-hidden="true" />
       {{/if}}
-    </div>
 
-    <div class="plan-title">
-      <span>PLAN DE TRABAJO: <u>PRESENTACIONES SOCIALES</u></span>
-      <span>FECHA: <u>{{#if fechaHoja}}{{fechaHoja}}{{else}}{{fecha}}{{/if}}</u></span>
-    </div>
+      <div class="contenido-sobre-fondo">
 
-    <div class="nombre-row">
-      NOMBRE: <span class="underline-field">{{#if nombreBeneficiario}}{{nombreBeneficiario}}{{else}}&nbsp;{{/if}}</span>
-    </div>
+        <div class="plan-title">
+          <span>PLAN DE TRABAJO: <u>PRESENTACIONES SOCIALES</u></span>
+          <span>FECHA: <u>{{#if fechaHoja}}{{fechaHoja}}{{else}}{{fecha}}{{/if}}</u></span>
+        </div>
 
-    <table class="asistencia-table">
-      <thead>
-        <tr>
-          <th style="width: 18%;">FECHA</th>
-          <th style="width: 18%;">HORAS CUBIERTAS</th>
-          <th style="width: 40%;">ACTIVIDAD</th>
-          <th style="width: 24%;">SEDE</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- Fila de Datos -->
-        <tr>
-          <td style="text-align:center;">{{#if actividades.[0].fecha}}{{actividades.[0].fecha}}{{else}}&nbsp;{{/if}}</td>
-          <td style="text-align:center;">{{#if actividades.[0].horasCubiertas}}{{actividades.[0].horasCubiertas}}{{else}}&nbsp;{{/if}}</td>
-          <td>{{#if actividades.[0].actividad}}{{actividades.[0].actividad}}{{else}}&nbsp;{{/if}}</td>
-          <td>{{#if actividades.[0].sede}}{{actividades.[0].sede}}{{else}}&nbsp;{{/if}}</td>
-        </tr>
-        <!-- Fila de Evidencia + Asistencia -->
-        <tr>
-          <td colspan="2" style="height:140pt; text-align:center; vertical-align:middle;">
-            {{#if actividades.[0].evidenciaUrl}}
-            <img src="{{actividades.[0].evidenciaUrl}}" class="evidencia-img" alt="Evidencia" />
-            {{else}}&nbsp;{{/if}}
-          </td>
-          <td colspan="2" style="height:140pt; text-align:center; vertical-align:middle; font-size:11pt; font-weight:bold;">
-            {{#if actividades.[0].asistencia}}{{actividades.[0].asistencia}}{{else}}&nbsp;{{/if}}
-          </td>
-        </tr>
-        <!-- Observaciones -->
-        <tr>
-          <td class="obs-label">OBSERVACIONES</td>
-          <td colspan="3" class="obs-content">
-            {{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+        <div class="nombre-row">
+          NOMBRE: <span class="underline-field">{{#if nombreBeneficiario}}{{nombreBeneficiario}}{{else}}&nbsp;{{/if}}</span>
+        </div>
+
+        <table class="asistencia-table">
+          <thead>
+            <tr>
+              <th>HORARIO</th>
+              <th>ACTIVIDAD</th>
+              <th>SEDE</th>
+              <th>FIRMA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Fila de Datos -->
+            <tr>
+              <td style="text-align:center;">{{#if actividades.[0].horario}}{{actividades.[0].horario}}{{else}}&nbsp;{{/if}}</td>
+              <td>{{#if actividades.[0].actividad}}{{actividades.[0].actividad}}{{else}}&nbsp;{{/if}}</td>
+              <td>{{#if actividades.[0].sede}}{{actividades.[0].sede}}{{else}}&nbsp;{{/if}}</td>
+              <td>&nbsp;</td>
+            </tr>
+            <!-- Fila de Evidencia + Asistencia -->
+            <tr>
+              <td colspan="2" style="height:140pt; text-align:center; vertical-align:middle;">
+                {{#if actividades.[0].evidenciaUrl}}
+                <img src="{{actividades.[0].evidenciaUrl}}" class="evidencia-img" alt="Evidencia" />
+                {{else}}&nbsp;{{/if}}
+              </td>
+              <td colspan="2" style="height:140pt; text-align:center; vertical-align:middle; font-size:11pt; font-weight:bold;">
+                {{#if actividades.[0].asistencia}}{{actividades.[0].asistencia}}{{else}}&nbsp;{{/if}}
+              </td>
+            </tr>
+            <!-- Observaciones -->
+            <tr>
+              <td class="obs-label">OBSERVACIONES</td>
+              <td colspan="3" class="obs-content">
+                {{#if observaciones}}{{observaciones}}{{else}}&nbsp;{{/if}}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div><!-- /.contenido-sobre-fondo -->
+    </div><!-- /.logo-fondo-wrapper -->
 
     <div class="signatures-section">
       <div class="signature-block" style="text-align: left;">

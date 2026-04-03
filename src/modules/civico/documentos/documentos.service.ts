@@ -47,28 +47,41 @@ function toDataUri(filePath: string): string {
 // Formatea una fecha a dd/mm/yyyy.
 function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '—';
+  // Si es string tipo "YYYY-MM-DD" parsear directo con UTC para evitar
+  // que JS lo interprete como midnight UTC y el timezone local desplace el día.
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [yyyy, mm, dd] = value.split('-');
+    return `${dd}/${mm}/${yyyy}`;
+  }
   const d = typeof value === 'string' ? new Date(value) : value;
   if (isNaN(d.getTime())) return String(value);
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  return `${dd}/${mm}/${d.getFullYear()}`;
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${d.getUTCFullYear()}`;
 }
 
 // Devuelve la fecha en formato largo español (ej: "22 DE MARZO DEL 2026").
 function fechaLargaFormat(value: Date | string | null | undefined): string {
   if (!value) return '—';
-  const d = typeof value === 'string' ? new Date(value) : value;
-  if (isNaN(d.getTime())) return String(value);
-  
+
   const meses = [
     'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
     'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
   ];
-  
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = meses[d.getMonth()];
-  const yyyy = d.getFullYear();
-  
+
+  // Si es string tipo "YYYY-MM-DD" parsear directo para evitar desfase de timezone.
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [yyyy, mm, dd] = value.split('-');
+    return `${dd} DE ${meses[parseInt(mm, 10) - 1]} DEL ${yyyy}`;
+  }
+
+  const d = typeof value === 'string' ? new Date(value) : value;
+  if (isNaN(d.getTime())) return String(value);
+
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = meses[d.getUTCMonth()];
+  const yyyy = d.getUTCFullYear();
+
   return `${dd} DE ${mm} DEL ${yyyy}`;
 }
 
@@ -1160,10 +1173,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
             observaciones:      bit.observaciones || '',
             actividades: [
               {
-                fecha:          formatDate(bit.fechaActividad),
-                horasCubiertas: bit.horasCubiertas != null ? String(bit.horasCubiertas) : '—',
+                horario:        bit.horasCubiertas != null ? String(bit.horasCubiertas) : '—',
                 actividad:      nombreActividad,
                 sede:           '—',
+                firma:          '',
                 asistencia:     bit.asistencia || '—',
                 evidenciaUrl:   bit.evidenciaUrl || '',
               },
@@ -1239,12 +1252,12 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       observaciones,
       actividades: [
         {
-          fecha:           formatDate(fecha) || fechaLarga(),
-          horasCubiertas:  horasCubiertas != null ? String(horasCubiertas) : '—',
-          actividad:       nombreActividad,
-          sede:            sede || '—',
-          asistencia:      asistencia || '—',
-          evidenciaUrl:    '',   // en POST no hay evidencia todavía
+          horario:        horasCubiertas != null ? String(horasCubiertas) : '—',
+          actividad:      nombreActividad,
+          sede:           sede || '—',
+          firma:          '',
+          asistencia:     asistencia || '—',
+          evidenciaUrl:   '',   // en POST no hay evidencia todavía
         },
       ],
     });
