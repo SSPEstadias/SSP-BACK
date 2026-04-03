@@ -685,7 +685,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       const lowerDesc = desc.toLowerCase();
       const verbosAccion = ['participó', 'participo', 'impartió', 'impartio', 'asistió', 'asistio', 'realizó', 'realizo', 'apoyó', 'apoyo', 'colaboró', 'colaboro', 'coordinó', 'coordino'];
       const tieneVerbo = verbosAccion.some(v => lowerDesc.startsWith(v));
-      if (!tieneVerbo) desc = `Participó en ${desc.charAt(0).toLowerCase() + desc.slice(1)}`;
+      if (!tieneVerbo) desc = `Participó en el ${desc.charAt(0).toLowerCase() + desc.slice(1)}`;
 
       let strFecha = fechaLargaDesde(r.fecha);
       if (strFecha.startsWith('el ')) strFecha = strFecha.substring(3);
@@ -711,6 +711,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       oficioCanalizacion: exp.oficioCanalizacion ? `ExFac. ${exp.oficioCanalizacion}` : (exp.causaPenal),
       actividades,
       esJuezFemenino,
+      esBeneficiarioFemenino: (exp.genero ?? '').toUpperCase() === 'F',
       ...extras,
     });
 
