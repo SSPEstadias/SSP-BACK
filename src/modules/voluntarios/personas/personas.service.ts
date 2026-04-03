@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CivicoGoogleDriveService } from 'src/shared/google-drive/civico-google-drive.service';
 import { Persona } from './entities/persona.entity';
 import { CreatePersonaDto } from './dto/create-persona.dto';
 import { UpdatePersonaDto } from './dto/update-persona.dto';
@@ -10,6 +11,7 @@ export class PersonasService {
   constructor(
     @InjectRepository(Persona)
     private readonly personaRepository: Repository<Persona>,
+    private readonly driveService: CivicoGoogleDriveService,
   ) {}
 
   // ─── CREAR ───────────────────────────────────────────────────
@@ -47,5 +49,26 @@ export class PersonasService {
     const persona = await this.findOne(id);
     await this.personaRepository.remove(persona);
     return { message: `Persona con id ${id} eliminada correctamente` };
+  }
+
+  // ─── SUBIR ARCHIVO A GOOGLE DRIVE ───────────────────────────
+  async uploadFileToVoluntario(personaId: string, pdfBuffer: Buffer, fileName: string) {
+    // Obtener el padre folder del .env
+    const parentFolderId = process.env.VOLUNTARIADO_DRIVE_FOLDER_ID;
+
+    // Crear o buscar carpeta de la persona
+    const folderId = await this.driveService.getOrCreateFolder(
+      `VOLUNTARIO-${personaId}`,
+      parentFolderId,
+    );
+
+    // Subir archivo
+    const { driveFileId, urlArchivo } = await this.driveService.uploadFile(
+      pdfBuffer,
+      fileName,
+      folderId,
+    );
+
+    return { driveFileId, urlArchivo, folderId };
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CivicoGoogleDriveService } from 'src/shared/google-drive/civico-google-drive.service';
 import { Actividad } from './entities/actividade.entity';
 import { CreateActividadDto } from './dto/create-actividade.dto';
 import { UpdateActividadDto } from './dto/update-actividade.dto';
@@ -10,6 +11,7 @@ export class ActividadesService {
   constructor(
     @InjectRepository(Actividad)
     private readonly actividadRepository: Repository<Actividad>,
+    private readonly driveService: CivicoGoogleDriveService,
   ) {}
 
   // ─── CREAR ───────────────────────────────────────────────────
@@ -46,5 +48,26 @@ export class ActividadesService {
     const actividad = await this.findOne(id);
     await this.actividadRepository.remove(actividad);
     return { message: `Actividad con id ${id} eliminada correctamente` };
+  }
+
+  // ─── SUBIR ARCHIVO A GOOGLE DRIVE ───────────────────────────
+  async uploadFileToActividad(actividadId: string, pdfBuffer: Buffer, fileName: string) {
+    // Obtener el padre folder del .env
+    const parentFolderId = process.env.VOLUNTARIADO_DRIVE_FOLDER_ID;
+
+    // Crear o buscar carpeta de la actividad
+    const folderId = await this.driveService.getOrCreateFolder(
+      `ACTIVIDAD-${actividadId}`,
+      parentFolderId,
+    );
+
+    // Subir archivo
+    const { driveFileId, urlArchivo } = await this.driveService.uploadFile(
+      pdfBuffer,
+      fileName,
+      folderId,
+    );
+
+    return { driveFileId, urlArchivo, folderId };
   }
 }
