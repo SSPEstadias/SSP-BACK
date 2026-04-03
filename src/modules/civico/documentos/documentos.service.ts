@@ -972,11 +972,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     // Folio estandarizado profesional
     const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.PLAN_VIDA, expedienteId);
 
-    const f1 = await this.f1Repo.findOne({ where: { expedienteId } });
     const f3 = await this.f3Repo.findOne({ where: { expedienteId } });
-    const psicologo = await this.userRepo.findOne({ where: { id: f1?.psicologoId } });
 
-    // 1. Obtener Guía Asignado desde la Bitácora (si existe algún registro)
+    // 1. Obtener Guía Asignado desde la Bitácora (rol=guia, primer registro cronológico)
     const primerBitacora = await this.bitacoraRepo.findOne({
       where: { expedienteId },
       order: { createdAt: 'ASC' },
@@ -1007,16 +1005,30 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       };
     }).filter(e => e.url !== null);
 
-    // Mapeo básico de ejes
-    const ejesDefault = [
-      { eje: 'SALUD', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'CAPACITACIÓN PARA EL TRABAJO', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'TRABAJO', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'DEPORTE', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'CULTURA', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'EDUCACIÓN', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'SERVICIO SOCIAL A FAVOR DEL ESTADO', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' }
-    ];
+    // 3. Construir filas de la tabla "Proceso de seguimiento de actividades" desde F3
+    //    Mapeo: key→EJE, estatus→ESTADO INICIAL, objetivo→ACCIÓN, cumplimiento→OBSERVACIONES
+    type ActividadF3 = { estatus?: string; objetivo?: string; cumplimiento?: string };
+    const actividadesPlan = (f3 as any)?.actividadesPlan as Record<string, ActividadF3> | null | undefined;
+    const ejesFromF3 = actividadesPlan && Object.keys(actividadesPlan).length > 0
+      ? Object.entries(actividadesPlan).map(([key, val]) => ({
+          eje:           key,
+          estadoInicial: val?.estatus      || '',
+          accion:        val?.objetivo     || '',
+          vinculacion:   '',
+          temporalidad:  '',
+          seguimiento:   '',
+          observaciones: val?.cumplimiento || '',
+        }))
+      : [
+          { eje: 'EDUCATIVA',   estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'LABORAL',     estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'FAMILIAR',    estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'DEPORTIVA',   estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'CULTURAL',    estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'PSICOSOCIAL', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'PSICOLOGICA', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'ADICCIONES',  estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+        ];
 
     const buffer = await this.generarPdf('plan_vida', {
       numOficio:          folio,
@@ -1024,14 +1036,14 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       curp:               exp.curp,
       folioExpediente:    exp.folioExpediente,
       fechaIngreso:       fechaLargaFormat(ben.fechaIngreso),
-      nombreGuia:         extras['nombreGuia'] ?? nombreGuiaBitacora ?? psicologo?.nombre?.toUpperCase() ?? '—',
+      nombreGuia:         extras['nombreGuia'] ?? nombreGuiaBitacora ?? '—',
       fechaTemporalidad:  fechaLargaFormat(exp.fechaTerminoBeneficio || (f3 as any)?.fechaTerminoEstimada),
       
       // Logos e Imágenes
       logoEncabezado:    this.logoEncabezadoSspc,
       logoGrecas:        this.logoGrecas,
       
-      ejes:               extras['ejes'] ?? ejesDefault,
+      ejes:               extras['ejes'] ?? ejesFromF3,
       evidencias:         evidencias,
       
       tituloDocumento:    'PLAN DE VIDA INDIVIDUALIZADA',
