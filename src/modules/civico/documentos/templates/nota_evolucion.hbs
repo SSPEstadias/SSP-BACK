@@ -34,29 +34,19 @@
       object-fit: fill;
     }
 
-    /* ── Encabezado institucional fijo — se repite en todas las páginas ── */
-    .page-header {
-      position: fixed;
-      top: 1.8cm;
-      left: 2.2cm;
-      right: 2cm;
-      z-index: 10;
-    }
-
-    /* ── Contenedor principal con márgenes internos del estándar ── */
+    /* ── Contenedor principal ── */
     .pagina {
       position: relative;
       width: 21.59cm;
-      /* sin padding-top: el thead del spacer-wrapper crea el hueco en TODAS las páginas */
-      padding: 0 2cm 1.5cm 2.2cm;
+      /* el padding lateral/inferior lo manejan las celdas de la tabla abajo */
     }
 
     /*
-     * Truco thead para encabezado fijo en TODAS las páginas:
-     * El <thead> vacío se repite en cada página impresa (comportamiento nativo de table-header-group).
-     * Su height reserva el espacio que ocupa .page-header.
-     * No se necesita margin negativo ni placeholder oculto: el thead crea el hueco
-     * tanto en la primera como en las siguientes páginas.
+     * El <thead> contiene el ENCABEZADO REAL (no un espaciador vacío).
+     * Chromium repite el thead al inicio de cada página nueva de forma nativa,
+     * con lo que el encabezado siempre aparece y el tbody nunca se superpone.
+     * El padding-top de la celda thead posiciona el texto como si fuera
+     * el antiguo "position: fixed; top: 1.8cm".
      */
     .page-spacer-wrapper {
       width: 100%;
@@ -64,12 +54,12 @@
       border: none;
     }
     .page-spacer-wrapper > thead > tr > td {
-      height: 6.5cm;
-      padding: 0;
+      padding: 1.8cm 2cm 0.3cm 2.2cm;
       border: none;
+      vertical-align: top;
     }
     .page-spacer-wrapper > tbody > tr > td {
-      padding: 0;
+      padding: 0 2cm 1.5cm 2.2cm;
       border: none;
       vertical-align: top;
     }
@@ -157,40 +147,42 @@
 </head>
 <body>
 
-  <!-- Fondo oficial con logos y grecas unificadas -->
+  <!-- Fondo oficial con logos y grecas unificadas (position:fixed → se pinta en cada página) -->
   <div class="fondo-pagina">
     <img src="{{logoEncabezado}}" alt="" />
   </div>
 
-  <!-- Encabezado institucional fijo — visible en TODAS las páginas al mismo nivel -->
-  <div class="page-header">
-    <div class="header-text">
-      SUBSECRETARIA DE PREVENCIÓN Y REINSERCIÓN SOCIAL<br>
-      DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA<br>
-      VALORACIÓN CLÍNICA PSICOLÓGICA
-    </div>
-    <div class="doc-title">NOTA DE EVOLUCIÓN PSICOLOGICA</div>
-    <div class="exp-num">NUM. DE EXPEDIENTE: {{folioExpediente}}</div>
-    <div style="padding-right: 1.2cm;">
-      <table class="data-table" style="margin-bottom: 5pt;">
-        <tr>
-          <td class="label" style="width: 25%;">NOMBRE DEL USUARIO:</td>
-          <td style="width: 45%;">{{nombreUsuario}}</td>
-          <td class="label" style="width: 10%;">EDAD:</td>
-          <td style="width: 10%;">{{edad}}</td>
-          <td class="label" style="width: 10%;">SEXO:</td>
-          <td style="width: 10%;">{{sexo}}</td>
-        </tr>
-      </table>
-    </div>
-  </div>
-
   <div class="pagina">
 
-    <!-- HACK thead: el encabezado fijo (.page-header) pinta sobre el espacio vacío
-         del thead en todas las páginas, y el tbody empieza justo debajo de él -->
+    <!--
+      El encabezado REAL vive en el <thead>: Chromium lo repite en cada página
+      automáticamente (table-header-group), y ocupa espacio real para que el
+      tbody nunca quede bajo el encabezado.
+    -->
     <table class="page-spacer-wrapper">
-      <thead><tr><td></td></tr></thead>
+      <thead><tr><td>
+
+        <div class="header-text">
+          SUBSECRETARIA DE PREVENCIÓN Y REINSERCIÓN SOCIAL<br>
+          DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA<br>
+          VALORACIÓN CLÍNICA PSICOLÓGICA
+        </div>
+        <div class="doc-title">NOTA DE EVOLUCIÓN PSICOLOGICA</div>
+        <div class="exp-num">NUM. DE EXPEDIENTE: {{folioExpediente}}</div>
+        <div style="padding-right: 1.2cm;">
+          <table class="data-table" style="margin-bottom: 5pt;">
+            <tr>
+              <td class="label" style="width: 25%;">NOMBRE DEL USUARIO:</td>
+              <td style="width: 45%;">{{nombreUsuario}}</td>
+              <td class="label" style="width: 10%;">EDAD:</td>
+              <td style="width: 10%;">{{edad}}</td>
+              <td class="label" style="width: 10%;">SEXO:</td>
+              <td style="width: 10%;">{{sexo}}</td>
+            </tr>
+          </table>
+        </div>
+
+      </td></tr></thead>
       <tbody><tr><td>
 
         <!-- Iteración de Sesiones -->
