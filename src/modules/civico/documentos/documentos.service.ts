@@ -559,10 +559,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const prefix = this.getPrefixForTipo(tipo);
     const suffix = `/${year}`;
 
-    // Buscar el último de este tipo con este prefijo/año
+    // Buscar el último folio con este prefijo/año entre TODOS los tipos de documento,
+    // ya que comparten la misma secuencia y la restricción de unicidad es global.
     const last = await this.oficioRepo.createQueryBuilder('o')
-      .where('o.tipoDocumento = :tipo', { tipo })
-      .andWhere('o.folioOficio LIKE :pattern', { pattern: `${prefix}%${suffix}` })
+      .where('o.folioOficio LIKE :pattern', { pattern: `${prefix}%${suffix}` })
       .orderBy('o.fechaGeneracion', 'DESC')
       .getOne();
 
