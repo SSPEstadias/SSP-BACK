@@ -24,6 +24,7 @@ import { SeguimientoPsicologico } from '../f5-seguimiento/seguimiento-psicologic
 import { User }             from '../../../shared/users/entities/user.entity';
 import { OficioGenerado }   from '../oficios/oficio-generado.entity';
 import { EstudioSocioeconomico } from '../f2-estudio/estudio-socioeconomico.entity';
+import { Actividad }        from '../../../shared/actividades/actividad.entity';
 import { AsistenciaEnum, TipoDocumentoEnum, FormStatusEnum } from '../enums/civico.enums';
 import { CivicoGoogleDriveService } from '../../../shared/google-drive/civico-google-drive.service';
 
@@ -192,6 +193,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
     @InjectRepository(EstudioSocioeconomico)
     private readonly f2Repo: Repository<EstudioSocioeconomico>,
+
+    @InjectRepository(Actividad)
+    private readonly actividadRepo: Repository<Actividad>,
 
     private readonly driveService: CivicoGoogleDriveService,
   ) {}
@@ -1138,6 +1142,13 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
           const folioUnico = `${baseFolio}-V${numero}`;
           const guiaBit = bit.guia ?? await this.userRepo.findOne({ where: { id: bit.guiaId } });
 
+          // Resolver nombre de actividad por actividadId
+          let nombreActividad = 'Actividad de seguimiento';
+          if (bit.actividadId) {
+            const act = await this.actividadRepo.findOne({ where: { id: bit.actividadId } });
+            if (act) nombreActividad = act.nombre;
+          }
+
           const bufferLista = await this.generarPdf('lista_asistencia', {
             numOficio:          folioUnico,
             logoPresentacion1:  this.logoPresentacion1,
@@ -1145,13 +1156,16 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
             nombreBeneficiario: ben.nombre.toUpperCase(),
             nombreGuia:         guiaBit?.nombre?.toUpperCase() || '—',
             fecha:              formatDate(bit.fechaActividad),
+            fechaHoja:          formatDate(bit.fechaActividad),
             observaciones:      bit.observaciones || '',
             actividades: [
               {
-                horario:   '—',
-                actividad: 'Registro de asistencia',
-                sede:      'En Sitio',
-                firma:     bit.asistencia,
+                fecha:          formatDate(bit.fechaActividad),
+                horasCubiertas: bit.horasCubiertas != null ? String(bit.horasCubiertas) : '—',
+                actividad:      nombreActividad,
+                sede:           '—',
+                asistencia:     bit.asistencia || '—',
+                evidenciaUrl:   bit.evidenciaUrl || '',
               },
             ],
           });
@@ -1207,6 +1221,13 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     await this.actualizarAvanceHoras(expedienteId);
 
     // 4. Generar PDF
+    // Resolver el nombre de la actividad por actividadId (si existe)
+    let nombreActividad = datos.actividadNombre || 'Asistencia registrada vía sistema';
+    if (actividadId) {
+      const act = await this.actividadRepo.findOne({ where: { id: actividadId } });
+      if (act) nombreActividad = act.nombre;
+    }
+
     const buffer = await this.generarPdf('lista_asistencia', {
       numOficio:          folioUnico,
       logoPresentacion1:  this.logoPresentacion1,
@@ -1214,14 +1235,17 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       nombreBeneficiario: ben.nombre.toUpperCase(),
       nombreGuia:         guia?.nombre?.toUpperCase() || '—',
       fecha:              formatDate(fecha) || fechaLarga(),
+      fechaHoja:          formatDate(fecha) || fechaLarga(),
       observaciones,
       actividades: [
-        { 
-          horario: horario || '—', 
-          actividad: datos.actividadNombre || 'Asistencia registrada vía sistema', 
-          sede: sede || 'En Sitio', 
-          firma: 'SINC' 
-        }
+        {
+          fecha:           formatDate(fecha) || fechaLarga(),
+          horasCubiertas:  horasCubiertas != null ? String(horasCubiertas) : '—',
+          actividad:       nombreActividad,
+          sede:            sede || '—',
+          asistencia:      asistencia || '—',
+          evidenciaUrl:    '',   // en POST no hay evidencia todavía
+        },
       ],
     });
 
@@ -1306,10 +1330,16 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
             ?? await this.userRepo.findOne({ where: { id: semana.registros[0]?.guiaId } });
 
           const listaActividades = semana.registros.map(r => ({
-            asistencia:  this.asistenciaAbreviada(r.asistencia),
+            asistencia:  r.asistencia,                            // valor completo del enum, no abreviado
             fecha:       formatDate(r.fechaActividad),
             descripcion: r.observaciones || 'Actividad de seguimiento',
           }));
+
+          // Unir todas las observaciones de la semana
+          const obsUnidas = semana.registros
+            .filter(r => r.observaciones)
+            .map(r => r.observaciones!.trim())
+            .join(' | ');
 
           const bufferReporte = await this.generarPdf('reporte_semanal', {
             numOficio:          folioUnico,
@@ -1320,7 +1350,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
             fecha:              fechaLarga(),
             fechaPeriodo:       `${formatDate(semana.inicio)} al ${formatDate(semana.fin)}`,
             semanaNumero:       semana.isoSemana,
-            observaciones:      '',
+            observaciones:      obsUnidas || '',
             actividades:        listaActividades,
           });
 

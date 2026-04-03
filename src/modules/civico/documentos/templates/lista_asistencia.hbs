@@ -73,7 +73,7 @@
       padding-left: 5px;
     }
 
-    /* ── Tabla Fija 4x4 ── */
+    /* ── Tabla Fija ── */
     .asistencia-table {
       border: 1px solid #000;
       border-collapse: collapse;
@@ -88,22 +88,29 @@
       text-align: center;
       font-weight: normal;
       text-decoration: underline;
-      width: 25%;
     }
 
     .asistencia-table td {
       border: 1px solid #000;
       padding: 6pt;
       vertical-align: middle;
-      height: 60pt; /* Altura fija para celdas de datos */
+      height: 60pt;
       word-wrap: break-word;
+    }
+
+    .evidencia-img {
+      max-width: 100%;
+      max-height: 120px;
+      object-fit: contain;
+      display: block;
+      margin: auto;
     }
 
     .obs-label {
       text-align: center;
       vertical-align: middle;
       font-size: 10pt;
-      height: 80pt; /* Altura para observaciones */
+      height: 80pt;
     }
 
     .obs-content {
@@ -151,28 +158,32 @@
     <table class="asistencia-table">
       <thead>
         <tr>
-          <th>HORARIO</th>
-          <th>ACTIVIDAD</th>
-          <th>SEDE</th>
-          <th>FIRMA</th>
+          <th style="width: 18%;">FECHA</th>
+          <th style="width: 18%;">HORAS CUBIERTAS</th>
+          <th style="width: 40%;">ACTIVIDAD</th>
+          <th style="width: 24%;">SEDE</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Fila de Datos 1 -->
+        <!-- Fila de Datos -->
         <tr>
-          <td>{{#if actividades.[0].horario}}{{actividades.[0].horario}}{{else}}&nbsp;{{/if}}</td>
+          <td style="text-align:center;">{{#if actividades.[0].fecha}}{{actividades.[0].fecha}}{{else}}&nbsp;{{/if}}</td>
+          <td style="text-align:center;">{{#if actividades.[0].horasCubiertas}}{{actividades.[0].horasCubiertas}}{{else}}&nbsp;{{/if}}</td>
           <td>{{#if actividades.[0].actividad}}{{actividades.[0].actividad}}{{else}}&nbsp;{{/if}}</td>
           <td>{{#if actividades.[0].sede}}{{actividades.[0].sede}}{{else}}&nbsp;{{/if}}</td>
-          <td>{{#if actividades.[0].firma}}{{actividades.[0].firma}}{{else}}&nbsp;{{/if}}</td>
         </tr>
-        <!-- Fila de Datos 2 -->
+        <!-- Fila de Evidencia + Asistencia -->
         <tr>
-          <td>{{#if actividades.[1].horario}}{{actividades.[1].horario}}{{else}}&nbsp;{{/if}}</td>
-          <td>{{#if actividades.[1].actividad}}{{actividades.[1].actividad}}{{else}}&nbsp;{{/if}}</td>
-          <td>{{#if actividades.[1].sede}}{{actividades.[1].sede}}{{else}}&nbsp;{{/if}}</td>
-          <td>{{#if actividades.[1].firma}}{{actividades.[1].firma}}{{else}}&nbsp;{{/if}}</td>
+          <td colspan="2" style="height:140pt; text-align:center; vertical-align:middle;">
+            {{#if actividades.[0].evidenciaUrl}}
+            <img src="{{actividades.[0].evidenciaUrl}}" class="evidencia-img" alt="Evidencia" />
+            {{else}}&nbsp;{{/if}}
+          </td>
+          <td colspan="2" style="height:140pt; text-align:center; vertical-align:middle; font-size:11pt; font-weight:bold;">
+            {{#if actividades.[0].asistencia}}{{actividades.[0].asistencia}}{{else}}&nbsp;{{/if}}
+          </td>
         </tr>
-        <!-- Fila de OBSERVACIONES (Equivale a la 4ta "fila" en altura/lógica) -->
+        <!-- Observaciones -->
         <tr>
           <td class="obs-label">OBSERVACIONES</td>
           <td colspan="3" class="obs-content">
