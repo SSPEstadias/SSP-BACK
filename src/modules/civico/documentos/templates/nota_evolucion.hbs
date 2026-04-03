@@ -47,18 +47,24 @@
     .pagina {
       position: relative;
       width: 21.59cm;
-      padding: 1.8cm 2cm 1.5cm 2.2cm;
+      /* sin padding-top: el thead del spacer-wrapper crea el hueco en TODAS las páginas */
+      padding: 0 2cm 1.5cm 2.2cm;
     }
 
-    /* ── HACK: crea margen superior en páginas 2+ para el encabezado fijo ── */
+    /*
+     * Truco thead para encabezado fijo en TODAS las páginas:
+     * El <thead> vacío se repite en cada página impresa (comportamiento nativo de table-header-group).
+     * Su height reserva el espacio que ocupa .page-header.
+     * No se necesita margin negativo ni placeholder oculto: el thead crea el hueco
+     * tanto en la primera como en las siguientes páginas.
+     */
     .page-spacer-wrapper {
       width: 100%;
       border-collapse: collapse;
       border: none;
-      margin-top: -7cm;
     }
     .page-spacer-wrapper > thead > tr > td {
-      height: 7cm;
+      height: 6.5cm;
       padding: 0;
       border: none;
     }
@@ -181,33 +187,11 @@
 
   <div class="pagina">
 
-    <!-- HACK: crea el espacio para el encabezado fijo en pág 2+ con el truco thead/margin-top -->
+    <!-- HACK thead: el encabezado fijo (.page-header) pinta sobre el espacio vacío
+         del thead en todas las páginas, y el tbody empieza justo debajo de él -->
     <table class="page-spacer-wrapper">
       <thead><tr><td></td></tr></thead>
       <tbody><tr><td>
-
-        <!-- Reserva de espacio en pág. 1 — misma estructura que .page-header pero oculta -->
-        <div aria-hidden="true" style="visibility: hidden;">
-          <div class="header-text">
-            SUBSECRETARIA DE PREVENCIÓN Y REINSERCIÓN SOCIAL<br>
-            DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA<br>
-            VALORACIÓN CLÍNICA PSICOLÓGICA
-          </div>
-          <div class="doc-title">NOTA DE EVOLUCIÓN PSICOLOGICA</div>
-          <div class="exp-num">NUM. DE EXPEDIENTE: {{folioExpediente}}</div>
-          <div style="padding-right: 1.2cm;">
-            <table class="data-table" style="margin-bottom: 5pt;">
-              <tr>
-                <td class="label" style="width: 25%;">NOMBRE DEL USUARIO:</td>
-                <td style="width: 45%;">{{nombreUsuario}}</td>
-                <td class="label" style="width: 10%;">EDAD:</td>
-                <td style="width: 10%;">{{edad}}</td>
-                <td class="label" style="width: 10%;">SEXO:</td>
-                <td style="width: 10%;">{{sexo}}</td>
-              </tr>
-            </table>
-          </div>
-        </div>
 
         <!-- Iteración de Sesiones -->
         {{#each sesiones}}
