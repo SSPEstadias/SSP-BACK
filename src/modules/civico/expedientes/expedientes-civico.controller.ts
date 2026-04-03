@@ -15,9 +15,57 @@ import { Roles } from '../../../shared/common/decorators/roles.decorator';
 import { ExpedientesCivicoService } from './expedientes-civico.service';
 import { CreateExpedienteCivicoDto } from './dto/create-expediente-civico.dto';
 import { UpdateExpedienteCivicoDto } from './dto/update-expediente-civico.dto';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody } from '@nestjs/swagger';
-@ApiTags('📁 Expedientes Cívico')   
-@ApiBearerAuth('JWT-Auth')   
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody, ApiResponse, ApiParam } from '@nestjs/swagger';
+
+const EXPEDIENTE_EXAMPLE = {
+  idUUID: '8c478ea9-fbcb-452d-90f6-e689a2590fd6',
+  beneficiarioId: 1,
+  esActivo: true,
+  numReincidencia: 0,
+  curp: 'LEOY880101HDFRRN01',
+  fechaNacimiento: '1988-01-01',
+  genero: 'M',
+  aliasSobrenombre: null,
+  originario: 'Ciudad de México',
+  domicilioCompleto: 'Calle Reforma 123, Col. Centro, CDMX',
+  municipio: 'Cuauhtémoc',
+  codigoPostal: '06600',
+  telefonoContacto: '5551234567',
+  escolaridadActual: 'Licenciatura incompleta',
+  estadoCivil: 'Soltero',
+  ocupacionActual: 'Estudiante',
+  nacionalidad: 'Mexicana',
+  lenguaIndigena: null,
+  religion: null,
+  contactosFamiliares: {
+    madre: { nombre: 'María López García', telefono: '5559876543' },
+    padre: { nombre: 'José León Reyes', telefono: '5551112233' },
+  },
+  folioExpediente: 'EXP-CIV-2026-0001',
+  numJuzgadoCivico: 'Juzgado Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria del Tercer Turno',
+  juezControl: 'Lic. Roberto Gómez Martínez',
+  generoJuez: 'M',
+  oficioCanalizacion: '00/2026',
+  causaPenal: 'CP-2026-AX-099',
+  delitoImputado: 'Alteración al orden público (Art. 23 LJCA)',
+  agraviado: 'Ciudadanía en general',
+  fechaDetencion: '2026-03-20',
+  modalidadFalta: 'Falta administrativa por alteración al orden público',
+  horasSentencia: 48,
+  diasAsignadosJuzgado: ['2026-04-07', '2026-04-09', '2026-04-11'],
+  horasPorDia: 4,
+  fechaInicioBeneficio: '2026-04-01',
+  fechaTerminoBeneficio: '2026-06-30',
+  fechaOficioCanalizacion: '2026-03-28',
+  estatusProceso: 'INDUCCION',
+  avanceHoras: 0,
+  estatusF5Cerrado: false,
+  driveFolderId: null,
+  creadoEn: '2026-03-28T10:00:00.000Z',
+};
+
+@ApiTags('📁 Expedientes Cívico')
+@ApiBearerAuth('JWT-Auth')
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('civico/expedientes')
@@ -27,41 +75,98 @@ export class ExpedientesCivicoController {
   // ── POST /civico/expedientes ──────────────────────────────────────
   @Post()
   @Roles('Admin')
-  @ApiOperation({ summary: 'Crear un nuevo expediente cívico' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      example: {
-        beneficiarioId: 1,
-        folioExpediente: "EXP-2025-0001",
-        causaPenal: "CP-2025-AX-99",
-        juezCivico: "Lic. Roberto Gomez",
-        fechaInicioSentencia: "2025-03-28",
-        horasSentencia: 48,
-        contactosFamiliares: {
-          madre: { nombre: "Maria Lopez", telefono: "555-0102" }
-        }
-      }
-    }
+  @ApiOperation({
+    summary: '(Fase 2) Crear un nuevo expediente cívico [Solo Admin]',
+    description:
+      'Crea la **carátula central** que vincula el beneficiario con todo el expediente de Justicia Cívica. ' +
+      'El UUID retornado (`idUUID`) se usa como `expedienteId` en **todas** las fases siguientes (F1–F5, Bitácora, Incidencias, Documentos). ' +
+      'El campo `estatusProceso` inicia en `INDUCCION` y avanza automáticamente según las formas completadas.',
   })
+  @ApiBody({
+    description: 'Datos completos del expediente. Los campos marcados con * son obligatorios.',
+    examples: {
+      'Expediente Completo (caso típico — Yahir Leon)': {
+        summary: '(Fase 2) Expediente cívico con todos los campos',
+        value: {
+          beneficiarioId: 1,
+          curp: 'LEOY880101HDFRRN01',
+          fechaNacimiento: '1988-01-01',
+          genero: 'M',
+          domicilioCompleto: 'Calle Reforma 123, Col. Centro, CDMX',
+          municipio: 'Cuauhtémoc',
+          codigoPostal: '06600',
+          telefonoContacto: '5551234567',
+          escolaridadActual: 'Licenciatura incompleta',
+          estadoCivil: 'Soltero',
+          ocupacionActual: 'Estudiante',
+          nacionalidad: 'Mexicana',
+          contactosFamiliares: {
+            madre: { nombre: 'María López García', telefono: '5559876543' },
+            padre: { nombre: 'José León Reyes', telefono: '5551112233' },
+          },
+          folioExpediente: 'EXP-CIV-2026-0001',
+          numJuzgadoCivico: 'Juzgado Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria del Tercer Turno',
+          juezControl: 'Lic. Roberto Gómez Martínez',
+          generoJuez: 'M',
+          causaPenal: 'CP-2026-AX-099',
+          delitoImputado: 'Alteración al orden público (Art. 23 LJCA)',
+          agraviado: 'Ciudadanía en general',
+          fechaDetencion: '2026-03-20',
+          modalidadFalta: 'Falta administrativa por alteración al orden público',
+          horasSentencia: 48,
+          diasAsignadosJuzgado: ['2026-04-07', '2026-04-09', '2026-04-11'],
+          horasPorDia: 4,
+          fechaInicioBeneficio: '2026-04-01',
+          fechaTerminoBeneficio: '2026-06-30',
+          fechaOficioCanalizacion: '2026-03-28',
+          oficioCanalizacion: '00/2026',
+        },
+      },
+      'Expediente Mínimo (campos obligatorios únicamente)': {
+        summary: 'Solo campos requeridos',
+        value: {
+          beneficiarioId: 1,
+          fechaNacimiento: '1988-01-01',
+          domicilioCompleto: 'Calle Reforma 123, Col. Centro, CDMX',
+          folioExpediente: 'EXP-CIV-2026-0002',
+          causaPenal: 'CP-2026-BX-001',
+          horasSentencia: 24,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description:
+      'Expediente creado. Guarda el campo `idUUID` — es el `expedienteId` para F1, F2, F3, F4, F5, Bitácora, Incidencias y Documentos.',
+    schema: { type: 'object', example: EXPEDIENTE_EXAMPLE },
+  })
+  @ApiResponse({ status: 409, description: '`folioExpediente` ya existe o beneficiario ya tiene expediente activo' })
+  @ApiResponse({ status: 404, description: 'beneficiarioId no encontrado' })
   create(@Body() dto: CreateExpedienteCivicoDto) {
     return this.service.create(dto);
   }
 
   // ── GET /civico/expedientes/caratulas ─────────────────────────────
-  // Lista para la pantalla principal — JOIN con beneficiarios
-  // Todos los roles pueden ver la lista
-  // ⚠️ DEBE ir ANTES de /:id para que NestJS no lo confunda con un UUID
   @Get('caratulas')
   @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @ApiOperation({
+    summary: 'Listar carátulas resumidas de todos los expedientes',
+    description: 'Vista de la pantalla principal — incluye datos del beneficiario via JOIN. Todos los roles pueden ver la lista.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de carátulas con nombre del beneficiario, folio, estatus y avance de horas',
+  })
   findAllCaratulas() {
     return this.service.findAllCaratulas();
   }
 
   // ── GET /civico/expedientes ───────────────────────────────────────
-  // Lista completa (todos los campos, para uso interno/Admin)
   @Get()
   @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @ApiOperation({ summary: 'Listar todos los expedientes (datos completos, uso interno/Admin)' })
+  @ApiResponse({ status: 200, description: 'Lista completa de expedientes cívicos' })
   findAll() {
     return this.service.findAll();
   }
@@ -69,22 +174,32 @@ export class ExpedientesCivicoController {
   // ── GET /civico/expedientes/curp/:curp ────────────────────────────
   @Get('curp/:curp')
   @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @ApiOperation({ summary: 'Buscar expediente por CURP del beneficiario' })
+  @ApiParam({ name: 'curp', description: 'CURP completa del beneficiario (18 caracteres)', example: 'LEOY880101HDFRRN01' })
+  @ApiResponse({ status: 200, description: 'Expediente encontrado', schema: { type: 'object', example: EXPEDIENTE_EXAMPLE } })
+  @ApiResponse({ status: 404, description: 'No existe expediente para esa CURP' })
   findByCurp(@Param('curp') curp: string) {
     return this.service.findByCurp(curp);
   }
 
   // ── GET /civico/expedientes/:id/caratula ──────────────────────────
-  // Carátula de un expediente específico — para el header del perfil
   @Get(':id/caratula')
   @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @ApiOperation({ summary: 'Obtener carátula de un expediente (header del perfil del beneficiario)' })
+  @ApiParam({ name: 'id', description: 'UUID del expediente', example: '8c478ea9-fbcb-452d-90f6-e689a2590fd6' })
+  @ApiResponse({ status: 200, description: 'Carátula del expediente con datos del beneficiario' })
+  @ApiResponse({ status: 404, description: 'Expediente no encontrado' })
   findCaratula(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findCaratula(id);
   }
 
   // ── GET /civico/expedientes/:id ───────────────────────────────────
-  // Expediente completo (todos los campos)
   @Get(':id')
   @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @ApiOperation({ summary: 'Obtener expediente completo por UUID' })
+  @ApiParam({ name: 'id', description: 'UUID del expediente', example: '8c478ea9-fbcb-452d-90f6-e689a2590fd6' })
+  @ApiResponse({ status: 200, description: 'Expediente completo', schema: { type: 'object', example: EXPEDIENTE_EXAMPLE } })
+  @ApiResponse({ status: 404, description: 'Expediente no encontrado' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
@@ -92,6 +207,32 @@ export class ExpedientesCivicoController {
   // ── PATCH /civico/expedientes/:id ─────────────────────────────────
   @Patch(':id')
   @Roles('Admin')
+  @ApiOperation({ summary: 'Actualizar datos del expediente [Solo Admin]' })
+  @ApiParam({ name: 'id', description: 'UUID del expediente', example: '8c478ea9-fbcb-452d-90f6-e689a2590fd6' })
+  @ApiBody({
+    description: 'Solo incluye los campos a actualizar',
+    examples: {
+      'Cambiar estatus a GRADUADO': {
+        value: { estatusProceso: 'GRADUADO' },
+      },
+      'Actualizar datos de contacto': {
+        value: {
+          telefonoContacto: '5557654321',
+          domicilioCompleto: 'Av. Insurgentes Sur 456, Col. Del Valle, CDMX',
+        },
+      },
+      'Agregar días asignados por el juzgado': {
+        value: {
+          diasAsignadosJuzgado: ['2026-05-05', '2026-05-07', '2026-05-09'],
+          horasPorDia: 4,
+        },
+      },
+      'Cerrar F5 (seguimiento psicológico completado)': {
+        value: { estatusF5Cerrado: true },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'Expediente actualizado', schema: { type: 'object', example: EXPEDIENTE_EXAMPLE } })
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateExpedienteCivicoDto,
@@ -102,8 +243,13 @@ export class ExpedientesCivicoController {
   // ── DELETE /civico/expedientes/:id ────────────────────────────────
   @Delete(':id')
   @Roles('Admin')
+  @ApiOperation({
+    summary: 'Desactivar un expediente [Solo Admin]',
+    description: 'Marca el expediente como inactivo (`esActivo = false`). No elimina el registro físicamente.',
+  })
+  @ApiParam({ name: 'id', description: 'UUID del expediente', example: '8c478ea9-fbcb-452d-90f6-e689a2590fd6' })
+  @ApiResponse({ status: 200, description: 'Expediente desactivado correctamente' })
   deactivate(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.deactivate(id);
   }
-  
 }

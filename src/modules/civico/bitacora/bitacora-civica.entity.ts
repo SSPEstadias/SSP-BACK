@@ -66,6 +66,9 @@ export class BitacoraCivica {
   detalleIncidencia?: string;
 
   // ── Observaciones ──────────────────────────────────────────────────
+  @Column({ name: 'sede', type: 'varchar', length: 150, nullable: true })
+  sede?: string;
+
   @Column({ name: 'observaciones', type: 'text', nullable: true })
   observaciones?: string;
 

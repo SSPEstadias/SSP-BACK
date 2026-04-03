@@ -48,5 +48,9 @@ export class CreateBitacoraCivicaDto {
 
   @IsString()
   @IsOptional()
+  sede?: string;
+
+  @IsString()
+  @IsOptional()
   observaciones?: string;
 }

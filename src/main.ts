@@ -28,12 +28,97 @@ async function bootstrap() {
       '5. Todas las peticiones siguientes lo usarán automáticamente\n\n' +
       '---\n' +
       '### Roles del sistema\n' +
-      '| Rol | Responsabilidad |\n' +
-      '|---|---|\n' +
-      '| `Admin` | Alta de expedientes, planeación, oficios, graduación |\n' +
-      '| `Psicologo` | Salud, F1 entrevista, F5 seguimiento |\n' +
-      '| `TrabajoSocial` | F2 estudio socioeconómico |\n' +
-      '| `Guia` | Bitácora diaria, incidencias, oficio de conclusión |',
+      '| Rol | Valor en BD | Responsabilidad principal |\n' +
+      '|---|---|---|\n' +
+      '| `Admin` | `admin` | Alta de expedientes, planeación, oficios, graduación |\n' +
+      '| `Psicologo` | `psicologo` | Salud, F1 entrevista, F5 seguimiento |\n' +
+      '| `TrabajoSocial` | `trabajo_social` | F2 estudio socioeconómico |\n' +
+      '| `Guia` | `guia` | Bitácora diaria, incidencias, oficio de conclusión |\n\n' +
+      '---\n' +
+      '### 🗂️ Matriz de Acceso por Rol\n' +
+      '| Endpoint | Admin | Psicólogo | T. Social | Guía |\n' +
+      '|---|:---:|:---:|:---:|:---:|\n' +
+      '| POST /users | ✅ | ❌ | ❌ | ❌ |\n' +
+      '| POST /beneficiarios | ✅ | ✅ | ✅ | ❌ |\n' +
+      '| POST /salud | ✅ | ✅ | ❌ | ❌ |\n' +
+      '| POST /civico/expedientes | ✅ | ❌ | ❌ | ❌ |\n' +
+      '| POST /civico/f1 (Entrevista) | ✅ | ✅ | ❌ | ❌ |\n' +
+      '| POST /civico/f2 (Estudio) | ✅ | ❌ | ✅ | ❌ |\n' +
+      '| POST /civico/f3 (Plan) | ✅ | ❌ | ❌ | ❌ |\n' +
+      '| POST /civico/f4 (Cédula) | ✅ | ❌ | ❌ | ❌ |\n' +
+      '| POST /civico/f5 (Seguimiento) | ✅ | ✅ | ❌ | ❌ |\n' +
+      '| POST /civico/bitacora | ✅ | ❌ | ❌ | ✅ |\n' +
+      '| POST /civico/incidencias | ✅ | ❌ | ❌ | ✅ |\n' +
+      '| POST /civico/oficios | ✅ | ❌ | ❌ | ✅ |\n' +
+      '| GET (todos) | ✅ | ✅ | ✅ | ✅ |\n\n' +
+      '---\n' +
+      '### 🔄 Flujo de Pruebas Secuencial (Testing Workflow)\n\n' +
+      '> **Sigue este orden**; cada fase depende de la anterior. Guarda los IDs retornados.\n\n' +
+      '**Fase 0 — Crear usuarios del sistema** *(Solo Admin)*\n' +
+      '```\n' +
+      'POST /users  → { rol: "psicologo" }    → guarda psicologoId\n' +
+      'POST /users  → { rol: "trabajo_social" }→ guarda trabajadorSocialId\n' +
+      'POST /users  → { rol: "guia" }         → guarda guiaId\n' +
+      '```\n\n' +
+      '**Fase 1 — Registrar Beneficiario** *(cualquier rol autenticado)*\n' +
+      '```\n' +
+      'POST /beneficiarios  → guarda beneficiarioId (número entero)\n' +
+      '```\n\n' +
+      '**Fase 2 — Crear Expediente Cívico** *(Admin)*\n' +
+      '```\n' +
+      'POST /civico/expedientes  → guarda expedienteId (UUID)\n' +
+      '```\n\n' +
+      '**Fase 3 — Validación de Salud** *(Admin o Psicólogo)*\n' +
+      '```\n' +
+      'POST /salud  → usa beneficiarioId de Fase 1\n' +
+      '```\n\n' +
+      '**Fase 4 — F1 Diagnóstico Psicológico** *(Admin o Psicólogo)*\n' +
+      '```\n' +
+      'POST /civico/f1  → usa expedienteId + psicologoId\n' +
+      '                 → guarda f1Id (UUID)\n' +
+      '```\n\n' +
+      '**Fase 5 — F2 Estudio Socioeconómico** *(Admin o TrabajoSocial)*\n' +
+      '```\n' +
+      'POST /civico/f2  → usa expedienteId + trabajadorSocialId\n' +
+      '                 → guarda f2Id (UUID)\n' +
+      '```\n\n' +
+      '**Fase 6 — F3 Plan de Trabajo** *(Admin)* ⚠️ **Requiere F1 y F2 = COMPLETADO**\n' +
+      '```\n' +
+      'GET  /civico/f2/expediente/{expedienteId}/candado-f3  → verifica candado\n' +
+      'POST /civico/f3  → usa expedienteId + coordinadorId\n' +
+      '                 → guarda f3Id (UUID)\n' +
+      '```\n\n' +
+      '**Fase 7 — F4 Cédula Inicial** *(Admin)*\n' +
+      '```\n' +
+      'POST /civico/f4  → usa expedienteId + coordinadorId\n' +
+      '                 → guarda f4Id (UUID)\n' +
+      '```\n\n' +
+      '**Fase 8 — Seguimiento Diario (Bitácora)** *(Admin o Guía)*\n' +
+      '```\n' +
+      'POST /civico/bitacora  → usa expedienteId + guiaId\n' +
+      '   Escenario PRESENTE:           { asistencia: "PRESENTE", horasCubiertas: 4 }\n' +
+      '   Escenario FALTA_INJUSTIFICADA: { asistencia: "FALTA_INJUSTIFICADA", horasCubiertas: 0,\n' +
+      '                                   incidencia: "FALTA_INJUSTIFICADA" }\n' +
+      '   ⚠️ RF-013: 3 FALTA_INJUSTIFICADA → BAJA_POR_ACUMULACION_DE_INCIDENCIAS (automático)\n' +
+      '```\n\n' +
+      '**Fase 9 — F5 Evolución Psicológica** *(Admin o Psicólogo)*\n' +
+      '```\n' +
+      'POST /civico/f5  → usa expedienteId + psicologoId + numSesion (1, 2, 3...)\n' +
+      '```\n\n' +
+      '**Fase 10 — Generación de Documentos PDF** *(según rol)*\n' +
+      '```\n' +
+      'GET /civico/documentos/oficio-incorporacion/{expedienteId}  → Admin / T.Social\n' +
+      'GET /civico/documentos/f3-plan-trabajo/{expedienteId}       → Admin / T.Social / Psicólogo\n' +
+      'GET /civico/documentos/f4-cedula-inicial/{expedienteId}     → Admin / T.Social / Psicólogo\n' +
+      'GET /civico/documentos/nota-evolucion/{expedienteId}        → Admin / Psicólogo\n' +
+      'GET /civico/documentos/oficio-conclusion/{expedienteId}     → Admin / T.Social\n' +
+      '```\n\n' +
+      '---\n' +
+      '### ⚠️ Reglas de Negocio Importantes\n' +
+      '- **RF-008:** F3 está **bloqueado** hasta que F1 y F2 tengan `estatus = COMPLETADO`\n' +
+      '- **RF-013:** La 3ª `FALTA_INJUSTIFICADA` acumulativa cambia el expediente a `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` automáticamente\n' +
+      '- **RF-011:** Las horas se calculan automáticamente al agregar registros en bitácora\n' +
+      '- **RNF-002:** Los campos sensibles (impresión diagnóstica, examen mental) son accesibles solo para Psicólogo y Admin',
     )
     .setVersion('1.0.0')
     .setContact(

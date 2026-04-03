@@ -193,9 +193,10 @@ export class DocumentosController {
   @ApiResponse(PDF_RESPONSE)
   async listaAsistenciaBeneficiario(
     @Param('expedienteId', ParseUUIDPipe) expedienteId: string,
+    @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const { buffer, filename } = await this.documentosService.generarTemplateListaAsistencia(expedienteId);
+    const { buffer, filename } = await this.documentosService.generarTemplateListaAsistencia(expedienteId, userId);
     sendPdf(res, buffer, filename);
   }
 
@@ -240,9 +241,10 @@ export class DocumentosController {
   @ApiResponse(PDF_RESPONSE)
   async reporteSemanalBeneficiario(
     @Param('expedienteId', ParseUUIDPipe) expedienteId: string,
+    @CurrentUser() userId: number,
     @Res() res: Response,
   ): Promise<void> {
-    const { buffer, filename } = await this.documentosService.generarTemplateReporteSemanal(expedienteId);
+    const { buffer, filename } = await this.documentosService.generarTemplateReporteSemanal(expedienteId, userId);
     sendPdf(res, buffer, filename);
   }
 
@@ -362,7 +364,8 @@ export class DocumentosController {
     @Body('expedienteId', ParseUUIDPipe) expedienteId: string,
     @Body('tipo') tipo: 'CANALIZACION' | 'INCORPORACION',
     @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() userId: number,
   ) {
-    return this.documentosService.subirDocumentoEscaneado(expedienteId, tipo, file);
+    return this.documentosService.subirDocumentoEscaneado(expedienteId, tipo, file, userId);
   }
 }

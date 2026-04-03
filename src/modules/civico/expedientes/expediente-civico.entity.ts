@@ -84,7 +84,7 @@ import {
     @Column({ name: 'folio_expediente', type: 'varchar', length: 50, unique: true })
     folioExpediente!: string;
   
-    @Column({ name: 'num_juzgado_civico', type: 'varchar', length: 50, nullable: true })
+    @Column({ name: 'num_juzgado_civico', type: 'varchar', length: 200, nullable: true })
     numJuzgadoCivico!: string | null;
   
     @Column({ name: 'juez_control', type: 'varchar', length: 150, nullable: true })
@@ -112,7 +112,7 @@ import {
     horasSentencia!: number;
   
     // ── Días asignados por el Juez (solo fechas) ──────────────────────
-    // Ej: ["2025-08-02", "2025-08-03"]
+    // Ej: ["2026-08-02", "2026-08-03"]
     @Column({ name: 'dias_asignados_juzgado', type: 'text', array: true, nullable: true })
     diasAsignadosJuzgado!: string[] | null;
   

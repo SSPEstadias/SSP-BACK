@@ -45,12 +45,26 @@
       width: 100%;
       border-collapse: collapse;
       border: none;
-      margin-top: -3.8cm; /* Sube la tabla en la pág 1 para que el lema siga al lado del logo */
+      margin-top: -4.2cm; /* Sube la tabla en la pág 1 para que el lema siga al lado del logo */
     }
     .page-spacer-wrapper > thead > tr > td {
-      height: 3.8cm; /* Empuja el contenido hacia abajo al iniciar una nueva página */
+      height: 4.2cm; /* Empuja el contenido hacia abajo al iniciar una nueva página (deja hueco para el lema fijo) */
       padding: 0;
       border: none;
+    }
+
+    /* ── Lema fijo en todas las páginas ── */
+    .lema-fijo {
+      position: fixed;
+      top: 3cm;
+      left: 2.2cm;
+      right: 3.5cm;
+      font-size: 11pt;
+      font-style: italic;
+      font-weight: bold;
+      text-align: center;
+      color: #8B4513;
+      z-index: 1;
     }
     .page-spacer-wrapper > tbody > tr > td {
       padding: 0;
@@ -196,7 +210,7 @@
 
     /* ── CC block ── */
     .cc-block {
-      margin-top: 460pt;
+      margin-top: 20pt;
       font-size: 7pt;
       line-height: 1.15;
     }
@@ -221,9 +235,15 @@
   </style>
 </head>
 <body>
-  
+
+  <!-- Imagen de fondo a página completa -->
   <div class="fondo-pagina">
     <img src="{{logoEncabezado}}" alt="" />
+  </div>
+
+  <!-- Lema institucional fijo — aparece en TODAS las páginas al mismo nivel -->
+  <div class="lema-fijo">
+    "2026, AÑO DEL BICENTENARIO DEL NATALICIO DE MARGARITA MAZA PARADA, EJEMPLO DE DIGNIDAD, LEALTAD Y SERVICIO A LA NACIÓN"
   </div>
 
   <div class="pagina">
@@ -233,8 +253,8 @@
       <thead><tr><td></td></tr></thead>
       <tbody><tr><td>
 
-        <!-- Lema del año -->
-        <div class="lema-anual">
+        <!-- Lema del año — invisible en el flujo; sólo reserva espacio (el lema visible es .lema-fijo fijo en todas las páginas) -->
+        <div class="lema-anual" style="visibility: hidden;" aria-hidden="true">
           "2026, AÑO DEL BICENTENARIO DEL NATALICIO DE MARGARITA MAZA PARADA, EJEMPLO DE DIGNIDAD, LEALTAD Y SERVICIO A LA NACIÓN"
         </div>
 
