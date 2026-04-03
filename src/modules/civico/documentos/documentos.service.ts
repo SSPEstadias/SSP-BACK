@@ -7,7 +7,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, IsNull } from 'typeorm';
+import { Repository, Not, IsNull, Like } from 'typeorm';
 import * as Handlebars from 'handlebars';
 import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
@@ -1075,17 +1075,21 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   // ── LISTA DE ASISTENCIA ──────────────────────────────────────────────
 
   /**
-   * Genera SOLO la plantilla de lista de asistencia para imprimir (GET).
-   * NO se guarda en Drive ni en historial.
+   * Genera la plantilla en blanco para imprimir (GET) y la sube a Drive.
+   * Además, si existen registros en bitácora para este expediente que aún no
+   * tienen un oficio PDF asociado, los genera y los sube también.
+   * Siempre devuelve la plantilla en blanco como respuesta HTTP.
    */
-  async generarTemplateListaAsistencia(expedienteId: string): Promise<{ buffer: Buffer; filename: string }> {
+  async generarTemplateListaAsistencia(
+    expedienteId: string,
+    userId: number,
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
-
-    // Intentar sacar el guía de la bitácora más reciente o el asignado
     const guia = await this.obtenerGuiaAsignado(expedienteId);
 
-    const buffer = await this.generarPdf('lista_asistencia', {
+    // 1. Generar plantilla en blanco para imprimir
+    const bufferPlantilla = await this.generarPdf('lista_asistencia', {
       logoPresentacion1:  this.logoPresentacion1,
       logoPresentacion2:  this.logoPresentacion2,
       nombreBeneficiario: ben.nombre.toUpperCase(),
@@ -1096,8 +1100,76 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       filasVacias:        10,
     });
 
-    const filename = `PLANTILLA_ASISTENCIA - ${ben.nombre.toUpperCase()}.pdf`;
-    return { buffer, filename };
+    // 2. Subir plantilla a Drive con folio estable (se sobrescribe si ya existe)
+    const folioPlantilla = `PLANT-LIST-${exp.folioExpediente}`;
+    const filenamePlantilla = `PLANTILLA IMPRIMIR - ${ben.nombre.toUpperCase()}.pdf`;
+    await this.registrarOficio({
+      expedienteId,
+      generadoPorId:        userId,
+      tipoDocumento:        TipoDocumentoEnum.LISTA_ASISTENCIA,
+      folioOficio:          folioPlantilla,
+      buffer:               bufferPlantilla,
+      nombreArchivoFederal: filenamePlantilla,
+    });
+
+    // 3. Generar PDFs para registros de bitácora que aún no tienen oficio secuencial
+    const bitacoraRecords = await this.bitacoraRepo.find({
+      where: { expedienteId },
+      order: { fechaActividad: 'ASC' },
+      relations: ['guia'],
+    });
+
+    if (bitacoraRecords.length > 0) {
+      // Contar oficios secuenciales ya existentes (excluir la plantilla fija)
+      const oficiosExistentes = await this.oficioRepo.count({
+        where: {
+          expedienteId,
+          tipoDocumento: TipoDocumentoEnum.LISTA_ASISTENCIA,
+          folioOficio:   Not(Like('PLANT-%')),
+        },
+      });
+
+      if (oficiosExistentes < bitacoraRecords.length) {
+        const baseFolio = await this.obtenerFolioDocumento(TipoDocumentoEnum.LISTA_ASISTENCIA, expedienteId);
+
+        for (let i = oficiosExistentes; i < bitacoraRecords.length; i++) {
+          const bit = bitacoraRecords[i];
+          const numero = i + 1;
+          const folioUnico = `${baseFolio}-V${numero}`;
+          const guiaBit = bit.guia ?? await this.userRepo.findOne({ where: { id: bit.guiaId } });
+
+          const bufferLista = await this.generarPdf('lista_asistencia', {
+            numOficio:          folioUnico,
+            logoPresentacion1:  this.logoPresentacion1,
+            logoPresentacion2:  this.logoPresentacion2,
+            nombreBeneficiario: ben.nombre.toUpperCase(),
+            nombreGuia:         guiaBit?.nombre?.toUpperCase() || '—',
+            fecha:              formatDate(bit.fechaActividad),
+            observaciones:      bit.observaciones || '',
+            actividades: [
+              {
+                horario:   '—',
+                actividad: 'Registro de asistencia',
+                sede:      'En Sitio',
+                firma:     bit.asistencia,
+              },
+            ],
+          });
+
+          const filenameLista = this.generarNombreArchivo(folioUnico, ben.nombre, `LISTA ${numero}`);
+          await this.registrarOficio({
+            expedienteId,
+            generadoPorId:        userId,
+            tipoDocumento:        TipoDocumentoEnum.LISTA_ASISTENCIA,
+            folioOficio:          folioUnico,
+            buffer:               bufferLista,
+            nombreArchivoFederal: filenameLista,
+          });
+        }
+      }
+    }
+
+    return { buffer: bufferPlantilla, filename: filenamePlantilla };
   }
 
   /**
@@ -1170,14 +1242,21 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   // ── REPORTE SEMANAL ────────────────────────────────────────────────
 
   /**
-   * Genera SOLO la plantilla de reporte semanal para imprimir (GET).
+   * Genera la plantilla en blanco de reporte semanal para imprimir (GET) y la sube a Drive.
+   * Además, si existen registros de bitácora para este expediente, agrupa los que aún
+   * no tienen reporte PDF por semana ISO y los genera/sube automáticamente.
+   * Siempre devuelve la plantilla en blanco como respuesta HTTP.
    */
-  async generarTemplateReporteSemanal(expedienteId: string): Promise<{ buffer: Buffer; filename: string }> {
+  async generarTemplateReporteSemanal(
+    expedienteId: string,
+    userId: number,
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const guia = await this.obtenerGuiaAsignado(expedienteId);
 
-    const buffer = await this.generarPdf('reporte_semanal', {
+    // 1. Generar plantilla en blanco para imprimir
+    const bufferPlantilla = await this.generarPdf('reporte_semanal', {
       logoEncabezadoSspc: this.logoEncabezadoSspc,
       logoGrecas:         this.logoGrecas,
       nombreBeneficiario: ben.nombre.toUpperCase(),
@@ -1186,8 +1265,79 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       actividades:        [],
     });
 
-    const filename = `PLANTILLA_REPORTE - ${ben.nombre.toUpperCase()}.pdf`;
-    return { buffer, filename };
+    // 2. Subir plantilla a Drive con folio estable (se sobrescribe si ya existe)
+    const folioPlantilla = `PLANT-REP-${exp.folioExpediente}`;
+    const filenamePlantilla = `PLANTILLA REPORTE IMPRIMIR - ${ben.nombre.toUpperCase()}.pdf`;
+    await this.registrarOficio({
+      expedienteId,
+      generadoPorId:        userId,
+      tipoDocumento:        TipoDocumentoEnum.REPORTE_SEMANAL_GUIA,
+      folioOficio:          folioPlantilla,
+      buffer:               bufferPlantilla,
+      nombreArchivoFederal: filenamePlantilla,
+    });
+
+    // 3. Agrupar registros de bitácora por semana ISO y generar reportes faltantes
+    const bitacoraRecords = await this.bitacoraRepo.find({
+      where: { expedienteId },
+      order: { fechaActividad: 'ASC' },
+      relations: ['guia'],
+    });
+
+    if (bitacoraRecords.length > 0) {
+      const semanas = this.agruparBitacoraEnSemanas(bitacoraRecords);
+
+      const oficiosExistentes = await this.oficioRepo.count({
+        where: {
+          expedienteId,
+          tipoDocumento: TipoDocumentoEnum.REPORTE_SEMANAL_GUIA,
+          folioOficio:   Not(Like('PLANT-%')),
+        },
+      });
+
+      if (oficiosExistentes < semanas.length) {
+        const baseFolio = await this.obtenerFolioDocumento(TipoDocumentoEnum.REPORTE_SEMANAL_GUIA, expedienteId);
+
+        for (let i = oficiosExistentes; i < semanas.length; i++) {
+          const semana = semanas[i];
+          const numero = i + 1;
+          const folioUnico = `${baseFolio}-V${numero}`;
+          const guiaSemana = semana.registros[0]?.guia
+            ?? await this.userRepo.findOne({ where: { id: semana.registros[0]?.guiaId } });
+
+          const listaActividades = semana.registros.map(r => ({
+            asistencia:  this.asistenciaAbreviada(r.asistencia),
+            fecha:       formatDate(r.fechaActividad),
+            descripcion: r.observaciones || 'Actividad de seguimiento',
+          }));
+
+          const bufferReporte = await this.generarPdf('reporte_semanal', {
+            numOficio:          folioUnico,
+            logoEncabezadoSspc: this.logoEncabezadoSspc,
+            logoGrecas:         this.logoGrecas,
+            nombreBeneficiario: ben.nombre.toUpperCase(),
+            nombreGuia:         guiaSemana?.nombre?.toUpperCase() || '—',
+            fecha:              fechaLarga(),
+            fechaPeriodo:       `${formatDate(semana.inicio)} al ${formatDate(semana.fin)}`,
+            semanaNumero:       semana.isoSemana,
+            observaciones:      '',
+            actividades:        listaActividades,
+          });
+
+          const filenameReporte = this.generarNombreArchivo(folioUnico, ben.nombre, `REPORTE ${numero}`);
+          await this.registrarOficio({
+            expedienteId,
+            generadoPorId:        userId,
+            tipoDocumento:        TipoDocumentoEnum.REPORTE_SEMANAL_GUIA,
+            folioOficio:          folioUnico,
+            buffer:               bufferReporte,
+            nombreArchivoFederal: filenameReporte,
+          });
+        }
+      }
+    }
+
+    return { buffer: bufferPlantilla, filename: filenamePlantilla };
   }
 
   /**
@@ -1363,5 +1513,54 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   private generarNombreArchivo(folio: string, nombreBeneficiario: string, tipo: string): string {
     const folioSanitizado = folio.replace(/\//g, '-');
     return `${tipo.toUpperCase()} - ${nombreBeneficiario.toUpperCase()} - ${folioSanitizado}.pdf`;
+  }
+
+  /** Agrupa registros de bitácora por semana ISO (lunes–domingo). */
+  private agruparBitacoraEnSemanas(
+    records: BitacoraCivica[],
+  ): Array<{ isoSemana: number; inicio: Date; fin: Date; registros: BitacoraCivica[] }> {
+    const map = new Map<string, { isoSemana: number; inicio: Date; fin: Date; registros: BitacoraCivica[] }>();
+
+    for (const r of records) {
+      const d = new Date(r.fechaActividad);
+      // Calcular el lunes de la semana (clave)
+      const dayOfWeek = d.getDay(); // 0=Dom, 1=Lun...
+      const diff = d.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+      const monday = new Date(d.getFullYear(), d.getMonth(), diff);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+
+      // Número ISO de semana
+      const thursdayOfWeek = new Date(monday);
+      thursdayOfWeek.setDate(monday.getDate() + 3);
+      const jan4 = new Date(thursdayOfWeek.getFullYear(), 0, 4);
+      const isoSemana =
+        1 +
+        Math.round(
+          ((thursdayOfWeek.getTime() - jan4.getTime()) / 86400000 -
+            3 +
+            ((jan4.getDay() + 6) % 7)) /
+            7,
+        );
+
+      const key = monday.toISOString().slice(0, 10);
+      if (!map.has(key)) {
+        map.set(key, { isoSemana, inicio: monday, fin: sunday, registros: [] });
+      }
+      map.get(key)!.registros.push(r);
+    }
+
+    return Array.from(map.values()).sort((a, b) => a.inicio.getTime() - b.inicio.getTime());
+  }
+
+  /** Convierte AsistenciaEnum a la abreviatura para el reporte semanal. */
+  private asistenciaAbreviada(asistencia: AsistenciaEnum | string): string {
+    const mapa: Record<string, string> = {
+      PRESENTE:              'P',
+      FALTA_JUSTIFICADA:     'FJ',
+      FALTA_INJUSTIFICADA:   'FI',
+      PRESENTE_PARCIAL:      'PP',
+    };
+    return mapa[asistencia] ?? String(asistencia);
   }
 }
