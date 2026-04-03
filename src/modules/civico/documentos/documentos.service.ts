@@ -1148,7 +1148,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
     // 2. Subir plantilla a Drive con folio estable (se sobrescribe si ya existe)
     const folioPlantilla = `PLANT-LIST-${exp.folioExpediente}`;
-    const filenamePlantilla = `PLANTILLA IMPRIMIR - ${ben.nombre.toUpperCase()}.pdf`;
+    const filenamePlantilla = `PLANTILLA PLANTILLA DE ASISTENCIA IMPRIMIR - ${ben.nombre.toUpperCase()}.pdf`;
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
