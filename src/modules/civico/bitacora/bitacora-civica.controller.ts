@@ -39,7 +39,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
         '`INCUMPLIMIENTO_TAREA`, `INASISTENCIA_JUSTIFICADA`, `VISITA_DOMICILIARIA`, `RETIRO_ANTICIPADO`, `CONVERSATORIO`.',
     })
     @ApiBody({
-      description: 'Datos del registro de asistencia. `expedienteId`, `guiaId`, `fechaActividad`, `horasCubiertas` y `asistencia` son obligatorios.',
+      description: 'Datos del registro de asistencia. `expedienteId`, `guiaId`, `fechaActividad`, `horasCubiertas` y `asistencia` son obligatorios. ⚠️ `guiaId` debe corresponder a un usuario con `rol = "guia"` — se rechazará cualquier otro rol.',
       examples: {
         'Escenario 1 — Asistencia completa (happy path)': {
           summary: 'Beneficiario presente, sin incidencias',

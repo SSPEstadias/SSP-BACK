@@ -66,14 +66,14 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
               social: 'Participar activamente en actividades comunitarias de su colonia',
             },
             actividadesPlan: {
-              EDUCATIVA:   { estatus: 'PENDIENTE',    objetivo: 'Acreditar el Manual Fénix (8 sesiones)',                  cumplimiento: '' },
-              PSICOSOCIAL: { estatus: 'PENDIENTE',    objetivo: 'Fortalecer red de apoyo familiar y comunitario',          cumplimiento: '' },
-              PSICOLOGICA: { estatus: 'PENDIENTE',    objetivo: 'Asistir a 4 sesiones de orientación psicológica',        cumplimiento: '' },
-              ADICCIONES:  { estatus: 'PENDIENTE',    objetivo: 'Participar en taller de prevención de adicciones',       cumplimiento: '' },
-              FAMILIAR:    { estatus: 'PENDIENTE',    objetivo: 'Asistir a talleres de dinámica familiar',                cumplimiento: '' },
-              LABORAL:     { estatus: 'PENDIENTE',    objetivo: 'Participar en curso de habilidades para el empleo',      cumplimiento: '' },
-              DEPORTIVA:   { estatus: 'PENDIENTE',    objetivo: 'Participar en 3 tequios de rescate de espacios públicos', cumplimiento: '' },
-              CULTURAL:    { estatus: 'PENDIENTE',    objetivo: 'Participar en 2 jornadas de reforestación ecológica',    cumplimiento: '' },
+              EDUCATIVA:   { estatus: 'PENDIENTE',    objetivo: 'Acreditar el Manual Fénix (8 sesiones)',                  cumplimiento: '', vinculacion: 'CEPRESO / SSP',   temporalidad: 'Abril–Mayo 2025',  seguimiento: '' },
+              PSICOSOCIAL: { estatus: 'PENDIENTE',    objetivo: 'Fortalecer red de apoyo familiar y comunitario',          cumplimiento: '', vinculacion: 'DIF Municipal',      temporalidad: 'Abril–Junio 2025', seguimiento: '' },
+              PSICOLOGICA: { estatus: 'PENDIENTE',    objetivo: 'Asistir a 4 sesiones de orientación psicológica',        cumplimiento: '', vinculacion: 'Área de Psicología', temporalidad: 'Mensual',          seguimiento: '' },
+              ADICCIONES:  { estatus: 'PENDIENTE',    objetivo: 'Participar en taller de prevención de adicciones',       cumplimiento: '', vinculacion: 'CIJ / CAPA',        temporalidad: 'Mayo 2025',        seguimiento: '' },
+              FAMILIAR:    { estatus: 'PENDIENTE',    objetivo: 'Asistir a talleres de dinámica familiar',                cumplimiento: '', vinculacion: 'DIF / Familia',      temporalidad: 'Abril–Mayo 2025',  seguimiento: '' },
+              LABORAL:     { estatus: 'PENDIENTE',    objetivo: 'Participar en curso de habilidades para el empleo',      cumplimiento: '', vinculacion: 'STYO / INAEBA',     temporalidad: 'Mayo 2025',        seguimiento: '' },
+              DEPORTIVA:   { estatus: 'PENDIENTE',    objetivo: 'Participar en 3 tequios de rescate de espacios públicos', cumplimiento: '', vinculacion: 'Ayuntamiento',      temporalidad: 'Semanal',          seguimiento: '' },
+              CULTURAL:    { estatus: 'PENDIENTE',    objetivo: 'Participar en 2 jornadas de reforestación ecológica',    cumplimiento: '', vinculacion: 'SEMARNAT',          temporalidad: 'Bimestral',        seguimiento: '' },
             },
             observacionesPlan: 'Beneficiario comprometido con el programa. Se asignan actividades variadas para cubrir las 48 horas requeridas.',
             estatusF3: 'COMPLETADO',
@@ -87,9 +87,9 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
             fechaInicioEstimada: '2025-04-01',
             fechaTerminoEstimada: '2025-05-01',
             actividadesPlan: {
-              EDUCATIVA:   { estatus: 'PENDIENTE', objetivo: 'Acreditar taller de valores y convivencia', cumplimiento: '' },
-              PSICOSOCIAL: { estatus: 'PENDIENTE', objetivo: 'Fortalecer vínculos con red de apoyo',      cumplimiento: '' },
-              LABORAL:     { estatus: 'PENDIENTE', objetivo: 'Participar en taller de habilidades laborales', cumplimiento: '' },
+              EDUCATIVA:   { estatus: 'PENDIENTE', objetivo: 'Acreditar taller de valores y convivencia', cumplimiento: '', vinculacion: 'CEPRESO', temporalidad: 'Mensual', seguimiento: '' },
+              PSICOSOCIAL: { estatus: 'PENDIENTE', objetivo: 'Fortalecer vínculos con red de apoyo',      cumplimiento: '', vinculacion: 'DIF',     temporalidad: 'Mensual', seguimiento: '' },
+              LABORAL:     { estatus: 'PENDIENTE', objetivo: 'Participar en taller de habilidades laborales', cumplimiento: '', vinculacion: 'STYO', temporalidad: 'Mayo 2025', seguimiento: '' },
             },
             estatusF3: 'COMPLETADO',
           },
@@ -146,13 +146,13 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
     description:
       '⚠️ Si envías `actividadesPlan`, usa ÚNICAMENTE las claves válidas: ' +
       'EDUCATIVA, PSICOSOCIAL, PSICOLOGICA, ADICCIONES, FAMILIAR, LABORAL, DEPORTIVA, CULTURAL. ' +
-      'Cada categoría acepta: { estatus, objetivo, cumplimiento }.',
+      'Cada categoría acepta: { estatus, objetivo, cumplimiento, vinculacion, temporalidad, seguimiento }.',
     examples: {
       'Actualizar actividades y observaciones': {
         value: {
           actividadesPlan: {
-            EDUCATIVA:   { estatus: 'EN_PROCESO', objetivo: 'Manual Fénix — sesiones 1-4 completadas', cumplimiento: 'Sesiones 1 a 4 acreditadas' },
-            PSICOSOCIAL: { estatus: 'EN_PROCESO', objetivo: 'Fortalecer red de apoyo familiar',         cumplimiento: '2 reuniones familiares realizadas' },
+            EDUCATIVA:   { estatus: 'EN_PROCESO', objetivo: 'Manual Fénix — sesiones 1-4 completadas', cumplimiento: 'Sesiones 1 a 4 acreditadas', vinculacion: 'CEPRESO / SSP', temporalidad: 'Abril–Mayo 2025', seguimiento: 'En seguimiento semanal' },
+            PSICOSOCIAL: { estatus: 'EN_PROCESO', objetivo: 'Fortalecer red de apoyo familiar',         cumplimiento: '2 reuniones familiares realizadas', vinculacion: 'DIF Municipal', temporalidad: 'Mensual', seguimiento: '' },
           },
           observacionesPlan: 'Se ajustan actividades según disponibilidad del beneficiario.',
         },
@@ -160,8 +160,8 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
       'Marcar actividades como completadas': {
         value: {
           actividadesPlan: {
-            EDUCATIVA:   { estatus: 'COMPLETADO', objetivo: 'Acreditar el Manual Fénix (8 sesiones)', cumplimiento: '8/8 sesiones acreditadas' },
-            DEPORTIVA:   { estatus: 'COMPLETADO', objetivo: 'Participar en 3 tequios',                cumplimiento: '3 tequios realizados' },
+            EDUCATIVA:   { estatus: 'COMPLETADO', objetivo: 'Acreditar el Manual Fénix (8 sesiones)', cumplimiento: '8/8 sesiones acreditadas', vinculacion: 'CEPRESO / SSP', temporalidad: 'Abril–Mayo 2025', seguimiento: 'Completado' },
+            DEPORTIVA:   { estatus: 'COMPLETADO', objetivo: 'Participar en 3 tequios',                cumplimiento: '3 tequios realizados', vinculacion: 'Ayuntamiento', temporalidad: 'Semanal', seguimiento: 'Completado' },
           },
         },
       },

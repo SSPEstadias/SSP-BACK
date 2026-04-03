@@ -51,14 +51,14 @@ import {
   
     // ── 8 categorías fijas del F3 físico (JSONB) ─────────────────────
     // {
-    //   "EDUCATIVA":    {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "PSICOSOCIAL":  {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "PSICOLOGICA":  {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "ADICCIONES":   {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "FAMILIAR":     {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "LABORAL":      {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "DEPORTIVA":    {"estatus":"","objetivo":"","cumplimiento":""},
-    //   "CULTURAL":     {"estatus":"","objetivo":"","cumplimiento":""}
+    //   "EDUCATIVA":    {"estatus":"","objetivo":"","cumplimiento":"","vinculacion":"","temporalidad":"","seguimiento":""},
+    //   "PSICOSOCIAL":  {"estatus":"","objetivo":"","cumplimiento":"","vinculacion":"","temporalidad":"","seguimiento":""},
+    //   "PSICOLOGICA":  {"estatus":"","objetivo":"","cumplimiento":"","vinculacion":"","temporalidad":"","seguimiento":""},
+    //   "ADICCIONES":   {"estatus":"","objetivo":"","cumplimiento":"","vinculacion":"","temporalidad":"","seguimiento":""},
+    //   "FAMILIAR":     {"estatus":"","objetivo":"","cumplimiento":"","vinculacion":"","temporalidad":"","seguimiento":""},
+    //   "LABORAL":      {"estatus":"","objetivo":"","cumplimiento":"","vinculacion":"","temporalidad":"","seguimiento":""},
+    //   "DEPORTIVA":    {"estatus":"","objetivo":"","cumplimiento":"","vinculacion":"","temporalidad":"","seguimiento":""},
+    //   "CULTURAL":     {"estatus":"","objetivo":"","cumplimiento":"","vinculacion":"","temporalidad":"","seguimiento":""}
     // }
     @Column({ name: 'actividades_plan', type: 'jsonb' })
     actividadesPlan!: object;

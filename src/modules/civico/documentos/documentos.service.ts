@@ -1006,17 +1006,18 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     }).filter(e => e.url !== null);
 
     // 3. Construir filas de la tabla "Proceso de seguimiento de actividades" desde F3
-    //    Mapeo: key→EJE, estatus→ESTADO INICIAL, objetivo→ACCIÓN, cumplimiento→OBSERVACIONES
-    type ActividadF3 = { estatus?: string; objetivo?: string; cumplimiento?: string };
+    //    Mapeo: key→EJE, estatus→ESTADO INICIAL, objetivo→ACCIÓN, vinculacion→VINCULACIÓN,
+    //           temporalidad→TEMPORALIDAD, seguimiento→SEGUIMIENTO, cumplimiento→OBSERVACIONES
+    type ActividadF3 = { estatus?: string; objetivo?: string; cumplimiento?: string; vinculacion?: string; temporalidad?: string; seguimiento?: string };
     const actividadesPlan = (f3 as any)?.actividadesPlan as Record<string, ActividadF3> | null | undefined;
     const ejesFromF3 = actividadesPlan && Object.keys(actividadesPlan).length > 0
       ? Object.entries(actividadesPlan).map(([key, val]) => ({
           eje:           key,
           estadoInicial: val?.estatus      || '',
           accion:        val?.objetivo     || '',
-          vinculacion:   '',
-          temporalidad:  '',
-          seguimiento:   '',
+          vinculacion:   val?.vinculacion  || '',
+          temporalidad:  val?.temporalidad || '',
+          seguimiento:   val?.seguimiento  || '',
           observaciones: val?.cumplimiento || '',
         }))
       : [
