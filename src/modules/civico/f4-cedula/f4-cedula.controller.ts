@@ -33,30 +33,41 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
       summary: '(Fase 7) Crear Cédula Inicial de Seguimiento (F4) [Solo Admin] — RF-009',
       description:
         'Genera la ficha técnica de seguimiento inicial del beneficiario. ' +
-        'Consolida el proceso de ingreso y el seguimiento por categorías de actividad. ' +
+        'Consolida el proceso de ingreso y el seguimiento por categorías de actividad.\n\n' +
+        '---\n\n' +
+        '### Campo `seguimientoActividades` — ⚠️ Claves obligatorias\n\n' +
+        'Este campo es un objeto JSONB cuya tabla "Proceso de Seguimiento" del PDF **solo reconoce exactamente estas claves**:\n\n' +
+        '`EDUCATIVA` · `LABORAL` · `FAMILIAR` · `DEPORTIVO` · `CULTURAL`\n\n' +
+        'El valor de cada clave es un **texto libre** (observaciones) que aparece en la columna "OBSERVACIONES" del PDF. ' +
+        'Si se envía cualquier otra clave, ese valor **no aparecerá** en el documento.\n\n' +
+        '---\n\n' +
         'Usa `GET /civico/documentos/f4-cedula-inicial/{expedienteId}` para generar el PDF oficial.',
     })
     @ApiBody({
-      description: 'Datos de la cédula inicial. Solo `expedienteId` y `coordinadorId` son obligatorios.',
+      description:
+        '⚠️ El campo `seguimientoActividades` DEBE usar EXACTAMENTE las claves: ' +
+        'EDUCATIVA, LABORAL, FAMILIAR, DEPORTIVO, CULTURAL. ' +
+        'El valor de cada clave es texto libre que se mostrará como observación en el PDF. ' +
+        'Usar claves diferentes provocará que la tabla "Proceso de Seguimiento" quede vacía.',
       examples: {
-        'Cédula Completa (Yahir Leon)': {
-          summary: '(Fase 7) Cédula con proceso de ingreso y seguimiento de actividades',
+        'Cédula Completa (Yahir Leon — todas las categorías)': {
+          summary: '(Fase 7) Cédula con proceso de ingreso y las 5 categorías de seguimiento',
           value: {
             expedienteId: EXAMPLE_EXP_ID,
             coordinadorId: 1,
             procesoIngreso: 'El beneficiario se presenta en tiempo y forma. Se le explica el programa y firma carta de compromiso. Ingresa en condiciones adecuadas para el servicio.',
             seguimientoActividades: {
-              EDUCATIVA: 'Manual Fénix — 0/8 sesiones completadas',
-              LABORAL: 'Pendiente asignación de actividad laboral',
-              FAMILIAR: 'Red de apoyo familiar identificada — madre y padre presentes',
-              DEPORTIVO: 'Participación en actividades físicas — sin restricciones',
-              CULTURAL: 'Asistencia a taller de pintura comunitaria programada',
+              EDUCATIVA:  'Manual Fénix — 0/8 sesiones completadas. Pendiente inicio de actividades educativas.',
+              LABORAL:    'Pendiente asignación de actividad laboral. Se explorará taller de habilidades para el empleo.',
+              FAMILIAR:   'Red de apoyo familiar identificada — madre y padre presentes. Dinámica familiar estable.',
+              DEPORTIVO:  'Participación en actividades físicas — sin restricciones médicas.',
+              CULTURAL:   'Asistencia a taller de pintura comunitaria programada para la siguiente semana.',
             },
             estatusF4: 'COMPLETADO',
           },
         },
         'Cédula Mínima (solo proceso de ingreso)': {
-          summary: 'Cédula básica sin detalle de seguimiento',
+          summary: 'Cédula básica sin detalle de seguimiento por categorías',
           value: {
             expedienteId: EXAMPLE_EXP_ID,
             coordinadorId: 1,
@@ -111,13 +122,19 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
     @ApiOperation({ summary: 'Actualizar datos de la cédula inicial F4 [Solo Admin]' })
     @ApiParam({ name: 'id', description: 'UUID del registro F4' })
     @ApiBody({
-      description: 'Campos a actualizar en la cédula',
+      description:
+        '⚠️ Si envías `seguimientoActividades`, usa ÚNICAMENTE las claves válidas: ' +
+        'EDUCATIVA, LABORAL, FAMILIAR, DEPORTIVO, CULTURAL. ' +
+        'El valor de cada clave es texto libre (observaciones) que aparecerá en el PDF.',
       examples: {
         'Actualizar seguimiento de actividades': {
           value: {
             seguimientoActividades: {
-              EDUCATIVA: 'Manual Fénix — 4/8 sesiones completadas',
-              FAMILIAR: 'Se realizó visita domiciliaria — situación familiar estable',
+              EDUCATIVA:  'Manual Fénix — 4/8 sesiones completadas. Avance satisfactorio.',
+              LABORAL:    'Inscrito en taller de habilidades laborales. Asistencia regular.',
+              FAMILIAR:   'Se realizó visita domiciliaria — situación familiar estable.',
+              DEPORTIVO:  'Participó en 2 jornadas deportivas comunitarias.',
+              CULTURAL:   'Completó taller de pintura — entrega de constancia pendiente.',
             },
           },
         },
