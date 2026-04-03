@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nota de Evolución Psicológica — {{numeroSesion}}</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: 0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 21.59cm;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 10pt;
+      color: #000;
+      line-height: 1.25;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ── Imagen de fondo completa (logo + greca + RECONECTA) ── */
+    .fondo-pagina {
+      position: fixed;
+      top: 0; left: 0;
+      width: 21.59cm;
+      height: 27.94cm;
+      z-index: -10;
+      pointer-events: none;
+    }
+    .fondo-pagina img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+    }
+
+    /* ── Contenedor principal con márgenes internos del estándar ── */
+    .pagina {
+      position: relative;
+      width: 21.59cm;
+      padding: 1.8cm 2cm 1.5cm 2.2cm;
+    }
+
+    /* ── Header Texto Central ── */
+    .header-text {
+      text-align: center;
+      font-weight: bold;
+      font-size: 9pt;
+      color: #777;
+      margin-top: 1.2cm;
+      margin-bottom: 5pt;
+      line-height: 1.2;
+      padding-right: 1.2cm;
+    }
+
+    .doc-title {
+      text-align: center;
+      font-size: 14pt;
+      font-weight: bold;
+      margin-top: 10pt;
+      margin-bottom: 2pt;
+    }
+    .exp-num {
+      text-align: right;
+      font-weight: bold;
+      font-size: 10pt;
+      margin-bottom: 2pt;
+      padding-right: 1.2cm;
+    }
+
+    /* ── Tablas de Sesión ── */
+    .session-block {
+      width: 100%;
+      margin-top: 15pt;
+      margin-bottom: 20pt;
+      page-break-inside: avoid;
+      padding-right: 1.2cm;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    .data-table td {
+      border: 1px solid #000;
+      padding: 3pt 5pt;
+      vertical-align: top;
+      font-size: 9pt;
+    }
+    .label {
+      font-weight: bold;
+      background-color: #f2f2f2;
+    }
+    .sub-label {
+      font-weight: bold;
+      font-size: 7pt;
+      background-color: #fafafa;
+    }
+
+    /* ── Footer Estándar ── */
+    .oficio-footer {
+      position: fixed;
+      bottom: 0.3cm;
+      right: 1.8cm;
+      font-size: 8.5pt;
+      color: #888;
+      text-align: right;
+      line-height: 1.2;
+    }
+
+    .signature-box {
+      margin-top: 5pt;
+      font-weight: bold;
+      text-align: left;
+      font-size: 9pt;
+    }
+    .signature-line {
+      margin-top: 4pt;
+      border-top: 1px solid #000;
+      width: 100%;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Fondo oficial con logos y grecas unificadas -->
+  <div class="fondo-pagina">
+    <img src="{{logoEncabezado}}" alt="" />
+  </div>
+
+  <div class="pagina">
+
+    <!-- Header Texto -->
+    <div class="header-text">
+      SUBSECRETARIA DE PREVENCIÓN Y REINSERCIÓN SOCIAL<br>
+      DIRECCIÓN GENERAL DE PREVENCIÓN DEL DELITO Y PARTICIPACIÓN CIUDADANA<br>
+      PROGRAMA "RECONECTA CON LA PAZ"
+    </div>
+
+    <div class="doc-title">NOTA DE EVOLUCIÓN PSICOLÓGICA</div>
+    <div class="exp-num">NUM. DE SESIÓN: {{numeroSesion}}</div>
+
+    <!-- Info General -->
+    <div style="padding-right: 1.2cm;">
+      <table class="data-table" style="margin-bottom: 5pt;">
+        <tr>
+          <td class="label" style="width: 25%;">BENEFICIARIO:</td>
+          <td style="width: 45%;">{{nombreBeneficiario}}</td>
+          <td class="label" style="width: 10%;">C. PENAL:</td>
+          <td style="width: 20%;">{{cPenal}}</td>
+        </tr>
+        <tr>
+          <td class="label">FECHA:</td>
+          <td>{{formatDate fecha}}</td>
+          <td class="label">PSICÓLOGO:</td>
+          <td>{{psicologo}}</td>
+        </tr>
+      </table>
+
+      <!-- Objetivo de la sesión -->
+      <div class="session-block">
+        <table class="data-table">
+          <tr>
+            <td class="label" style="width: 30%;">OBJETIVO DE LA SESIÓN:</td>
+            <td>{{objetivoSesion}}</td>
+          </tr>
+          <tr>
+            <td class="label">DESCRIPCIÓN DE LA SESIÓN:</td>
+            <td style="height: 60pt; vertical-align: top;">{{descripcionSesion}}</td>
+          </tr>
+          <tr>
+            <td class="label">TÉCNICAS APLICADAS:</td>
+            <td style="height: 40pt; vertical-align: top;">{{tecnicasAplicadas}}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Avances y Observaciones -->
+      <div class="session-block">
+        <table class="data-table">
+          <tr>
+            <td class="label" style="width: 30%;">AVANCES PERCIBIDOS:</td>
+            <td style="height: 50pt; vertical-align: top;">{{avances}}</td>
+          </tr>
+          <tr>
+            <td class="label">OBSERVACIONES:</td>
+            <td style="height: 50pt; vertical-align: top;">{{observaciones}}</td>
+          </tr>
+          <tr>
+            <td class="label">PRÓXIMA SESIÓN:</td>
+            <td>{{formatDate proximaSesion}}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Firma -->
+      <div style="margin-top: 50pt; text-align: center; padding-right: 1.2cm;">
+        <div style="font-weight: bold; font-size: 9pt;">{{psicologo}}</div>
+        <div style="margin-top: 4pt; border-top: 1px solid #000; width: 300px; margin-left: auto; margin-right: auto; padding-top: 3pt; font-size: 8.5pt;">Psicólogo Responsable</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

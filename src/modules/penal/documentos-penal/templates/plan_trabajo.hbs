@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Plan de Trabajo Penal</title>
+  <style>
+    @page {
+      size: Letter;
+      margin: 0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 21.59cm;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 11pt;
+      color: #000;
+      line-height: 1.35;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .fondo-pagina {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 21.59cm;
+      height: 27.94cm;
+      z-index: -10;
+      pointer-events: none;
+    }
+
+    .fondo-pagina img {
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+    }
+
+    .pagina {
+      width: 21.59cm;
+      padding: 1.8cm 2cm 1.5cm 2.2cm;
+    }
+
+    .header-text {
+      text-align: center;
+      font-weight: bold;
+      font-size: 9pt;
+      color: #666;
+      margin-top: 1.2cm;
+      margin-bottom: 8pt;
+      line-height: 1.3;
+      padding-right: 1.5cm;
+    }
+
+    .doc-title {
+      text-align: center;
+      font-size: 13pt;
+      font-weight: bold;
+      margin-top: 10pt;
+      margin-bottom: 12pt;
+    }
+
+    .table-container {
+      width: 100%;
+      margin-bottom: 16pt;
+      padding-right: 1.5cm;
+      page-break-inside: avoid;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 6pt;
+      vertical-align: top;
+      word-wrap: break-word;
+      font-size: 10.5pt;
+    }
+
+    th {
+      text-align: center;
+      font-weight: bold;
+      background-color: #d9d9d9;
+    }
+
+    .label-cell {
+      width: 26%;
+      font-weight: bold;
+      background-color: #e8e8e8;
+    }
+
+    .center { text-align: center; }
+
+    .firma {
+      margin-top: 36pt;
+      text-align: center;
+      padding-right: 1.5cm;
+      page-break-inside: avoid;
+    }
+
+    .firma-linea {
+      width: 280px;
+      margin: 0 auto;
+      border-top: 1px solid #000;
+      padding-top: 5px;
+      font-weight: bold;
+      font-size: 9pt;
+    }
+
+    .firma-label {
+      font-size: 8.5pt;
+      margin-top: 2pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="fondo-pagina">
+    <img src="{{logoEncabezado}}" alt="" />
+  </div>
+
+  <div class="pagina">
+    <div class="header-text">
+      SUBSECRETARIA DE PREVENCION Y REINSERCION SOCIAL<br>
+      DIRECCION GENERAL DE PREVENCION DEL DELITO Y PARTICIPACION CIUDADANA<br>
+      PROGRAMA "RECONECTA CON LA PAZ"
+    </div>
+
+    <div class="doc-title">PLAN DE TRABAJO</div>
+
+    <div class="table-container">
+      <table>
+        <tr><td class="label-cell">C. PENAL:</td><td>{{cPenal}}</td></tr>
+        <tr><td class="label-cell">EXPEDIENTE TECNICO:</td><td>{{expedienteTecnico}}</td></tr>
+        <tr><td class="label-cell">FOLIO DE EXPEDIENTE:</td><td>{{folioExpediente}}</td></tr>
+        <tr><td class="label-cell">BENEFICIARIO:</td><td>{{nombreBeneficiario}}</td></tr>
+        <tr><td class="label-cell">GUIA RESPONSABLE:</td><td>{{guiaResponsable}}</td></tr>
+        <tr><td class="label-cell">PERIODO:</td><td>{{periodo}}</td></tr>
+        <tr><td class="label-cell">FECHA INICIO:</td><td>{{formatDate fechaInicio}}</td></tr>
+        <tr><td class="label-cell">FECHA FIN:</td><td>{{formatDate fechaFin}}</td></tr>
+      </table>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr><th colspan="2">DATOS DEL PLAN DE TRABAJO</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="label-cell">DESCRIPCION:</td><td>{{datosJsonb.descripcion}}</td></tr>
+          <tr><td class="label-cell">OBJETIVOS:</td><td>{{datosJsonb.objetivos}}</td></tr>
+          <tr><td class="label-cell">ESTRATEGIAS:</td><td>{{datosJsonb.estrategias}}</td></tr>
+          <tr><td class="label-cell">OBSERVACIONES:</td><td>{{datosJsonb.observaciones}}</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:8%;">#</th>
+            <th style="width:34%;">ACTIVIDAD</th>
+            <th style="width:28%;">OBJETIVO</th>
+            <th style="width:30%;">ESTATUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#if actividades.length}}
+            {{#each actividades}}
+            <tr>
+              <td class="center">{{numero}}</td>
+              <td>{{actividad}}</td>
+              <td>{{objetivo}}</td>
+              <td class="center">{{estatus}}</td>
+            </tr>
+            {{/each}}
+          {{else}}
+            <tr>
+              <td colspan="4" class="center">Sin actividades registradas.</td>
+            </tr>
+          {{/if}}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="firma">
+      <div class="firma-linea">{{guiaResponsable}}</div>
+      <div class="firma-label">Guia Responsable</div>
+    </div>
+  </div>
+</body>
+</html>

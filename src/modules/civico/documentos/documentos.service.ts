@@ -7,7 +7,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Not, IsNull } from 'typeorm';
+import { Repository, Not, IsNull, Like } from 'typeorm';
 import * as Handlebars from 'handlebars';
 import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
@@ -24,6 +24,7 @@ import { SeguimientoPsicologico } from '../f5-seguimiento/seguimiento-psicologic
 import { User }             from '../../../shared/users/entities/user.entity';
 import { OficioGenerado }   from '../oficios/oficio-generado.entity';
 import { EstudioSocioeconomico } from '../f2-estudio/estudio-socioeconomico.entity';
+import { Actividad }        from '../../../shared/actividades/actividad.entity';
 import { AsistenciaEnum, TipoDocumentoEnum, FormStatusEnum } from '../enums/civico.enums';
 import { CivicoGoogleDriveService } from '../../../shared/google-drive/civico-google-drive.service';
 
@@ -46,28 +47,41 @@ function toDataUri(filePath: string): string {
 // Formatea una fecha a dd/mm/yyyy.
 function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '—';
+  // Si es string tipo "YYYY-MM-DD" parsear directo con UTC para evitar
+  // que JS lo interprete como midnight UTC y el timezone local desplace el día.
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [yyyy, mm, dd] = value.split('-');
+    return `${dd}/${mm}/${yyyy}`;
+  }
   const d = typeof value === 'string' ? new Date(value) : value;
   if (isNaN(d.getTime())) return String(value);
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  return `${dd}/${mm}/${d.getFullYear()}`;
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${dd}/${mm}/${d.getUTCFullYear()}`;
 }
 
 // Devuelve la fecha en formato largo español (ej: "22 DE MARZO DEL 2026").
 function fechaLargaFormat(value: Date | string | null | undefined): string {
   if (!value) return '—';
-  const d = typeof value === 'string' ? new Date(value) : value;
-  if (isNaN(d.getTime())) return String(value);
-  
+
   const meses = [
     'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
     'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
   ];
-  
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = meses[d.getMonth()];
-  const yyyy = d.getFullYear();
-  
+
+  // Si es string tipo "YYYY-MM-DD" parsear directo para evitar desfase de timezone.
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [yyyy, mm, dd] = value.split('-');
+    return `${dd} DE ${meses[parseInt(mm, 10) - 1]} DEL ${yyyy}`;
+  }
+
+  const d = typeof value === 'string' ? new Date(value) : value;
+  if (isNaN(d.getTime())) return String(value);
+
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  const mm = meses[d.getUTCMonth()];
+  const yyyy = d.getUTCFullYear();
+
   return `${dd} DE ${mm} DEL ${yyyy}`;
 }
 
@@ -85,7 +99,12 @@ function fechaLarga(): string {
 // Ej: "domingo 22 de marzo de 2026"
 function fechaLargaDesde(value: Date | string | null | undefined): string {
   if (!value) return '—';
-  const d = typeof value === 'string' ? new Date(value) : value;
+  // Para strings "YYYY-MM-DD" construir con constructor local para evitar desfase UTC.
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, d] = value.split('-').map(Number);
+    value = new Date(y, m - 1, d);
+  }
+  const d = typeof value === 'string' ? new Date(value) : value as Date;
   if (isNaN(d.getTime())) return String(value);
   return d.toLocaleDateString('es-MX', {
     weekday: 'long',
@@ -100,7 +119,12 @@ function fechaLargaDesde(value: Date | string | null | undefined): string {
 // Ej: "22 de marzo de 2026"
 function fechaLargaSinDia(value: Date | string | null | undefined): string {
   if (!value) return '—';
-  const d = typeof value === 'string' ? new Date(value) : value;
+  // Para strings "YYYY-MM-DD" construir con constructor local para evitar desfase UTC.
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [y, m, d] = value.split('-').map(Number);
+    value = new Date(y, m - 1, d);
+  }
+  const d = typeof value === 'string' ? new Date(value) : value as Date;
   if (isNaN(d.getTime())) return String(value);
   return d.toLocaleDateString('es-MX', {
     day: 'numeric',
@@ -192,6 +216,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
     @InjectRepository(EstudioSocioeconomico)
     private readonly f2Repo: Repository<EstudioSocioeconomico>,
+
+    @InjectRepository(Actividad)
+    private readonly actividadRepo: Repository<Actividad>,
 
     private readonly driveService: CivicoGoogleDriveService,
   ) {}
@@ -358,12 +385,14 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Sube un documento escaneado/firmado a Drive y actualiza el expediente.
+   * Sube un documento escaneado/firmado a Drive, actualiza el expediente
+   * y registra el documento en oficios_generados con esExterno=true.
    */
   async subirDocumentoEscaneado(
     expedienteId: string,
     tipo: 'CANALIZACION' | 'INCORPORACION',
     file: Express.Multer.File,
+    userId: number,
   ): Promise<{ driveFileId: string; urlArchivo: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
@@ -383,6 +412,21 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       exp.incorporacionFirmadaDriveId = driveData.driveFileId;
     }
     await this.expedienteRepo.save(exp);
+
+    // 4. Registrar en oficios_generados con esExterno=true
+    const tipoDoc = tipo === 'CANALIZACION'
+      ? TipoDocumentoEnum.OFICIO_CANALIZACION
+      : TipoDocumentoEnum.OFICIO_INCORPORACION;
+    const folioEscaneado = `${tipo}-FIRMADO-${exp.folioExpediente}`;
+    await this.registrarOficio({
+      expedienteId,
+      generadoPorId: userId,
+      tipoDocumento: tipoDoc,
+      folioOficio: folioEscaneado,
+      nombreArchivoFederal: filename,
+      urlArchivo: driveData.urlArchivo,
+      esExterno: true,
+    });
 
     return driveData;
   }
@@ -432,6 +476,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     buffer?: Buffer;
     nombreArchivoFederal: string;
     urlArchivo?: string;
+    esExterno?: boolean;
   }): Promise<OficioGenerado> {
     const { expedienteId, tipoDocumento, folioOficio, buffer, nombreArchivoFederal } = params;
 
@@ -450,6 +495,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
         folioOficio,
         nombreArchivoFederal,
         urlArchivo: params.urlArchivo || '',
+        esExterno: params.esExterno ?? false,
       });
     } else {
       // Si ya existe (mismo folio), actualizamos el nombre
@@ -559,16 +605,14 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const prefix = this.getPrefixForTipo(tipo);
     const suffix = `/${year}`;
 
-    // Buscar el último de este tipo con este prefijo/año
+    // Buscar el último folio con este prefijo/año entre TODOS los tipos de documento,
+    // ya que comparten la misma secuencia y la restricción de unicidad es global.
     const last = await this.oficioRepo.createQueryBuilder('o')
-      .where('o.tipoDocumento = :tipo', { tipo })
-      .andWhere('o.folioOficio LIKE :pattern', { pattern: `${prefix}%${suffix}` })
+      .where('o.folioOficio LIKE :pattern', { pattern: `${prefix}%${suffix}` })
       .orderBy('o.fechaGeneracion', 'DESC')
       .getOne();
 
     let nextNum = 1;
-    // Para oficios oficiales de SSyPC empezamos en 20 por requerimiento previo
-    if (prefix.includes('SSyPC')) nextNum = 20; 
 
     if (last) {
       // Extraer número: SSyPC/.../0025/2026 o F3-0005/2026
@@ -637,7 +681,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       juzgadoNombre:      exp.numJuzgadoCivico ?? 'Juzgado Cívico',
       juezNombre:         exp.juezControl ?? 'C. JUEZ DE CONTROL',
       juezCargoCompleto:  'Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria',
-      oficioCanalizacion: exp.numJuzgadoCivico ? `ExFac. ${exp.numJuzgadoCivico}` : (exp.oficioCanalizacion ?? '—'),
+      oficioCanalizacion: exp.oficioCanalizacion ? `ExFac. ${exp.oficioCanalizacion}` : '—',
       modalidadFalta:     exp.modalidadFalta ?? '—',
       esJuezFemenino,
       ...extras,
@@ -685,7 +729,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       const lowerDesc = desc.toLowerCase();
       const verbosAccion = ['participó', 'participo', 'impartió', 'impartio', 'asistió', 'asistio', 'realizó', 'realizo', 'apoyó', 'apoyo', 'colaboró', 'colaboro', 'coordinó', 'coordino'];
       const tieneVerbo = verbosAccion.some(v => lowerDesc.startsWith(v));
-      if (!tieneVerbo) desc = `Participó en ${desc.charAt(0).toLowerCase() + desc.slice(1)}`;
+      if (!tieneVerbo) desc = `Participó en el ${desc.charAt(0).toLowerCase() + desc.slice(1)}`;
 
       let strFecha = fechaLargaDesde(r.fecha);
       if (strFecha.startsWith('el ')) strFecha = strFecha.substring(3);
@@ -708,9 +752,10 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       juzgadoNombre:      exp.numJuzgadoCivico ?? 'Juzgado Cívico',
       juezNombre:         exp.juezControl ?? 'C. JUEZ DE CONTROL',
       juezCargoCompleto:  'Juez Cívico Municipal Especializado en Faltas Administrativas para la Buena Convivencia Comunitaria',
-      oficioCanalizacion: exp.numJuzgadoCivico ? `ExFac. ${exp.numJuzgadoCivico}` : (exp.oficioCanalizacion ?? exp.causaPenal),
+      oficioCanalizacion: exp.oficioCanalizacion ? `ExFac. ${exp.oficioCanalizacion}` : (exp.causaPenal),
       actividades,
       esJuezFemenino,
+      esBeneficiarioFemenino: (exp.genero ?? '').toUpperCase() === 'F',
       ...extras,
     });
 
@@ -971,11 +1016,9 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     // Folio estandarizado profesional
     const folio = await this.obtenerFolioDocumento(TipoDocumentoEnum.PLAN_VIDA, expedienteId);
 
-    const f1 = await this.f1Repo.findOne({ where: { expedienteId } });
     const f3 = await this.f3Repo.findOne({ where: { expedienteId } });
-    const psicologo = await this.userRepo.findOne({ where: { id: f1?.psicologoId } });
 
-    // 1. Obtener Guía Asignado desde la Bitácora (si existe algún registro)
+    // 1. Obtener Guía Asignado desde la Bitácora (rol=guia, primer registro cronológico)
     const primerBitacora = await this.bitacoraRepo.findOne({
       where: { expedienteId },
       order: { createdAt: 'ASC' },
@@ -1006,16 +1049,31 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       };
     }).filter(e => e.url !== null);
 
-    // Mapeo básico de ejes
-    const ejesDefault = [
-      { eje: 'SALUD', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'CAPACITACIÓN PARA EL TRABAJO', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'TRABAJO', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'DEPORTE', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'CULTURA', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'EDUCACIÓN', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
-      { eje: 'SERVICIO SOCIAL A FAVOR DEL ESTADO', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' }
-    ];
+    // 3. Construir filas de la tabla "Proceso de seguimiento de actividades" desde F3
+    //    Mapeo: key→EJE, estatus→ESTADO INICIAL, objetivo→ACCIÓN, vinculacion→VINCULACIÓN,
+    //           temporalidad→TEMPORALIDAD, seguimiento→SEGUIMIENTO, cumplimiento→OBSERVACIONES
+    type ActividadF3 = { estatus?: string; objetivo?: string; cumplimiento?: string; vinculacion?: string; temporalidad?: string; seguimiento?: string };
+    const actividadesPlan = (f3 as any)?.actividadesPlan as Record<string, ActividadF3> | null | undefined;
+    const ejesFromF3 = actividadesPlan && Object.keys(actividadesPlan).length > 0
+      ? Object.entries(actividadesPlan).map(([key, val]) => ({
+          eje:           key,
+          estadoInicial: val?.estatus      || '',
+          accion:        val?.objetivo     || '',
+          vinculacion:   val?.vinculacion  || '',
+          temporalidad:  val?.temporalidad || '',
+          seguimiento:   val?.seguimiento  || '',
+          observaciones: val?.cumplimiento || '',
+        }))
+      : [
+          { eje: 'EDUCATIVA',   estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'LABORAL',     estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'FAMILIAR',    estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'DEPORTIVA',   estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'CULTURAL',    estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'PSICOSOCIAL', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'PSICOLOGICA', estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+          { eje: 'ADICCIONES',  estadoInicial: '', accion: '', vinculacion: '', temporalidad: '', seguimiento: '', observaciones: '' },
+        ];
 
     const buffer = await this.generarPdf('plan_vida', {
       numOficio:          folio,
@@ -1023,14 +1081,14 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       curp:               exp.curp,
       folioExpediente:    exp.folioExpediente,
       fechaIngreso:       fechaLargaFormat(ben.fechaIngreso),
-      nombreGuia:         extras['nombreGuia'] ?? nombreGuiaBitacora ?? psicologo?.nombre?.toUpperCase() ?? '—',
+      nombreGuia:         extras['nombreGuia'] ?? nombreGuiaBitacora ?? '—',
       fechaTemporalidad:  fechaLargaFormat(exp.fechaTerminoBeneficio || (f3 as any)?.fechaTerminoEstimada),
       
       // Logos e Imágenes
       logoEncabezado:    this.logoEncabezadoSspc,
       logoGrecas:        this.logoGrecas,
       
-      ejes:               extras['ejes'] ?? ejesDefault,
+      ejes:               extras['ejes'] ?? ejesFromF3,
       evidencias:         evidencias,
       
       tituloDocumento:    'PLAN DE VIDA INDIVIDUALIZADA',
@@ -1054,24 +1112,30 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
    * Genera el siguiente número correlativo para un tipo de documento y expediente.
    */
   private async obtenerSiguienteNumeroDocumento(expedienteId: string, tipo: TipoDocumentoEnum): Promise<number> {
-    const count = await this.oficioRepo.count({ where: { expedienteId, tipoDocumento: tipo } });
+    const count = await this.oficioRepo.count({
+      where: { expedienteId, tipoDocumento: tipo, folioOficio: Not(Like('PLANT-%')) },
+    });
     return count + 1;
   }
 
   // ── LISTA DE ASISTENCIA ──────────────────────────────────────────────
 
   /**
-   * Genera SOLO la plantilla de lista de asistencia para imprimir (GET).
-   * NO se guarda en Drive ni en historial.
+   * Genera la plantilla en blanco para imprimir (GET) y la sube a Drive.
+   * Además, si existen registros en bitácora para este expediente que aún no
+   * tienen un oficio PDF asociado, los genera y los sube también.
+   * Siempre devuelve la plantilla en blanco como respuesta HTTP.
    */
-  async generarTemplateListaAsistencia(expedienteId: string): Promise<{ buffer: Buffer; filename: string }> {
+  async generarTemplateListaAsistencia(
+    expedienteId: string,
+    userId: number,
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
-
-    // Intentar sacar el guía de la bitácora más reciente o el asignado
     const guia = await this.obtenerGuiaAsignado(expedienteId);
 
-    const buffer = await this.generarPdf('lista_asistencia', {
+    // 1. Generar plantilla en blanco para imprimir
+    const bufferPlantilla = await this.generarPdf('lista_asistencia', {
       logoPresentacion1:  this.logoPresentacion1,
       logoPresentacion2:  this.logoPresentacion2,
       nombreBeneficiario: ben.nombre.toUpperCase(),
@@ -1082,8 +1146,93 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       filasVacias:        10,
     });
 
-    const filename = `PLANTILLA_ASISTENCIA - ${ben.nombre.toUpperCase()}.pdf`;
-    return { buffer, filename };
+    // 2. Subir plantilla a Drive con folio estable (se sobrescribe si ya existe)
+    const folioPlantilla = `PLANT-LIST-${exp.folioExpediente}`;
+    const filenamePlantilla = `PLANTILLA PLANTILLA DE ASISTENCIA IMPRIMIR - ${ben.nombre.toUpperCase()}.pdf`;
+    await this.registrarOficio({
+      expedienteId,
+      generadoPorId:        userId,
+      tipoDocumento:        TipoDocumentoEnum.LISTA_ASISTENCIA,
+      folioOficio:          folioPlantilla,
+      buffer:               bufferPlantilla,
+      nombreArchivoFederal: filenamePlantilla,
+    });
+
+    // 3. Generar PDFs para registros de bitácora que aún no tienen oficio secuencial
+    const bitacoraRecords = await this.bitacoraRepo.find({
+      where: { expedienteId },
+      order: { fechaActividad: 'ASC' },
+      relations: ['guia'],
+    });
+
+    if (bitacoraRecords.length > 0) {
+      // Contar oficios secuenciales ya existentes (excluir la plantilla fija)
+      const oficiosExistentes = await this.oficioRepo.count({
+        where: {
+          expedienteId,
+          tipoDocumento: TipoDocumentoEnum.LISTA_ASISTENCIA,
+          folioOficio:   Not(Like('PLANT-%')),
+        },
+      });
+
+      if (oficiosExistentes < bitacoraRecords.length) {
+        const baseFolio = await this.obtenerFolioDocumento(TipoDocumentoEnum.LISTA_ASISTENCIA, expedienteId);
+
+        for (let i = oficiosExistentes; i < bitacoraRecords.length; i++) {
+          const bit = bitacoraRecords[i];
+          const numero = i + 1;
+          const folioUnico = `${baseFolio}-V${numero}`;
+          const guiaBit = bit.guia ?? await this.userRepo.findOne({ where: { id: bit.guiaId } });
+
+          // Resolver nombre de actividad por actividadId
+          let nombreActividad = 'Actividad de seguimiento';
+          if (bit.actividadId) {
+            const act = await this.actividadRepo.findOne({ where: { id: bit.actividadId } });
+            if (act) nombreActividad = act.nombre;
+          }
+
+          // Iniciales del nombre del beneficiario para simular firma
+          const inicialesBit = ben.nombre
+            .split(/\s+/)
+            .filter(Boolean)
+            .map(w => w[0].toUpperCase())
+            .join('');
+
+          const bufferLista = await this.generarPdf('lista_asistencia', {
+            numOficio:          folioUnico,
+            logoPresentacion1:  this.logoPresentacion1,
+            logoPresentacion2:  this.logoPresentacion2,
+            nombreBeneficiario: ben.nombre.toUpperCase(),
+            nombreGuia:         guiaBit?.nombre?.toUpperCase() || '—',
+            fecha:              formatDate(bit.fechaActividad),
+            fechaHoja:          formatDate(bit.fechaActividad),
+            observaciones:      bit.observaciones || '',
+            actividades: [
+              {
+                horario:        bit.horasCubiertas != null ? `${bit.horasCubiertas} HORAS` : '—',
+                actividad:      nombreActividad,
+                sede:           bit.sede || '—',
+                firma:          inicialesBit,
+                asistencia:     bit.asistencia || '—',
+                evidenciaUrl:   bit.evidenciaUrl || '',
+              },
+            ],
+          });
+
+          const filenameLista = this.generarNombreArchivo(folioUnico, ben.nombre, `LISTA ${numero}`);
+          await this.registrarOficio({
+            expedienteId,
+            generadoPorId:        userId,
+            tipoDocumento:        TipoDocumentoEnum.LISTA_ASISTENCIA,
+            folioOficio:          folioUnico,
+            buffer:               bufferLista,
+            nombreArchivoFederal: filenameLista,
+          });
+        }
+      }
+    }
+
+    return { buffer: bufferPlantilla, filename: filenamePlantilla };
   }
 
   /**
@@ -1110,6 +1259,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       asistencia: asistencia || AsistenciaEnum.PRESENTE,
       observaciones: observaciones || '',
       actividadId: actividadId || null,
+      sede: sede || null,
     });
 
     // 2. Determinar número incremental
@@ -1121,6 +1271,20 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     await this.actualizarAvanceHoras(expedienteId);
 
     // 4. Generar PDF
+    // Resolver el nombre de la actividad por actividadId (si existe)
+    let nombreActividad = datos.actividadNombre || 'Asistencia registrada vía sistema';
+    if (actividadId) {
+      const act = await this.actividadRepo.findOne({ where: { id: actividadId } });
+      if (act) nombreActividad = act.nombre;
+    }
+
+    // Iniciales del nombre del beneficiario para simular firma
+    const inicialesPost = ben.nombre
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(w => w[0].toUpperCase())
+      .join('');
+
     const buffer = await this.generarPdf('lista_asistencia', {
       numOficio:          folioUnico,
       logoPresentacion1:  this.logoPresentacion1,
@@ -1128,14 +1292,17 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       nombreBeneficiario: ben.nombre.toUpperCase(),
       nombreGuia:         guia?.nombre?.toUpperCase() || '—',
       fecha:              formatDate(fecha) || fechaLarga(),
+      fechaHoja:          formatDate(fecha) || fechaLarga(),
       observaciones,
       actividades: [
-        { 
-          horario: horario || '—', 
-          actividad: datos.actividadNombre || 'Asistencia registrada vía sistema', 
-          sede: sede || 'En Sitio', 
-          firma: 'SINC' 
-        }
+        {
+          horario:        horasCubiertas != null ? `${horasCubiertas} HORAS` : '—',
+          actividad:      nombreActividad,
+          sede:           sede || '—',
+          firma:          inicialesPost,
+          asistencia:     asistencia || '—',
+          evidenciaUrl:   '',   // en POST no hay evidencia todavía
+        },
       ],
     });
 
@@ -1156,14 +1323,21 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   // ── REPORTE SEMANAL ────────────────────────────────────────────────
 
   /**
-   * Genera SOLO la plantilla de reporte semanal para imprimir (GET).
+   * Genera la plantilla en blanco de reporte semanal para imprimir (GET) y la sube a Drive.
+   * Además, si existen registros de bitácora para este expediente, agrupa los que aún
+   * no tienen reporte PDF por semana ISO y los genera/sube automáticamente.
+   * Siempre devuelve la plantilla en blanco como respuesta HTTP.
    */
-  async generarTemplateReporteSemanal(expedienteId: string): Promise<{ buffer: Buffer; filename: string }> {
+  async generarTemplateReporteSemanal(
+    expedienteId: string,
+    userId: number,
+  ): Promise<{ buffer: Buffer; filename: string }> {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const guia = await this.obtenerGuiaAsignado(expedienteId);
 
-    const buffer = await this.generarPdf('reporte_semanal', {
+    // 1. Generar plantilla en blanco para imprimir
+    const bufferPlantilla = await this.generarPdf('reporte_semanal', {
       logoEncabezadoSspc: this.logoEncabezadoSspc,
       logoGrecas:         this.logoGrecas,
       nombreBeneficiario: ben.nombre.toUpperCase(),
@@ -1172,8 +1346,85 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       actividades:        [],
     });
 
-    const filename = `PLANTILLA_REPORTE - ${ben.nombre.toUpperCase()}.pdf`;
-    return { buffer, filename };
+    // 2. Subir plantilla a Drive con folio estable (se sobrescribe si ya existe)
+    const folioPlantilla = `PLANT-REP-${exp.folioExpediente}`;
+    const filenamePlantilla = `PLANTILLA REPORTE IMPRIMIR - ${ben.nombre.toUpperCase()}.pdf`;
+    await this.registrarOficio({
+      expedienteId,
+      generadoPorId:        userId,
+      tipoDocumento:        TipoDocumentoEnum.REPORTE_SEMANAL_GUIA,
+      folioOficio:          folioPlantilla,
+      buffer:               bufferPlantilla,
+      nombreArchivoFederal: filenamePlantilla,
+    });
+
+    // 3. Agrupar registros de bitácora por semana ISO y generar reportes faltantes
+    const bitacoraRecords = await this.bitacoraRepo.find({
+      where: { expedienteId },
+      order: { fechaActividad: 'ASC' },
+      relations: ['guia'],
+    });
+
+    if (bitacoraRecords.length > 0) {
+      const semanas = this.agruparBitacoraEnSemanas(bitacoraRecords);
+
+      const oficiosExistentes = await this.oficioRepo.count({
+        where: {
+          expedienteId,
+          tipoDocumento: TipoDocumentoEnum.REPORTE_SEMANAL_GUIA,
+          folioOficio:   Not(Like('PLANT-%')),
+        },
+      });
+
+      if (oficiosExistentes < semanas.length) {
+        const baseFolio = await this.obtenerFolioDocumento(TipoDocumentoEnum.REPORTE_SEMANAL_GUIA, expedienteId);
+
+        for (let i = oficiosExistentes; i < semanas.length; i++) {
+          const semana = semanas[i];
+          const numero = i + 1;
+          const folioUnico = `${baseFolio}-V${numero}`;
+          const guiaSemana = semana.registros[0]?.guia
+            ?? await this.userRepo.findOne({ where: { id: semana.registros[0]?.guiaId } });
+
+          const listaActividades = semana.registros.map(r => ({
+            asistencia:  r.asistencia,                            // valor completo del enum, no abreviado
+            fecha:       formatDate(r.fechaActividad),
+            descripcion: r.observaciones || 'Actividad de seguimiento',
+          }));
+
+          // Unir todas las observaciones de la semana
+          const obsUnidas = semana.registros
+            .filter(r => r.observaciones)
+            .map(r => r.observaciones!.trim())
+            .join(' | ');
+
+          const bufferReporte = await this.generarPdf('reporte_semanal', {
+            numOficio:          folioUnico,
+            logoEncabezadoSspc: this.logoEncabezadoSspc,
+            logoGrecas:         this.logoGrecas,
+            nombreBeneficiario: ben.nombre.toUpperCase(),
+            nombreGuia:         guiaSemana?.nombre?.toUpperCase() || '—',
+            fecha:              fechaLarga(),
+            fechaPeriodo:       `${formatDate(semana.inicio)} al ${formatDate(semana.fin)}`,
+            semanaNumero:       semana.isoSemana,
+            observaciones:      obsUnidas || '',
+            actividades:        listaActividades,
+          });
+
+          const filenameReporte = this.generarNombreArchivo(folioUnico, ben.nombre, `REPORTE ${numero}`);
+          await this.registrarOficio({
+            expedienteId,
+            generadoPorId:        userId,
+            tipoDocumento:        TipoDocumentoEnum.REPORTE_SEMANAL_GUIA,
+            folioOficio:          folioUnico,
+            buffer:               bufferReporte,
+            nombreArchivoFederal: filenameReporte,
+          });
+        }
+      }
+    }
+
+    return { buffer: bufferPlantilla, filename: filenamePlantilla };
   }
 
   /**
@@ -1294,7 +1545,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       observaciones: s.observaciones || '—',
       fechaProxima: formatDate(s.fechaProximaSesion),
       nombrePsicologo: s.psicologo?.nombre?.toUpperCase() || '—',
-      cedulaPsicologo: s.cedulaProfesional || '6487612',
+      cedulaPsicologo: s.cedulaProfesional || '—',
     }));
 
     const buffer = await this.generarPdf('nota_evolucion', {
@@ -1304,7 +1555,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       sexo:               (exp.genero || '—').charAt(0).toUpperCase(),
       folioExpediente:    exp.folioExpediente,
       sesiones,
-      logoEncabezado:     this.logoEncabezadoSspc,
+      logoEncabezado:     this.logoEncabezado,
       logoGrecas:         this.logoGrecas,
     });
 
@@ -1349,5 +1600,65 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   private generarNombreArchivo(folio: string, nombreBeneficiario: string, tipo: string): string {
     const folioSanitizado = folio.replace(/\//g, '-');
     return `${tipo.toUpperCase()} - ${nombreBeneficiario.toUpperCase()} - ${folioSanitizado}.pdf`;
+  }
+
+  /** Agrupa registros de bitácora por semana ISO (lunes–domingo). */
+  private agruparBitacoraEnSemanas(
+    records: BitacoraCivica[],
+  ): Array<{ isoSemana: number; inicio: Date; fin: Date; registros: BitacoraCivica[] }> {
+    const map = new Map<string, { isoSemana: number; inicio: Date; fin: Date; registros: BitacoraCivica[] }>();
+
+    for (const r of records) {
+      // Parsear la fecha en UTC puro para evitar desfase de zona horaria.
+      // TypeORM devuelve columnas `date` como string "YYYY-MM-DD" o como Date UTC midnight.
+      let yyyy: number, mo: number, dd: number;
+      if (typeof r.fechaActividad === 'string') {
+        [yyyy, mo, dd] = (r.fechaActividad as string).split('-').map(Number);
+        mo -= 1; // 0-indexed
+      } else {
+        const dtmp = r.fechaActividad as Date;
+        yyyy = dtmp.getUTCFullYear();
+        mo   = dtmp.getUTCMonth();
+        dd   = dtmp.getUTCDate();
+      }
+
+      // Todo el cálculo usando Date.UTC para mantener coherencia.
+      const d = new Date(Date.UTC(yyyy, mo, dd));
+      const dayOfWeek = d.getUTCDay(); // 0=Dom, 1=Lun...
+      const diffToMonday = dd - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+      const monday = new Date(Date.UTC(yyyy, mo, diffToMonday));
+      const sunday = new Date(Date.UTC(yyyy, mo, diffToMonday + 6));
+
+      // Número ISO de semana (ISO 8601)
+      const thursdayOfWeek = new Date(Date.UTC(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate() + 3));
+      const jan4 = new Date(Date.UTC(thursdayOfWeek.getUTCFullYear(), 0, 4));
+      const isoSemana =
+        1 +
+        Math.round(
+          ((thursdayOfWeek.getTime() - jan4.getTime()) / 86400000 -
+            3 +
+            ((jan4.getUTCDay() + 6) % 7)) /
+            7,
+        );
+
+      const key = monday.toISOString().slice(0, 10);
+      if (!map.has(key)) {
+        map.set(key, { isoSemana, inicio: monday, fin: sunday, registros: [] });
+      }
+      map.get(key)!.registros.push(r);
+    }
+
+    return Array.from(map.values()).sort((a, b) => a.inicio.getTime() - b.inicio.getTime());
+  }
+
+  /** Convierte AsistenciaEnum a la abreviatura para el reporte semanal. */
+  private asistenciaAbreviada(asistencia: AsistenciaEnum | string): string {
+    const mapa: Record<string, string> = {
+      PRESENTE:              'P',
+      FALTA_JUSTIFICADA:     'FJ',
+      FALTA_INJUSTIFICADA:   'FI',
+      PRESENTE_PARCIAL:      'PP',
+    };
+    return mapa[asistencia] ?? String(asistencia);
   }
 }

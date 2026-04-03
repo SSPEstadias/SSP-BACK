@@ -43,6 +43,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { Salud } from 'src/shared/salud/salud.entity';
 import { Actividad } from 'src/shared/actividades/actividad.entity';
 import { Beneficiario } from 'src/shared/beneficiarios/beneficiario.entity';
+import { User } from '../../shared/users/entities/user.entity';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { Beneficiario } from 'src/shared/beneficiarios/beneficiario.entity';
       Beneficiario,
       Salud,
       Actividad,
+      User,
     ]),
     SharedModule,
     DocumentosModule,
