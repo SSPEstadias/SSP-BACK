@@ -1308,7 +1308,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       observaciones: s.observaciones || '—',
       fechaProxima: formatDate(s.fechaProximaSesion),
       nombrePsicologo: s.psicologo?.nombre?.toUpperCase() || '—',
-      cedulaPsicologo: s.cedulaProfesional || '6487612',
+      cedulaPsicologo: s.cedulaProfesional || '—',
     }));
 
     const buffer = await this.generarPdf('nota_evolucion', {
