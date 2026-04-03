@@ -14,6 +14,7 @@ import { User }              from '../../../shared/users/entities/user.entity';
 import { OficioGenerado }    from '../oficios/oficio-generado.entity';
 import { SeguimientoPsicologico } from '../f5-seguimiento/seguimiento-psicologico.entity';
 import { EstudioSocioeconomico } from '../f2-estudio/estudio-socioeconomico.entity';
+import { Actividad }         from '../../../shared/actividades/actividad.entity';
 import { CivicoGoogleDriveModule } from '../../../shared/google-drive/civico-google-drive.module';
 
 @Module({
@@ -31,6 +32,7 @@ import { CivicoGoogleDriveModule } from '../../../shared/google-drive/civico-goo
       OficioGenerado,
       SeguimientoPsicologico,
       EstudioSocioeconomico,
+      Actividad,
     ]),
   ],
   controllers: [DocumentosController],

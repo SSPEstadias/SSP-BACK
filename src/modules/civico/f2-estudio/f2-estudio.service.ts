@@ -7,6 +7,8 @@ import {
   import { InjectRepository } from '@nestjs/typeorm';
   import { Repository } from 'typeorm';
   import { EstudioSocioeconomico } from './estudio-socioeconomico.entity';
+  import { ExpedienteCivico } from '../expedientes/expediente-civico.entity';
+  import { EntrevistaClinica } from '../f1-entrevista/entrevista-clinica.entity';
   import { CreateEstudioSocioeconomicoDto } from './dto/create-estudio-socioeconomico.dto';
   import { UpdateEstudioSocioeconomicoDto } from './dto/update-estudio-socioeconomico.dto';
   import { FormStatusEnum } from '../enums/civico.enums';
@@ -16,10 +18,23 @@ import {
     constructor(
       @InjectRepository(EstudioSocioeconomico)
       private readonly f2Repo: Repository<EstudioSocioeconomico>,
+      @InjectRepository(ExpedienteCivico)
+      private readonly expedienteRepo: Repository<ExpedienteCivico>,
+      @InjectRepository(EntrevistaClinica)
+      private readonly f1Repo: Repository<EntrevistaClinica>,
     ) {}
   
     // ── Crear F2 (1:1 → solo uno por expediente) ──────────────────────
     async create(dto: CreateEstudioSocioeconomicoDto): Promise<EstudioSocioeconomico> {
+      const expediente = await this.expedienteRepo.findOne({
+        where: { idUUID: dto.expedienteId },
+      });
+      if (!expediente) {
+        throw new NotFoundException(
+          `No existe un expediente con id ${dto.expedienteId}`,
+        );
+      }
+
       const existe = await this.f2Repo.findOne({
         where: { expedienteId: dto.expedienteId },
       });
@@ -87,8 +102,25 @@ import {
   
     // ── RF-008: Verificar si F1 Y F2 están COMPLETADOS ───────────────
     // Usado por F3 para validar el Candado antes de crear el Plan de Trabajo
-    async verificarCandadoF3(expedienteId: string): Promise<boolean> {
-      const f2 = await this.f2Repo.findOne({ where: { expedienteId } });
-      return f2?.estatusF2 === FormStatusEnum.COMPLETADO;
+    async verificarCandadoF3(expedienteId: string): Promise<{
+      canCrearF3: boolean;
+      f1Completado: boolean;
+      f2Completado: boolean;
+      mensaje: string;
+    }> {
+      const [f1, f2] = await Promise.all([
+        this.f1Repo.findOne({ where: { expedienteId } }),
+        this.f2Repo.findOne({ where: { expedienteId } }),
+      ]);
+
+      const f1Completado = f1?.estatusF1 === FormStatusEnum.COMPLETADO;
+      const f2Completado = f2?.estatusF2 === FormStatusEnum.COMPLETADO;
+      const canCrearF3   = f1Completado && f2Completado;
+
+      const mensaje = canCrearF3
+        ? 'F1 y F2 completados. Puede proceder a crear el F3.'
+        : `No se puede crear el F3: ${!f1Completado ? 'F1 no está COMPLETADO' : ''}${!f1Completado && !f2Completado ? ' y ' : ''}${!f2Completado ? 'F2 no está COMPLETADO' : ''}.`;
+
+      return { canCrearF3, f1Completado, f2Completado, mensaje };
     }
   }

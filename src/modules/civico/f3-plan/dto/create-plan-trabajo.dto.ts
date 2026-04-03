@@ -44,8 +44,8 @@ import {
     actividadesPlan!: object;
     // Ejemplo:
     // {
-    //   "EDUCATIVA":  {"estatus":"PENDIENTE","objetivo":"...","cumplimiento":""},
-    //   "LABORAL":    {"estatus":"PENDIENTE","objetivo":"...","cumplimiento":""},
+    //   "EDUCATIVA":  {"estatus":"PENDIENTE","objetivo":"...","cumplimiento":"","vinculacion":"","temporalidad":"","seguimiento":""},
+    //   "LABORAL":    {"estatus":"PENDIENTE","objetivo":"...","cumplimiento":"","vinculacion":"","temporalidad":"","seguimiento":""},
     //   ...
     // }
   

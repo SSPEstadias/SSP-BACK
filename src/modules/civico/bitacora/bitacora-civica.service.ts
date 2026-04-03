@@ -12,6 +12,7 @@ import { EstudioSocioeconomico } from '../f2-estudio/estudio-socioeconomico.enti
 import { PlanTrabajo } from '../f3-plan/plan-trabajo.entity';
 import { CedulaInicial } from '../f4-cedula/cedula-inicial';
 import { AsistenciaEnum, IncidenciaTipoEnum, CivicStatusEnum, FormStatusEnum } from '../enums/civico.enums';
+import { User, RolUsuario } from '../../../shared/users/entities/user.entity';
 
 @Injectable()
 export class BitacoraCivicaService {
@@ -40,6 +41,9 @@ export class BitacoraCivicaService {
     @InjectRepository(CedulaInicial)
     private readonly f4Repo: Repository<CedulaInicial>,
 
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+
     // ✅ NUEVO: Inyectar servicio de incidencias
     private readonly incidenciasService: IncidenciasService,
   ) {}
@@ -55,7 +59,18 @@ export class BitacoraCivicaService {
       throw new BadRequestException(`Expediente ${dto.expedienteId} no encontrado`);
     }
 
-    // 2. Validación: FALTA_INJUSTIFICADA siempre tiene 0 horas
+    // 2. Validar que el guiaId corresponda a un usuario con rol=guia
+    const guia = await this.userRepo.findOne({ where: { id: dto.guiaId } });
+    if (!guia) {
+      throw new BadRequestException(`Usuario ${dto.guiaId} no encontrado`);
+    }
+    if (guia.rol !== RolUsuario.GUIA) {
+      throw new BadRequestException(
+        `El usuario ${dto.guiaId} tiene rol "${guia.rol}", no es un Guía. Solo usuarios con rol "guia" pueden registrarse como guía en la bitácora.`,
+      );
+    }
+
+    // 3. Validación: FALTA_INJUSTIFICADA siempre tiene 0 horas
     if (
       dto.asistencia === AsistenciaEnum.FALTA_INJUSTIFICADA &&
       dto.horasCubiertas !== 0
@@ -65,24 +80,24 @@ export class BitacoraCivicaService {
       );
     }
 
-    // 3. Validación: Si hay incidencia, detalleIncidencia es obligatorio
+    // 4. Validación: Si hay incidencia, detalleIncidencia es obligatorio
     if (dto.incidencia && !dto.detalleIncidencia) {
       throw new BadRequestException(
         'Si hay incidencia, detalleIncidencia es obligatorio',
       );
     }
 
-    // 4. Validar restricciones de salud si asistió
+    // 5. Validar restricciones de salud si asistió
     if (dto.asistencia === AsistenciaEnum.PRESENTE || 
         dto.asistencia === AsistenciaEnum.PRESENTE_PARCIAL) {
       await this.validarRestriccionSalud(dto);
     }
 
-    // 5. ✅ CREAR BITÁCORA
+    // 6. ✅ CREAR BITÁCORA
     const bitacora = this.bitacoraRepo.create(dto);
     const saved = await this.bitacoraRepo.save(bitacora);
 
-    // 6. ✅ SI HAY INCIDENCIA EN LA BITÁCORA → CREAR TAMBIÉN EN TABLA INCIDENCIAS
+    // 7. ✅ SI HAY INCIDENCIA EN LA BITÁCORA → CREAR TAMBIÉN EN TABLA INCIDENCIAS
     if (dto.incidencia) {
       await this.incidenciasService.create({
         expedienteId: dto.expedienteId,

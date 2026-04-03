@@ -103,7 +103,7 @@ import {
   
     @IsString()
     @IsOptional()
-    @MaxLength(50)
+    @MaxLength(200)
     numJuzgadoCivico?: string;
   
     @IsString()
@@ -147,7 +147,7 @@ import {
     @IsOptional()
     @IsString({ each: true })
     diasAsignadosJuzgado?: string[];
-    // Ejemplo: ["2025-08-02", "2025-08-03"]
+    // Ejemplo: ["2026-08-02", "2026-08-03"]
   
     @IsInt()
     @IsOptional()
@@ -180,4 +180,8 @@ import {
     @IsBoolean()
     @IsOptional()
     esActivo?: boolean;
+
+    @IsBoolean()
+    @IsOptional()
+    estatusF5Cerrado?: boolean;
   }

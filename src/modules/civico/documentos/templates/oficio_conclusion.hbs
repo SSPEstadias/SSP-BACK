@@ -57,7 +57,7 @@
     .titulo-secretaria {
       font-size: 11pt;
       font-weight: bold;
-      text-align: center;
+      text-align: right;
       margin-bottom: 10pt;
       padding-right: 1.5cm;
     }
@@ -79,7 +79,8 @@
       font-weight: bold;
       text-align: right;
       white-space: nowrap;
-      width: 110px;
+      width: 130px;
+      min-width: 130px;
     }
     .datos-oficio-table .val {
       text-align: justify;
@@ -106,6 +107,7 @@
       font-weight: bold;
       font-size: 11.5pt;
       text-transform: uppercase;
+      max-width: 9cm;
     }
     .presente {
       font-weight: bold;
@@ -160,9 +162,9 @@
       font-size: 11.5pt;
     }
 
-    /* ── CC block ── */
+    /* ── CC block — empujado al fondo de la página 2 ── */
     .cc-block {
-      margin-top: 280pt;
+      margin-top: auto;
       font-size: 7pt;
       line-height: 1.15;
     }
@@ -243,7 +245,7 @@
 
     <!-- Párrafo 2 -->
     <p class="cuerpo">
-      La C. <strong>{{nombreBeneficiario}}</strong> con número de expediente: <strong>{{causaPenal}}</strong>, concluyó de manera <strong>exitosa</strong> su participación en el programa <strong>"Reconecta con la Paz"</strong>, implementado por esta Dirección como parte de las acciones para la reintegración social y prevención de la reincidencia. Durante su proceso, la beneficiaria mostró <strong>compromiso y disposición para participar en las actividades psicosociales, culturales, comunitarias y formativas</strong> que contempla el programa. A lo largo de su estancia, llevó a cabo de forma satisfactoria las siguientes actividades:
+      {{#if esBeneficiarioFemenino}}La{{else}}El{{/if}} C. <strong>{{nombreBeneficiario}}</strong> con número de expediente: <strong>{{oficioCanalizacion}}</strong>, concluyó de manera <strong>exitosa</strong> su participación en el programa <strong>"Reconecta con la Paz"</strong>, implementado por esta Dirección como parte de las acciones para la reintegración social y prevención de la reincidencia. Durante su proceso, quien mostró <strong>compromiso y disposición para participar en las actividades psicosociales, culturales, comunitarias y formativas</strong> que contempla el programa. A lo largo de su estancia, llevó a cabo de forma satisfactoria las siguientes actividades:
     </p>
 
     <!-- Actividades realizadas (jaladas de la bitácora) -->
@@ -261,7 +263,12 @@
     </p>
 
     <!-- ═══ PÁGINA 2 ═══ -->
-    <div style="page-break-before: always; border-top: 4.5cm solid transparent;">
+    <div style="page-break-before: always; padding-top: 1.8cm; display: flex; flex-direction: column; min-height: 23cm;">
+
+      <!-- Lema del año (página 2) -->
+      <div class="lema-anual">
+        "2026, AÑO DEL BICENTENARIO DEL NATALICIO DE MARGARITA MAZA PARADA, EJEMPLO DE DIGNIDAD, LEALTAD Y SERVICIO A LA NACIÓN"
+      </div>
 
       <!-- Contacto -->
       <p class="cuerpo">
