@@ -79,7 +79,8 @@
       font-weight: bold;
       text-align: right;
       white-space: nowrap;
-      width: 110px;
+      width: 130px;
+      min-width: 130px;
     }
     .datos-oficio-table .val {
       text-align: justify;
@@ -107,6 +108,7 @@
       font-weight: bold;
       font-size: 11.5pt;
       text-transform: uppercase;
+      max-width: 9cm;
     }
     .presente {
       font-weight: bold;
@@ -160,7 +162,7 @@
 
     /* ── CC block — solo aparece en pág 2, empujado abajo ── */
     .cc-block {
-      margin-top: 280pt;
+      margin-top: 40pt;
       font-size: 7pt;
       line-height: 1.15;
     }
@@ -244,11 +246,6 @@
       Se recibió la determinación de autorizar la Medida Alternativa para cumplimiento de la sanción impuesta al C.<strong>{{nombreBeneficiario}}</strong>, quien deberá integrarse al programa <strong>"Reconecta con la Paz"</strong> hasta el día <strong>{{fechaConclusion}}</strong>, fecha en la que concluye el beneficio de dicha medida. En este sentido, se informa que el ciudadano se presentó el día <strong>{{fechaIncorporacion}}</strong> en las instalaciones de la Dirección General de Prevención del Delito y Participación Ciudadana, donde personal que integra el programa le explicó a detalladamente el contenido, enlaces, beneficios y obligaciones el programa <strong>"Reconecta con la Paz"</strong>. Posteriormente, accedió a realizar la entrevista técnica psicológica, así como los trámites correspondientes para su incorporación formal. Así mismo, se le notificó que de manera semanal se remiten reportes de seguimiento que dan cuenta del estatus de las personas canalizadas al programa.
     </p>
 
-    <!-- Párrafo 3 -->
-    <p class="cuerpo">
-      Finalmente, se hace de su conocimiento que la persona mencionada participará en actividades y talleres dentro de las instalaciones de esta Dirección, ubicada en <strong>{{#if sedePrograma}}{{sedePrograma}}{{else}}Privada 5ª, Calle las Águilas, número 124, Av. Universidad, Ex Hacienda Candiani, Santa Cruz Xoxocotlán{{/if}}</strong>{{#if diasProgramados}}, así como en tequios por la seguridad programados los días <strong>{{diasProgramados}}</strong> del presente año{{/if}}.
-    </p>
-
     <!-- ═══ PÁGINA 2 ═══ -->
     <div style="page-break-before: always; padding-top: 1.8cm;">
 
@@ -257,12 +254,10 @@
         "2026, AÑO DEL BICENTENARIO DEL NATALICIO DE MARGARITA MAZA PARADA, EJEMPLO DE DIGNIDAD, LEALTAD Y SERVICIO A LA NACIÓN"
       </div>
 
-      <!-- Título SECRETARÍA (página 2) -->
-      <div class="titulo-secretaria">
-        SECRETARÍA DE SEGURIDAD Y PROTECCIÓN CIUDADANA
-      </div>
-
-      <!-- Párrafo 3 (continuación) — Contacto -->
+      <!-- Párrafo 3 -->
+      <p class="cuerpo">
+        Finalmente, se hace de su conocimiento que la persona mencionada participará en actividades y talleres dentro de las instalaciones de esta Dirección, ubicada en <strong>{{#if sedePrograma}}{{sedePrograma}}{{else}}Privada 5ª, Calle las Águilas, número 124, Av. Universidad, Ex Hacienda Candiani, Santa Cruz Xoxocotlán{{/if}}</strong>{{#if diasProgramados}}, así como en tequios por la seguridad programados los días <strong>{{diasProgramados}}</strong> del presente año{{/if}}.
+      </p>
       <p class="cuerpo">
         Para cualquier duda o aclaración, favor de comunicarse con el <strong>{{#if coordinadorNombre}}{{coordinadorNombre}}{{else}}Lic. Gandhi Ulises Juárez López, Coordinador del programa "Reconecta con la Paz"{{/if}}</strong>, al número <strong>{{#if coordinadorTelefono}}{{coordinadorTelefono}}{{else}}951 224 1899{{/if}}</strong> o al correo electrónico <strong>{{#if coordinadorEmail}}{{coordinadorEmail}}{{else}}dgp.dypc@sspo.gob.mx{{/if}}</strong>. Sin otro particular, quedo a su disposición.
       </p>
