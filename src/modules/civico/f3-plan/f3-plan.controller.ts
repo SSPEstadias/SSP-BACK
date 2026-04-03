@@ -33,15 +33,26 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
       summary: '(Fase 6) Crear Plan de Trabajo (F3) [Solo Admin] — RF-006, RF-008',
       description:
         '⚠️ **REQUIERE que F1 y F2 estén en estatus `COMPLETADO`** antes de crear este formulario (RF-008). ' +
-        'Verifica con `GET /civico/f2/expediente/{id}/candado-f3` primero. ' +
-        'El campo `actividadesPlan` es un objeto JSONB con las categorías de actividades asignadas al beneficiario. ' +
+        'Verifica con `GET /civico/f2/expediente/{id}/candado-f3` primero.\n\n' +
+        '---\n\n' +
+        '### Campo `actividadesPlan` — ⚠️ Claves obligatorias\n\n' +
+        'Este campo es un objeto JSONB que **DEBE usar exactamente las siguientes claves** para que la tabla ' +
+        '"Proceso de Seguimiento de Actividades del Programa" del PDF se genere correctamente:\n\n' +
+        '`EDUCATIVA` · `PSICOSOCIAL` · `PSICOLOGICA` · `ADICCIONES` · `FAMILIAR` · `LABORAL` · `DEPORTIVA` · `CULTURAL`\n\n' +
+        'Cada clave debe tener la forma: `{ "estatus": "PENDIENTE|EN_PROCESO|COMPLETADO", "objetivo": "...", "cumplimiento": "..." }`\n\n' +
+        'Si se envía cualquier otra clave (por ejemplo `TRABAJO_COMUNITARIO`), los datos **no aparecerán** en el PDF.\n\n' +
+        '---\n\n' +
         'Genera el documento PDF con `GET /civico/documentos/f3-plan-trabajo/{expedienteId}`.',
     })
     @ApiBody({
-      description: 'Plan de trabajo individual. `actividadesPlan` es obligatorio y debe incluir las categorías del programa.',
+      description:
+        '⚠️ El campo `actividadesPlan` DEBE usar EXACTAMENTE las claves: ' +
+        'EDUCATIVA, PSICOSOCIAL, PSICOLOGICA, ADICCIONES, FAMILIAR, LABORAL, DEPORTIVA, CULTURAL. ' +
+        'Cada categoría acepta: { estatus, objetivo, cumplimiento }. ' +
+        'Usar claves diferentes provocará que la tabla del PDF quede vacía.',
       examples: {
-        'Plan Completo (Yahir Leon — caso típico)': {
-          summary: '(Fase 6) Plan con múltiples categorías de actividad',
+        'Plan Completo (Yahir Leon — todas las categorías)': {
+          summary: '(Fase 6) Plan con las 8 categorías de actividad del programa',
           value: {
             expedienteId: EXAMPLE_EXP_ID,
             coordinadorId: 1,
@@ -55,24 +66,30 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
               social: 'Participar activamente en actividades comunitarias de su colonia',
             },
             actividadesPlan: {
-              TRABAJO_COMUNITARIO: { objetivo: 'Participar en 3 tequios de rescate de espacios públicos', idActividad: 1, estatus: 'PENDIENTE' },
-              EDUCACION_PARA_LA_VIDA: { objetivo: 'Acreditar el Manual Fénix (8 sesiones)', idActividad: 5, estatus: 'PENDIENTE' },
-              BRIGADEO_ECOLOGICO: { objetivo: 'Participar en 2 jornadas de reforestación', idActividad: 3, estatus: 'PENDIENTE' },
-              PARTICIPACION_CIUDADANA: { objetivo: 'Asistir al taller de mediación comunitaria', idActividad: 7, estatus: 'PENDIENTE' },
+              EDUCATIVA:   { estatus: 'PENDIENTE',    objetivo: 'Acreditar el Manual Fénix (8 sesiones)',                  cumplimiento: '' },
+              PSICOSOCIAL: { estatus: 'PENDIENTE',    objetivo: 'Fortalecer red de apoyo familiar y comunitario',          cumplimiento: '' },
+              PSICOLOGICA: { estatus: 'PENDIENTE',    objetivo: 'Asistir a 4 sesiones de orientación psicológica',        cumplimiento: '' },
+              ADICCIONES:  { estatus: 'PENDIENTE',    objetivo: 'Participar en taller de prevención de adicciones',       cumplimiento: '' },
+              FAMILIAR:    { estatus: 'PENDIENTE',    objetivo: 'Asistir a talleres de dinámica familiar',                cumplimiento: '' },
+              LABORAL:     { estatus: 'PENDIENTE',    objetivo: 'Participar en curso de habilidades para el empleo',      cumplimiento: '' },
+              DEPORTIVA:   { estatus: 'PENDIENTE',    objetivo: 'Participar en 3 tequios de rescate de espacios públicos', cumplimiento: '' },
+              CULTURAL:    { estatus: 'PENDIENTE',    objetivo: 'Participar en 2 jornadas de reforestación ecológica',    cumplimiento: '' },
             },
             observacionesPlan: 'Beneficiario comprometido con el programa. Se asignan actividades variadas para cubrir las 48 horas requeridas.',
             estatusF3: 'COMPLETADO',
           },
         },
-        'Plan Mínimo (solo actividad principal)': {
-          summary: 'Plan con una sola categoría de actividad',
+        'Plan Mínimo (categorías principales)': {
+          summary: 'Plan con las categorías más comunes',
           value: {
             expedienteId: EXAMPLE_EXP_ID,
             coordinadorId: 1,
             fechaInicioEstimada: '2025-04-01',
             fechaTerminoEstimada: '2025-05-01',
             actividadesPlan: {
-              TRABAJO_COMUNITARIO: { objetivo: 'Limpieza de espacios públicos en Parque Bicentenario', idActividad: 1, estatus: 'PENDIENTE' },
+              EDUCATIVA:   { estatus: 'PENDIENTE', objetivo: 'Acreditar taller de valores y convivencia', cumplimiento: '' },
+              PSICOSOCIAL: { estatus: 'PENDIENTE', objetivo: 'Fortalecer vínculos con red de apoyo',      cumplimiento: '' },
+              LABORAL:     { estatus: 'PENDIENTE', objetivo: 'Participar en taller de habilidades laborales', cumplimiento: '' },
             },
             estatusF3: 'COMPLETADO',
           },
@@ -126,14 +143,26 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   @ApiParam({ name: 'id', description: 'UUID del registro F3' })
   @ApiBody({
     type: UpdatePlanTrabajoDto,
+    description:
+      '⚠️ Si envías `actividadesPlan`, usa ÚNICAMENTE las claves válidas: ' +
+      'EDUCATIVA, PSICOSOCIAL, PSICOLOGICA, ADICCIONES, FAMILIAR, LABORAL, DEPORTIVA, CULTURAL. ' +
+      'Cada categoría acepta: { estatus, objetivo, cumplimiento }.',
     examples: {
       'Actualizar actividades y observaciones': {
         value: {
           actividadesPlan: {
-            TRABAJO_COMUNITARIO: { objetivo: 'Tequio en Parque España', idActividad: 2, estatus: 'EN_PROCESO' },
-            EDUCACION_PARA_LA_VIDA: { objetivo: 'Manual Fénix — sesiones 1-4 completadas', idActividad: 5, estatus: 'EN_PROCESO' },
+            EDUCATIVA:   { estatus: 'EN_PROCESO', objetivo: 'Manual Fénix — sesiones 1-4 completadas', cumplimiento: 'Sesiones 1 a 4 acreditadas' },
+            PSICOSOCIAL: { estatus: 'EN_PROCESO', objetivo: 'Fortalecer red de apoyo familiar',         cumplimiento: '2 reuniones familiares realizadas' },
           },
           observacionesPlan: 'Se ajustan actividades según disponibilidad del beneficiario.',
+        },
+      },
+      'Marcar actividades como completadas': {
+        value: {
+          actividadesPlan: {
+            EDUCATIVA:   { estatus: 'COMPLETADO', objetivo: 'Acreditar el Manual Fénix (8 sesiones)', cumplimiento: '8/8 sesiones acreditadas' },
+            DEPORTIVA:   { estatus: 'COMPLETADO', objetivo: 'Participar en 3 tequios',                cumplimiento: '3 tequios realizados' },
+          },
         },
       },
       'Actualizar fechas del plan': {
