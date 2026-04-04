@@ -15,11 +15,16 @@ import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard';
 import { RolesGuard } from '../../../shared/common/guards/roles.guard';
 import { Roles } from '../../../shared/common/decorators/roles.decorator';
 import { RolUsuario } from '../../../shared/users/entities/user.entity';
+import { VoluntariosGoogleDriveService } from '../../../shared/google-drive/voluntarios-google-drive.service';
+import { CreatePersonFolderResponseDto } from './dto/create-person-folder-response.dto';
 
 @Controller('voluntarios/personas')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PersonasController {
-  constructor(private readonly personasService: PersonasService) {}
+  constructor(
+    private readonly personasService: PersonasService,
+    private readonly voluntariosGoogleDriveService: VoluntariosGoogleDriveService,
+  ) {}
 
   // POST /api/personas
   @Roles(RolUsuario.ADMIN, RolUsuario.COORDINADOR, RolUsuario.TALLERISTA)
@@ -54,5 +59,30 @@ export class PersonasController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.personasService.remove(id);
+  }
+
+  // POST /voluntarios/personas/generar-carpeta/:id
+  // Genera una carpeta en Google Drive con los datos de la persona y sube un PDF
+  @Roles(RolUsuario.ADMIN, RolUsuario.COORDINADOR, RolUsuario.TALLERISTA)
+  @Post('generar-carpeta/:id')
+  async generatePersonFolder(@Param('id') personaId: string): Promise<CreatePersonFolderResponseDto> {
+    // Obtener datos de la persona
+    const persona = await this.personasService.findOne(personaId);
+
+    if (!persona) {
+      throw new Error('Persona no encontrada');
+    }
+
+    // Llamar al servicio de Google Drive
+    const result = await this.voluntariosGoogleDriveService.createPersonFolderWithPDF(persona);
+
+    return {
+      folioNumber: result.folioNumber,
+      folderName: result.folderName,
+      folderId: result.folderId,
+      driveFileId: result.driveFileId,
+      urlArchivo: result.urlArchivo,
+      mensaje: `Carpeta y PDF creados exitosamente para ${persona.nombre}`,
+    };
   }
 }
