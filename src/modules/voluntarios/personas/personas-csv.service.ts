@@ -71,52 +71,52 @@ export class PersonasCsvService {
     const headers = PersonasCsvService.CSV_HEADERS.join(',');
  
     // Fila de ejemplo para guiar al usuario
-    const ejemplo = [
-      'Juan Pérez López',   // nombre
-      'VOL-001',             // folio
-      'El Profe',            // sobrenombre
-      '25',                  // edad
-      '2000-01-15',          // fechaNacimiento (YYYY-MM-DD)
-      'PELJ000115HOCRPN09',  // curp
-      'Oaxaca, Oax.',        // lugarOrigen
-      'Motivo de ingreso',   // motivoIngreso
-      '2026-03-01',          // fechaInicioTratamiento
-      '2026-06-01',          // fechaTerminoTratamiento
-      'Católica',            // religion
-      'Sí',                  // practicaDeporte
-      'Fútbol',              // cualDeporte
-      'Leer',                // pasatiempo
-      'Sí',                  // tieneActaNacimiento
-      'Oaxaca',              // lugarNacimientoRegistro
-      'Padres',              // personasRegistraron
-      'Sí',                  // sabeLeerEscribir
-      'Secundaria',          // gradoMaximoEstudios
-      'Sí',                  // leGustariaEstudiar
-      'true',                // certificadoPrimaria (true/false)
-      'false',               // certificadoSecundaria
-      'false',               // certificadoBachillerato
-      'Secundaria Técnica 5',// nombrePlantel
-      'Calle Reforma 123',   // direccionPlantel
-      '2018-07-15',          // fechaTerminoPlantel
-      'No',                  // trabajaFormal
-      '',                    // funcionesTrabajo
-      'Sí',                  // leGustariaCambiarTrabajo
-      'Carpintería',         // sabeOficio
-      'Electricidad',        // leGustariaAprenderOficio
-      'Ninguno',             // padecimientoEnfermedad
-      'IMSS',                // servicioSalud
-      'No',                  // cuentaTratamiento
-      'No',                  // enfermedadTransmisionSexual
-      'No',                  // necesitaLentes
-      'No',                  // atencionPsicologica
-      'María López',         // contacto1Nombre
-      'Madre',               // contacto1Relacion
-      '9511234567',          // contacto1Telefono
-      'Carlos Pérez',        // contacto2Nombre
-      'Padre',               // contacto2Relacion
-      '9519876543',          // contacto2Telefono
-      'Activo',              // estado
-    ].join(',');
+   const ejemplo = [
+  'Luis Martinez Garcia',   // nombre
+  'VOL-002',               // folio
+  'El Chino',              // sobrenombre
+  '30',                    // edad
+  '1995-08-22',            // fechaNacimiento (YYYY-MM-DD)
+  'MAGL950822HOCRRS08',    // curp
+  'Oaxaca',                // lugarOrigen
+  'Rehabilitacion personal', // motivoIngreso
+  '2026-02-15',            // fechaInicioTratamiento
+  '2026-07-15',            // fechaTerminoTratamiento
+  'Cristiana',             // religion
+  'Si',                    // practicaDeporte
+  'Basquetbol',            // cualDeporte
+  'Escuchar musica',       // pasatiempo
+  'Si',                    // tieneActaNacimiento
+  'Oaxaca',                // lugarNacimientoRegistro
+  'Padres',                // personasRegistraron
+  'Si',                    // sabeLeerEscribir
+  'Bachillerato',          // gradoMaximoEstudios
+  'Si',                    // leGustariaEstudiar
+  'true',                  // certificadoPrimaria
+  'true',                  // certificadoSecundaria
+  'true',                  // certificadoBachillerato
+  'CBTis 26',              // nombrePlantel
+  'Av Universidad 456',    // direccionPlantel
+  '2013-07-10',            // fechaTerminoPlantel
+  'Si',                    // trabajaFormal
+  'Albanil',               // funcionesTrabajo
+  'Si',                    // leGustariaCambiarTrabajo
+  'Carpinteria',           // sabeOficio
+  'Mecanica',              // leGustariaAprenderOficio
+  'Ninguno',               // padecimientoEnfermedad
+  'IMSS',                  // servicioSalud
+  'No',                    // cuentaTratamiento
+  'No',                    // enfermedadTransmisionSexual
+  'No',                    // necesitaLentes
+  'Si',                    // atencionPsicologica
+  'Ana Garcia',            // contacto1Nombre
+  'Esposa',                // contacto1Relacion
+  '9515551234',            // contacto1Telefono
+  'Jose Martinez',         // contacto2Nombre
+  'Hermano',               // contacto2Relacion
+  '9515555678',            // contacto2Telefono
+  'Activo',                // estado
+].join(',');
  
     const csv = `${headers}\n${ejemplo}\n`;
     return Buffer.from(csv, 'utf-8');
