@@ -9,6 +9,11 @@
         "include": "**/*.hbs",
         "watchAssets": true
       },
+     {
+  "include": "modules/voluntarios/personas/templates/*.csv",
+  "outDir": "dist",
+  "watchAssets": true
+},
       {
         "include": "**/assets/**",
         "watchAssets": true

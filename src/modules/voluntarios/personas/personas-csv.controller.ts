@@ -6,10 +6,13 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { memoryStorage } from 'multer';
+import { join } from 'path';
+import { createReadStream, existsSync } from 'fs';
 import { PersonasCsvService } from './personas-csv.service';
 
 @Controller('voluntarios/personas/csv')
@@ -17,14 +20,19 @@ export class PersonasCsvController {
   constructor(private readonly personasCsvService: PersonasCsvService) {}
 
   // GET /voluntarios/personas/csv/template
-  @Get('template')
-  downloadTemplate(@Res() res: Response) {
-    const buffer = this.personasCsvService.generateCsvTemplate();
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', 'attachment; filename="formato_voluntarios.csv"');
-    res.setHeader('Content-Length', buffer.length);
-    res.send(buffer);
+  // Sirve el archivo CSV estático desde la carpeta templates/
+ @Get('template')
+downloadTemplate(@Res() res: Response) {
+ const filePath = join(__dirname, 'templates', 'formato_voluntarios.csv');
+
+  if (!existsSync(filePath)) {
+    throw new NotFoundException('Archivo de plantilla no encontrado');
   }
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="formato_voluntarios.csv"');
+  createReadStream(filePath).pipe(res);
+}
 
   // POST /voluntarios/personas/csv/upload
   @Post('upload')

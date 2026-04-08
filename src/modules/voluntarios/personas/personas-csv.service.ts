@@ -68,13 +68,13 @@ export class PersonasCsvService {
   generateCsvTemplate(): Buffer {
     const headers = PersonasCsvService.CSV_HEADERS.join(',');
     const ejemplo = [
-      'Juan Pérez López',
+      'Juan Perez Lopez',
       'VOL-001',
-      'El Profe',
+      'El Pecas',
       '25',
       '2000-01-15',
       'PELJ000115HOCRPN09',
-      'Oaxaca, Oax.',
+      'Oaxaca',
       'Motivo de ingreso',
       '2026-03-01',
       '2026-06-01',
@@ -173,7 +173,12 @@ export class PersonasCsvService {
       let fechaInvalida = false;
       for (const campo of camposFecha) {
         if (row[campo] && row[campo].trim() !== '') {
-          const fecha = new Date(row[campo]);
+          const raw = row[campo]
+  ?.replace(/^="/, '')
+  ?.replace(/"$/, '')
+  ?.trim();
+
+const fecha = new Date(raw);
           if (isNaN(fecha.getTime())) {
             errores.push({ fila, mensaje: `Fecha inválida en "${campo}": "${row[campo]}". Use el formato YYYY-MM-DD` });
             fechaInvalida = true;
