@@ -7,12 +7,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { parse } from 'csv-parse/sync';
 import { Persona } from './entities/persona.entity';
- 
+
 @Injectable()
 export class PersonasCsvService {
   private readonly logger = new Logger(PersonasCsvService.name);
- 
-  // Encabezados exactos del CSV — mismo orden para template y para parseo
+
   static readonly CSV_HEADERS = [
     'nombre',
     'folio',
@@ -59,112 +58,110 @@ export class PersonasCsvService {
     'contacto2Telefono',
     'estado',
   ];
- 
+
   constructor(
     @InjectRepository(Persona)
     private readonly personaRepository: Repository<Persona>,
   ) {}
- 
+
   // ─── GENERAR TEMPLATE CSV ────────────────────────────────────
   generateCsvTemplate(): Buffer {
-    // Fila de encabezados
     const headers = PersonasCsvService.CSV_HEADERS.join(',');
- 
-    // Fila de ejemplo para guiar al usuario
-   const ejemplo = [
-  'Luis Martinez Garcia',   // nombre
-  'VOL-002',               // folio
-  'El Chino',              // sobrenombre
-  '30',                    // edad
-  '1995-08-22',            // fechaNacimiento (YYYY-MM-DD)
-  'MAGL950822HOCRRS08',    // curp
-  'Oaxaca',                // lugarOrigen
-  'Rehabilitacion personal', // motivoIngreso
-  '2026-02-15',            // fechaInicioTratamiento
-  '2026-07-15',            // fechaTerminoTratamiento
-  'Cristiana',             // religion
-  'Si',                    // practicaDeporte
-  'Basquetbol',            // cualDeporte
-  'Escuchar musica',       // pasatiempo
-  'Si',                    // tieneActaNacimiento
-  'Oaxaca',                // lugarNacimientoRegistro
-  'Padres',                // personasRegistraron
-  'Si',                    // sabeLeerEscribir
-  'Bachillerato',          // gradoMaximoEstudios
-  'Si',                    // leGustariaEstudiar
-  'true',                  // certificadoPrimaria
-  'true',                  // certificadoSecundaria
-  'true',                  // certificadoBachillerato
-  'CBTis 26',              // nombrePlantel
-  'Av Universidad 456',    // direccionPlantel
-  '2013-07-10',            // fechaTerminoPlantel
-  'Si',                    // trabajaFormal
-  'Albanil',               // funcionesTrabajo
-  'Si',                    // leGustariaCambiarTrabajo
-  'Carpinteria',           // sabeOficio
-  'Mecanica',              // leGustariaAprenderOficio
-  'Ninguno',               // padecimientoEnfermedad
-  'IMSS',                  // servicioSalud
-  'No',                    // cuentaTratamiento
-  'No',                    // enfermedadTransmisionSexual
-  'No',                    // necesitaLentes
-  'Si',                    // atencionPsicologica
-  'Ana Garcia',            // contacto1Nombre
-  'Esposa',                // contacto1Relacion
-  '9515551234',            // contacto1Telefono
-  'Jose Martinez',         // contacto2Nombre
-  'Hermano',               // contacto2Relacion
-  '9515555678',            // contacto2Telefono
-  'Activo',                // estado
-].join(',');
- 
+    const ejemplo = [
+      'Juan Pérez López',
+      'VOL-001',
+      'El Profe',
+      '25',
+      '2000-01-15',
+      'PELJ000115HOCRPN09',
+      'Oaxaca, Oax.',
+      'Motivo de ingreso',
+      '2026-03-01',
+      '2026-06-01',
+      'Católica',
+      'Sí',
+      'Fútbol',
+      'Leer',
+      'Sí',
+      'Oaxaca',
+      'Padres',
+      'Sí',
+      'Secundaria',
+      'Sí',
+      'true',
+      'false',
+      'false',
+      'Secundaria Técnica 5',
+      'Calle Reforma 123',
+      '2018-07-15',
+      'No',
+      '',
+      'Sí',
+      'Carpintería',
+      'Electricidad',
+      'Ninguno',
+      'IMSS',
+      'No',
+      'No',
+      'No',
+      'No',
+      'María López',
+      'Madre',
+      '9511234567',
+      'Carlos Pérez',
+      'Padre',
+      '9519876543',
+      'Activo',
+    ].join(',');
+
     const csv = `${headers}\n${ejemplo}\n`;
     return Buffer.from(csv, 'utf-8');
   }
- 
+
   // ─── PARSEAR Y CARGAR CSV ────────────────────────────────────
   async uploadCsv(buffer: Buffer): Promise<{
     total: number;
     creados: number;
+    actualizados: number;
     errores: { fila: number; mensaje: string }[];
   }> {
     let rows: any[];
- 
-    // Parsear el CSV
+
     try {
       rows = parse(buffer, {
-        columns: true,           // usa la primera fila como keys
+        columns: true,
         skip_empty_lines: true,
         trim: true,
-        bom: true,               // maneja BOM de Excel
+        bom: true,
       });
     } catch (error: any) {
       throw new BadRequestException(`El archivo CSV no tiene un formato válido: ${error.message}`);
     }
- 
+
     if (!rows || rows.length === 0) {
       throw new BadRequestException('El archivo CSV está vacío o solo contiene encabezados');
     }
- 
+
     const errores: { fila: number; mensaje: string }[] = [];
     let creados = 0;
- 
+    let actualizados = 0;
+
     for (let i = 0; i < rows.length; i++) {
-      const fila = i + 2; // fila 1 = encabezados, fila 2 = primer dato
+      const fila = i + 2;
       const row = rows[i];
- 
+
       // Validar campo obligatorio
       if (!row.nombre || row.nombre.trim() === '') {
         errores.push({ fila, mensaje: 'El campo "nombre" es obligatorio' });
         continue;
       }
- 
+
       // Validar estado
       if (row.estado && !['Activo', 'Inactivo'].includes(row.estado)) {
         errores.push({ fila, mensaje: `Estado inválido: "${row.estado}". Use "Activo" o "Inactivo"` });
         continue;
       }
- 
+
       // Validar fechas
       const camposFecha = [
         'fechaNacimiento',
@@ -172,7 +169,7 @@ export class PersonasCsvService {
         'fechaTerminoTratamiento',
         'fechaTerminoPlantel',
       ];
- 
+
       let fechaInvalida = false;
       for (const campo of camposFecha) {
         if (row[campo] && row[campo].trim() !== '') {
@@ -184,11 +181,12 @@ export class PersonasCsvService {
           }
         }
       }
- 
+
       if (fechaInvalida) continue;
- 
+
       try {
-        const persona = this.personaRepository.create({
+        // ─── LÓGICA UPSERT POR FOLIO ─────────────────────────
+        const datos = {
           nombre: row.nombre.trim(),
           folio: row.folio || null,
           sobrenombre: row.sobrenombre || null,
@@ -233,21 +231,36 @@ export class PersonasCsvService {
           contacto2Relacion: row.contacto2Relacion || null,
           contacto2Telefono: row.contacto2Telefono || null,
           estado: (row.estado as 'Activo' | 'Inactivo') || 'Activo',
-        });
- 
+        };
+
+        // Si tiene folio, buscar si ya existe
+        if (datos.folio) {
+          const existente = await this.personaRepository.findOne({
+            where: { folio: datos.folio },
+          });
+
+          if (existente) {
+            // Actualizar la persona existente
+            const updated = this.personaRepository.merge(existente, datos);
+            await this.personaRepository.save(updated);
+            actualizados++;
+            this.logger.log(`Fila ${fila}: Persona con folio "${datos.folio}" actualizada`);
+            continue;
+          }
+        }
+
+        // No existe o no tiene folio — crear nueva
+        const persona = this.personaRepository.create(datos);
         await this.personaRepository.save(persona);
         creados++;
-        this.logger.log(`Fila ${fila}: Persona "${row.nombre}" creada correctamente`);
+        this.logger.log(`Fila ${fila}: Persona "${datos.nombre}" creada correctamente`);
+
       } catch (error: any) {
         this.logger.error(`Error en fila ${fila}: ${error.message}`);
         errores.push({ fila, mensaje: `Error al guardar: ${error.message}` });
       }
     }
- 
-    return {
-      total: rows.length,
-      creados,
-      errores,
-    };
+
+    return { total: rows.length, creados, actualizados, errores };
   }
 }
