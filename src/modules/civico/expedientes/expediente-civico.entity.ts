@@ -1,4 +1,4 @@
-import {
+﻿import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
@@ -11,17 +11,16 @@ import {
   
   @Entity('civic_expedientes')
   export class ExpedienteCivico {
-    // UUID como PK — no expone secuencias (seguridad RF)
-    @PrimaryGeneratedColumn('uuid')
-    idUUID!: string;
+  // El UUID como PK evita exponer secuencias autoincrementales
+  @PrimaryGeneratedColumn('uuid')
+  idUUID!: string;
   
-    // ── Relación con Beneficiario (Núcleo Compartido) ─────────────────
-    @ManyToOne(() => Beneficiario, { onDelete: 'RESTRICT', eager: false })
-    @JoinColumn({ name: 'beneficiario_id' })
-    beneficiario!: Beneficiario;
-  
-    @Column({ name: 'beneficiario_id', type: 'int' })
-    beneficiarioId!: number;
+  @ManyToOne(() => Beneficiario, { onDelete: 'RESTRICT', eager: false })
+  @JoinColumn({ name: 'beneficiario_id' })
+  beneficiario!: Beneficiario;
+
+  @Column({ name: 'beneficiario_id', type: 'int' })
+  beneficiarioId!: number;
   
     @Column({ name: 'es_activo', type: 'boolean', default: true })
     esActivo!: boolean;
@@ -29,9 +28,9 @@ import {
     @Column({ name: 'num_reincidencia', type: 'int', default: 0 })
     numReincidencia!: number;
   
-    // ── Identidad heredable en F1, F2, F3, F4 (RF-004) ──────────────
-    @Column({ type: 'varchar', length: 18 })
-    curp!: string;
+
+  @Column({ type: 'varchar', length: 18 })
+  curp!: string;
   
     @Column({ name: 'fecha_nacimiento', type: 'date' })
     fechaNacimiento!: Date;
@@ -75,12 +74,9 @@ import {
     @Column({ type: 'varchar', length: 100, nullable: true })
     religion!: string | null;
   
-    // ── Contactos familiares (JSONB) ─────────────────────────────────
-    // { "padre": {"nombre":"", "telefono":""}, "madre": {...}, "tutor": {...} }
     @Column({ name: 'contactos_familiares', type: 'jsonb', nullable: true })
     contactosFamiliares!: object | null;
   
-    // ── Datos Legales ────────────────────────────────────────────────
     @Column({ name: 'folio_expediente', type: 'varchar', length: 50, unique: true })
     folioExpediente!: string;
   
@@ -111,17 +107,15 @@ import {
     @Column({ name: 'horas_sentencia', type: 'int' })
     horasSentencia!: number;
   
-    // ── Días asignados por el Juez (solo fechas) ──────────────────────
-    // Ej: ["2026-08-02", "2026-08-03"]
     @Column({ name: 'dias_asignados_juzgado', type: 'text', array: true, nullable: true })
     diasAsignadosJuzgado!: string[] | null;
   
     @Column({ name: 'horas_por_dia', type: 'int', nullable: true })
     horasPorDia!: number | null;
   
-    // ── Fechas del beneficio (oficio de incorporación) ─────────────────
-    @Column({ name: 'fecha_inicio_beneficio', type: 'date', nullable: true })
-    fechaInicioBeneficio!: Date | null;
+
+  @Column({ name: 'fecha_inicio_beneficio', type: 'date', nullable: true })
+  fechaInicioBeneficio!: Date | null;
   
     @Column({ name: 'fecha_termino_beneficio', type: 'date', nullable: true })
     fechaTerminoBeneficio!: Date | null;
@@ -129,11 +123,10 @@ import {
     @Column({ name: 'fecha_oficio_canalizacion', type: 'date', nullable: true })
     fechaOficioCanalizacion!: Date | null;
   
-    // "M" = masculino, "F" = femenino — para decidir Lcdo./Lcda. en oficios
-    @Column({ name: 'genero_juez', type: 'varchar', length: 1, nullable: true })
-    generoJuez!: string | null;
+  // 'M' = masculino, 'F' = femenino. Se usa para determinar Lcdo./Lcda. en los oficios generados.
+  @Column({ name: 'genero_juez', type: 'varchar', length: 1, nullable: true })
+  generoJuez!: string | null;
   
-    // ── Control ──────────────────────────────────────────────────────
     @Column({
       name: 'estatus_proceso',
       type: 'enum',

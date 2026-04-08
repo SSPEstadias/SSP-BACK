@@ -25,7 +25,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
 export class IncidenciasController {
   constructor(private readonly service: IncidenciasService) {}
 
-  // ✅ POST: Crear incidencia MANUAL (Sin bitácora - ej. no asistió a nada)
+  //   POST: Crear incidencia MANUAL (Sin bitácora - ej. no asistió a nada)
   @Post()
   @Roles('Admin', 'Guia')
   @ApiOperation({

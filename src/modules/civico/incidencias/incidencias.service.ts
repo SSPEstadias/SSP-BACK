@@ -22,7 +22,6 @@ export class IncidenciasService {
   ) {}
 
   async create(dto: CreateIncidenciaDto): Promise<Incidencia> {
-    // 1. Validar expediente
     const expediente = await this.expedienteRepo.findOne({
       where: { idUUID: dto.expedienteId },
     });
@@ -31,24 +30,21 @@ export class IncidenciasService {
       throw new BadRequestException(`Expediente no encontrado`);
     }
 
-    // 2. Crear incidencia
     const incidencia = this.incidenciaRepo.create(dto);
     const saved = await this.incidenciaRepo.save(incidencia);
 
-    // 3. ✅ Si es acumulativa, contar strikes
+    // Si la incidencia es acumulativa, verificar si se alcanza el límite de 3 strikes
     if (dto.esAcumulativa) {
       const strikesCount = await this.incidenciaRepo.count({
         where: {
           expedienteId: dto.expedienteId,
           esAcumulativa: true,
-          estatusResolucion: IncidenciaEstatusEnum.PENDIENTE, // Solo contar pendientes
+          estatusResolucion: IncidenciaEstatusEnum.PENDIENTE,
         },
       });
 
-      // ✅ Si llega a 3 → BAJA automática
       if (strikesCount >= 3) {
-        expediente.estatusProceso =
-          CivicStatusEnum.BAJA_POR_ACUMULACION_DE_INCIDENCIAS;
+        expediente.estatusProceso = CivicStatusEnum.BAJA_POR_ACUMULACION_DE_INCIDENCIAS;
         await this.expedienteRepo.save(expediente);
       }
     }
@@ -75,7 +71,7 @@ export class IncidenciasService {
     return incidencia;
   }
 
-  // ✅ NUEVO: Contar strikes activos
+  // Devuelve el total de strikes activos (incidencias acumulativas pendientes).
   async contarStrikes(expedienteId: string): Promise<{ total: number }> {
     const total = await this.incidenciaRepo.count({
       where: {

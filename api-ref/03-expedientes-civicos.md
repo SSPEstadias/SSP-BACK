@@ -13,9 +13,9 @@ El expediente cívico es el núcleo del sistema. Cada beneficiario tiene exactam
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `nombre` | string | ✅ | Nombre completo en **MAYÚSCULAS** |
-| `tiempoAsignado` | number | ✅ | Número de horas o meses de la sentencia |
-| `unidadTiempo` | `HORAS` / `MESES` | ✅ | Unidad de la sentencia |
+| `nombre` | string |   | Nombre completo en **MAYÚSCULAS** |
+| `tiempoAsignado` | number |   | Número de horas o meses de la sentencia |
+| `unidadTiempo` | `HORAS` / `MESES` |   | Unidad de la sentencia |
 | `urlFoto` | string | ❌ | URL de la foto. ⚠️ Usa `/` no `\` en rutas locales |
 
 ```json
@@ -40,12 +40,12 @@ El expediente cívico es el núcleo del sistema. Cada beneficiario tiene exactam
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `beneficiarioId` | number | ✅ | ID del beneficiario (de Fase 1) |
-| `folioExpediente` | string | ✅ | Ej: `EXP-CIV-2026-0001` |
-| `causaPenal` | string | ✅ | Ej: `CP-2026-AX-099` |
-| `horasSentencia` | number | ✅ | Total de horas a cumplir |
-| `fechaNacimiento` | `YYYY-MM-DD` | ✅ | Fecha de nacimiento |
-| `domicilioCompleto` | string | ✅ | Domicilio completo del beneficiario |
+| `beneficiarioId` | number |   | ID del beneficiario (de Fase 1) |
+| `folioExpediente` | string |   | Ej: `EXP-CIV-2026-0001` |
+| `causaPenal` | string |   | Ej: `CP-2026-AX-099` |
+| `horasSentencia` | number |   | Total de horas a cumplir |
+| `fechaNacimiento` | `YYYY-MM-DD` |   | Fecha de nacimiento |
+| `domicilioCompleto` | string |   | Domicilio completo del beneficiario |
 | `curp` | string | ❌ | CURP (18 caracteres) |
 | `genero` | `M` / `F` | ❌ | Género |
 | `aliasSobrenombre` | string | ❌ | Apodo si aplica |

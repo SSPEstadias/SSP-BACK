@@ -38,19 +38,19 @@ async function bootstrap() {
       '### 🗂️ Matriz de Acceso por Rol\n' +
       '| Endpoint | Admin | Psicólogo | T. Social | Guía |\n' +
       '|---|:---:|:---:|:---:|:---:|\n' +
-      '| POST /users | ✅ | ❌ | ❌ | ❌ |\n' +
-      '| POST /beneficiarios | ✅ | ✅ | ✅ | ❌ |\n' +
-      '| POST /salud | ✅ | ✅ | ❌ | ❌ |\n' +
-      '| POST /civico/expedientes | ✅ | ❌ | ❌ | ❌ |\n' +
-      '| POST /civico/f1 (Entrevista) | ✅ | ✅ | ❌ | ❌ |\n' +
-      '| POST /civico/f2 (Estudio) | ✅ | ❌ | ✅ | ❌ |\n' +
-      '| POST /civico/f3 (Plan) | ✅ | ❌ | ❌ | ❌ |\n' +
-      '| POST /civico/f4 (Cédula) | ✅ | ❌ | ❌ | ❌ |\n' +
-      '| POST /civico/f5 (Seguimiento) | ✅ | ✅ | ❌ | ❌ |\n' +
-      '| POST /civico/bitacora | ✅ | ❌ | ❌ | ✅ |\n' +
-      '| POST /civico/incidencias | ✅ | ❌ | ❌ | ✅ |\n' +
-      '| POST /civico/oficios | ✅ | ❌ | ❌ | ✅ |\n' +
-      '| GET (todos) | ✅ | ✅ | ✅ | ✅ |\n\n' +
+      '| POST /users |   | ❌ | ❌ | ❌ |\n' +
+      '| POST /beneficiarios |   |   |   | ❌ |\n' +
+      '| POST /salud |   |   | ❌ | ❌ |\n' +
+      '| POST /civico/expedientes |   | ❌ | ❌ | ❌ |\n' +
+      '| POST /civico/f1 (Entrevista) |   |   | ❌ | ❌ |\n' +
+      '| POST /civico/f2 (Estudio) |   | ❌ |   | ❌ |\n' +
+      '| POST /civico/f3 (Plan) |   | ❌ | ❌ | ❌ |\n' +
+      '| POST /civico/f4 (Cédula) |   | ❌ | ❌ | ❌ |\n' +
+      '| POST /civico/f5 (Seguimiento) |   |   | ❌ | ❌ |\n' +
+      '| POST /civico/bitacora |   | ❌ | ❌ |   |\n' +
+      '| POST /civico/incidencias |   | ❌ | ❌ |   |\n' +
+      '| POST /civico/oficios |   | ❌ | ❌ |   |\n' +
+      '| GET (todos) |   |   |   |   |\n\n' +
       '---\n' +
       '### 🔄 Flujo de Pruebas Secuencial (Testing Workflow)\n\n' +
       '> **Sigue este orden**; cada fase depende de la anterior. Guarda los IDs retornados.\n\n' +

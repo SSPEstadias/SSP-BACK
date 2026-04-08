@@ -70,43 +70,36 @@ import {
     @Column({ name: 'generales_entrevista', type: 'jsonb', nullable: true })
     generalesEntrevista!: object | null;
   
-    // { "falta_civica":"", "relato_hechos":"" }
-    @Column({ name: 'situacion_juridica_f1', type: 'jsonb', nullable: true })
-    situacionJuridicaF1!: object | null;
+  // Sección III del formulario: falta_civica y relato_hechos
+  @Column({ name: 'situacion_juridica_f1', type: 'jsonb', nullable: true })
+  situacionJuridicaF1!: object | null;
   
-    // { "miembros":[{"nombre":"","parentesco":"","edad":0,
-    //   "estado_civil":"","escolaridad":"","ocupacion":""}],
-    //   "observacion_relacion":"" }
-    @Column({ name: 'nucleo_familiar_primario', type: 'jsonb', nullable: true })
-    nucleoFamiliarPrimario!: object | null;
+  // Sección IV: array de miembros con nombre, parentesco, edad, estado_civil, escolaridad, ocupacion
+  @Column({ name: 'nucleo_familiar_primario', type: 'jsonb', nullable: true })
+  nucleoFamiliarPrimario!: object | null;
   
-    // { "especifique":"", "ha_recibido_terapias":false, "donde_terapias":"",
-    //   "asiste_grupos_aa":false, "donde_grupos_aa":"",
-    //   "ha_estado_rehabilitacion":false, "donde_rehabilitacion":"",
-    //   "periodo_rehabilitacion":"", "pertenece_grupo_cultural":false, "cual_grupo":"" }
-    @Column({ name: 'sustancias_detalle', type: 'jsonb', nullable: true })
-    sustanciasDetalle!: object | null;
+  // Sección V: 6 preguntas del formulario (especifique, ha_recibido_terapias, asiste_grupos_aa, etc.)
+  @Column({ name: 'sustancias_detalle', type: 'jsonb', nullable: true })
+  sustanciasDetalle!: object | null;
   
-    // { "emociones":{"miedo":"","alegria":"","enojo":"","tristeza":"","amor":""},
-    //   "destrezas":"", "deportes":"", "tiempo_libre":"" }
-    @Column({ name: 'perfil_personal', type: 'jsonb', nullable: true })
-    perfilPersonal!: object | null;
+  // Secciones VI-IX: emociones (miedo/alegria/enojo/tristeza/amor), destrezas, deportes, tiempo_libre
+  @Column({ name: 'perfil_personal', type: 'jsonb', nullable: true })
+  perfilPersonal!: object | null;
   
-    // { "descripcion_enfermedad":"", "lleva_tratamiento":false, "indique_tratamiento":"" }
-    @Column({ name: 'salud_detalle', type: 'jsonb', nullable: true })
-    saludDetalle!: object | null;
+  // Sección X: descripcion_enfermedad, lleva_tratamiento, indique_tratamiento
+  @Column({ name: 'salud_detalle', type: 'jsonb', nullable: true })
+  saludDetalle!: object | null;
   
-    // { "personal":"", "familiar":"", "laboral":"",
-    //   "espiritual":"", "academico":"", "social":"" }
-    @Column({ name: 'proyecto_vida', type: 'jsonb', nullable: true })
-    proyectoVida!: object | null;
+  // Sección XI: personal, familiar, laboral, espiritual, academico, social
+  @Column({ name: 'proyecto_vida', type: 'jsonb', nullable: true })
+  proyectoVida!: object | null;
   
-    // ── Control RF-008: COMPLETADO + F2 COMPLETADO → habilita F3 ─────
-    @Column({
-      name: 'estatus_f1',
-      type: 'enum',
-      enum: FormStatusEnum,
-      default: FormStatusEnum.PENDIENTE,
-    })
-    estatusF1!: FormStatusEnum;
-  }
+  // Control RF-008: requiere COMPLETADO para habilitar el F3
+  @Column({
+    name: 'estatus_f1',
+    type: 'enum',
+    enum: FormStatusEnum,
+    default: FormStatusEnum.PENDIENTE,
+  })
+  estatusF1!: FormStatusEnum;
+}

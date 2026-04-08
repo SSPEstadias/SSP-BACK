@@ -17,7 +17,7 @@ Todos los PDFs se generan con Handlebars y se suben automáticamente a Google Dr
 | `/civico/documentos/plan-vida/:expedienteId` | GET | Admin, Psicólogo | Plan de Vida (desde F1) |
 | `/civico/documentos/nota-evolucion/:expedienteId` | GET | Admin, Psicólogo | Nota de Evolución Psicológica |
 | `/civico/documentos/lista-asistencia/:expedienteId` | GET | Admin, Guia, T.Social, Psicólogo | Plantilla vacía para imprimir |
-| `/civico/documentos/lista-asistencia` | POST | Admin, Guia | ✅ Registrar asistencia + PDF |
+| `/civico/documentos/lista-asistencia` | POST | Admin, Guia |   Registrar asistencia + PDF |
 | `/civico/documentos/reporte-semanal/:expedienteId` | GET | Admin, Guia, T.Social, Psicólogo | Plantilla reporte semanal |
 | `/civico/documentos/reporte-semanal` | POST | Admin, Guia | Registrar reporte semanal + PDF |
 | `/civico/documentos/historial/:expedienteId` | GET | Todos | Historial de documentos generados |
@@ -47,18 +47,18 @@ this.http.get(`/civico/documentos/plan-vida/${uuid}`, {
 
 ## 3. Lista de Asistencia — POST
 
-### ✅ `POST /civico/documentos/lista-asistencia`
+###   `POST /civico/documentos/lista-asistencia`
 Registra asistencia + actualiza horas + sube a Drive + devuelve PDF.
 
 **Roles:** Admin, Guia
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `expedienteId` | UUID | ✅* | Sin él: PDF genérico sin guardar |
-| `fecha` | `YYYY-MM-DD` | ✅ | Fecha de la actividad |
-| `horasCubiertas` | number | ✅ | Horas (0–8) |
-| `asistencia` | Enum | ✅ | `PRESENTE` / `PRESENTE_PARCIAL` / `FALTA_JUSTIFICADA` / `FALTA_INJUSTIFICADA` |
-| `horario` | string | ✅ | Rango: `"08:00 - 12:00"` |
+| `expedienteId` | UUID |  * | Sin él: PDF genérico sin guardar |
+| `fecha` | `YYYY-MM-DD` |   | Fecha de la actividad |
+| `horasCubiertas` | number |   | Horas (0–8) |
+| `asistencia` | Enum |   | `PRESENTE` / `PRESENTE_PARCIAL` / `FALTA_JUSTIFICADA` / `FALTA_INJUSTIFICADA` |
+| `horario` | string |   | Rango: `"08:00 - 12:00"` |
 | `sede` | string | ❌ | Lugar de la actividad |
 | `actividadId` | number | ❌ | ID del catálogo (prioridad sobre `actividadNombre`) |
 | `actividadNombre` | string | ❌ | Nombre libre |
@@ -81,14 +81,14 @@ Registra asistencia + actualiza horas + sube a Drive + devuelve PDF.
 
 ## 4. Reporte Semanal — POST
 
-### ✅ `POST /civico/documentos/reporte-semanal`
+###   `POST /civico/documentos/reporte-semanal`
 Registra reporte en Drive + devuelve PDF.
 
 **Roles:** Admin, Guia
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `expedienteId` | UUID | ✅* | Sin él: PDF genérico |
+| `expedienteId` | UUID |  * | Sin él: PDF genérico |
 | `semanaNumero` | number | ❌ | Número de semana |
 | `fechaInicio` | `YYYY-MM-DD` | ❌ | Inicio de la semana |
 | `fechaFin` | `YYYY-MM-DD` | ❌ | Fin de la semana |
@@ -131,9 +131,9 @@ Para subir la versión firmada del Oficio de Canalización o de Incorporación.
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `expedienteId` | UUID | ✅ | UUID del expediente |
-| `tipo` | `CANALIZACION` / `INCORPORACION` | ✅ | Tipo de documento |
-| `file` | binary | ✅ | Archivo PDF o imagen |
+| `expedienteId` | UUID |   | UUID del expediente |
+| `tipo` | `CANALIZACION` / `INCORPORACION` |   | Tipo de documento |
+| `file` | binary |   | Archivo PDF o imagen |
 
 > ⚠️ En Angular, **no pongas `Content-Type` manualmente** — el `HttpClient` lo agrega con el `boundary` correcto al detectar `FormData`.
 

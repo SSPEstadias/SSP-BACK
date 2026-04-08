@@ -55,29 +55,29 @@ Después de ejecutar el seeder, estos usuarios existen por defecto:
 
 | Endpoint | Admin | Psicólogo | T.Social | Guia |
 | :--- | :---: | :---: | :---: | :---: |
-| `POST /users` | ✅ | ❌ | ❌ | ❌ |
-| `POST /beneficiarios` | ✅ | ✅ | ✅ | ❌ |
-| `POST /salud` | ✅ | ✅ | ❌ | ❌ |
-| `POST /civico/expedientes` | ✅ | ❌ | ❌ | ❌ |
-| `GET /civico/expedientes/**` | ✅ | ✅ | ✅ | ✅ |
-| `POST /civico/f1` | ✅ | ✅ | ❌ | ❌ |
-| `POST /civico/f2` | ✅ | ❌ | ✅ | ❌ |
-| `POST /civico/f3` (candado RF-008) | ✅ | ❌ | ❌ | ❌ |
-| `POST /civico/f4` | ✅ | ❌ | ❌ | ❌ |
-| `POST /civico/f5` | ✅ | ✅ | ❌ | ❌ |
-| `POST /civico/bitacora` | ✅ | ❌ | ❌ | ✅ |
-| `POST /civico/incidencias` | ✅ | ❌ | ❌ | ✅ |
-| `GET /civico/incidencias/**` | ✅ | ✅ | ✅ | ✅ |
-| `POST /civico/documentos/lista-asistencia` | ✅ | ❌ | ❌ | ✅ |
-| `POST /civico/documentos/reporte-semanal` | ✅ | ❌ | ❌ | ✅ |
-| `GET /civico/documentos/oficio-*` | ✅ | ❌ | ✅ | ❌ |
-| `GET /civico/documentos/f3-*` | ✅ | ✅ | ✅ | ❌ |
-| `GET /civico/documentos/f4-*` | ✅ | ✅ | ✅ | ❌ |
-| `GET /civico/documentos/plan-vida/*` | ✅ | ✅ | ❌ | ❌ |
-| `GET /civico/documentos/nota-evolucion/*` | ✅ | ✅ | ❌ | ❌ |
-| `GET /civico/documentos/historial/*` | ✅ | ✅ | ✅ | ✅ |
-| `POST /civico/documentos/subir-escaneado` | ✅ | ❌ | ✅ | ❌ |
-| `GET /civico/documentos/expediente/*/paquete-forms` | ✅ | ✅ | ✅ | ❌ |
+| `POST /users` |   | ❌ | ❌ | ❌ |
+| `POST /beneficiarios` |   |   |   | ❌ |
+| `POST /salud` |   |   | ❌ | ❌ |
+| `POST /civico/expedientes` |   | ❌ | ❌ | ❌ |
+| `GET /civico/expedientes/**` |   |   |   |   |
+| `POST /civico/f1` |   |   | ❌ | ❌ |
+| `POST /civico/f2` |   | ❌ |   | ❌ |
+| `POST /civico/f3` (candado RF-008) |   | ❌ | ❌ | ❌ |
+| `POST /civico/f4` |   | ❌ | ❌ | ❌ |
+| `POST /civico/f5` |   |   | ❌ | ❌ |
+| `POST /civico/bitacora` |   | ❌ | ❌ |   |
+| `POST /civico/incidencias` |   | ❌ | ❌ |   |
+| `GET /civico/incidencias/**` |   |   |   |   |
+| `POST /civico/documentos/lista-asistencia` |   | ❌ | ❌ |   |
+| `POST /civico/documentos/reporte-semanal` |   | ❌ | ❌ |   |
+| `GET /civico/documentos/oficio-*` |   | ❌ |   | ❌ |
+| `GET /civico/documentos/f3-*` |   |   |   | ❌ |
+| `GET /civico/documentos/f4-*` |   |   |   | ❌ |
+| `GET /civico/documentos/plan-vida/*` |   |   | ❌ | ❌ |
+| `GET /civico/documentos/nota-evolucion/*` |   |   | ❌ | ❌ |
+| `GET /civico/documentos/historial/*` |   |   |   |   |
+| `POST /civico/documentos/subir-escaneado` |   | ❌ |   | ❌ |
+| `GET /civico/documentos/expediente/*/paquete-forms` |   |   |   | ❌ |
 
 ---
 

@@ -1,4 +1,4 @@
-import {
+﻿import {
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -47,8 +47,6 @@ function toDataUri(filePath: string): string {
 // Formatea una fecha a dd/mm/yyyy.
 function formatDate(value: Date | string | null | undefined): string {
   if (!value) return '—';
-  // Si es string tipo "YYYY-MM-DD" parsear directo con UTC para evitar
-  // que JS lo interprete como midnight UTC y el timezone local desplace el día.
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const [yyyy, mm, dd] = value.split('-');
     return `${dd}/${mm}/${yyyy}`;
@@ -69,7 +67,6 @@ function fechaLargaFormat(value: Date | string | null | undefined): string {
     'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
   ];
 
-  // Si es string tipo "YYYY-MM-DD" parsear directo para evitar desfase de timezone.
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const [yyyy, mm, dd] = value.split('-');
     return `${dd} DE ${meses[parseInt(mm, 10) - 1]} DEL ${yyyy}`;
@@ -99,7 +96,6 @@ function fechaLarga(): string {
 // Ej: "domingo 22 de marzo de 2026"
 function fechaLargaDesde(value: Date | string | null | undefined): string {
   if (!value) return '—';
-  // Para strings "YYYY-MM-DD" construir con constructor local para evitar desfase UTC.
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const [y, m, d] = value.split('-').map(Number);
     value = new Date(y, m - 1, d);
@@ -119,7 +115,6 @@ function fechaLargaDesde(value: Date | string | null | undefined): string {
 // Ej: "22 de marzo de 2026"
 function fechaLargaSinDia(value: Date | string | null | undefined): string {
   if (!value) return '—';
-  // Para strings "YYYY-MM-DD" construir con constructor local para evitar desfase UTC.
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const [y, m, d] = value.split('-').map(Number);
     value = new Date(y, m - 1, d);
@@ -228,8 +223,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const docRoot = resolveDocumentosRoot();
     const assetsDir = path.join(docRoot, 'assets');
 
-    // 1. Cargar logos en paralelo para optimizar arranque (Cache en Base64 para HBS)
-    this.logger.debug('Cargando recursos gráficos...');
+      this.logger.debug('Cargando recursos gráficos...');
     const logoFiles = [
       { key: 'logoEncabezado',     file: 'logoencabezado_con_margen_derecho.png' },
       { key: 'marcaAgua',          file: 'LOGO_RECONECTACONLAPAZ_MARCADE AGUA FONDO EN TODOS LOS ARCHIVOS.jpg' },
@@ -314,8 +308,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       firmaCargo1:        'DIRECTORA GENERAL DE PREVENCIÓN DEL DELITO',
       firmaCargo2:        'Y PARTICIPACIÓN CIUDADANA',
       firmaIniciales:     'LYPZ/gujl',
-      // CC estándar para oficios
-      ccSecretario:       'Almirante I.Mp Dem. Ret. Félix Quiroz Javier, Secretario de Seguridad y Protección Ciudadana del Estado de Oaxaca',
+          ccSecretario:       'Almirante I.Mp Dem. Ret. Félix Quiroz Javier, Secretario de Seguridad y Protección Ciudadana del Estado de Oaxaca',
       ccSubsecretario:    'Dr. Roberto Claudio Castillo Rámirez, Subsecretario de Prevención y Reinserción Social',
       // Coordinador del programa — para contacto en el cuerpo de los oficios
       coordinadorNombre:  'Lic. Gandhi Ulises Juárez López, Coordinador del programa "Reconecta con la Paz"',
@@ -361,7 +354,6 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  // ── GESTIÓN DE DRIVE Y PAQUETE FEDERAL ────────────────────────────
 
   /**
    * Asegura que exista la carpeta del beneficiario y retorna su ID.
@@ -397,24 +389,20 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
 
-    // 1. Asegurar carpeta principal y subcarpeta de firmados
-    const parentId = await this.asegurarCarpetaBeneficiario(expedienteId);
+      const parentId = await this.asegurarCarpetaBeneficiario(expedienteId);
     const signedFolderId = await this.driveService.getSignedDocsFolder(parentId);
 
-    // 2. Subir archivo
-    const filename = `${tipo}_FIRMADO - ${ben.nombre.toUpperCase()} - ${exp.folioExpediente}.pdf`;
+      const filename = `${tipo}_FIRMADO - ${ben.nombre.toUpperCase()} - ${exp.folioExpediente}.pdf`;
     const driveData = await this.driveService.uploadFile(file.buffer, filename, signedFolderId);
 
-    // 3. Persistir en Expediente
-    if (tipo === 'CANALIZACION') {
+      if (tipo === 'CANALIZACION') {
       exp.canalizacionDriveId = driveData.driveFileId;
     } else {
       exp.incorporacionFirmadaDriveId = driveData.driveFileId;
     }
     await this.expedienteRepo.save(exp);
 
-    // 4. Registrar en oficios_generados con esExterno=true
-    const tipoDoc = tipo === 'CANALIZACION'
+      const tipoDoc = tipo === 'CANALIZACION'
       ? TipoDocumentoEnum.OFICIO_CANALIZACION
       : TipoDocumentoEnum.OFICIO_INCORPORACION;
     const folioEscaneado = `${tipo}-FIRMADO-${exp.folioExpediente}`;
@@ -480,10 +468,8 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
   }): Promise<OficioGenerado> {
     const { expedienteId, tipoDocumento, folioOficio, buffer, nombreArchivoFederal } = params;
 
-    // 1. Buscar si ya existe para re-uso/actualización.
-    // IMPORTANTE: Para reportes y listas, el folioOficio ya debe venir con el índice (ej: REP-1-...)
-    // esto asegura que findOne no encuentre el anterior y cree uno nuevo.
-    let oficio = await this.oficioRepo.findOne({
+      // IMPORTANTE: Para reportes y listas, el folioOficio ya debe venir con el índice (ej: REP-1-...)
+      let oficio = await this.oficioRepo.findOne({
       where: { expedienteId, tipoDocumento, folioOficio },
     });
 
@@ -498,8 +484,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
         esExterno: params.esExterno ?? false,
       });
     } else {
-      // Si ya existe (mismo folio), actualizamos el nombre
-      oficio.nombreArchivoFederal = nombreArchivoFederal;
+          oficio.nombreArchivoFederal = nombreArchivoFederal;
     }
 
     if (buffer) {
@@ -508,17 +493,13 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
         const ben = await this.getBeneficiario(exp.beneficiarioId);
         const folderName = `${ben.nombre.toUpperCase()} - ${exp.folioExpediente}`;
 
-        // a. Asegurar carpeta del beneficiario
-        exp.driveFolderId = await this.asegurarCarpetaBeneficiario(expedienteId);
+              exp.driveFolderId = await this.asegurarCarpetaBeneficiario(expedienteId);
 
-        // b. Subir o Actualizar archivo
-        try {
-          // --- Validación Extra: Si el archivo o carpeta no existen o están en la papelera, forzar re-creación ---
-          const metaExp = exp.driveFolderId ? await this.driveService.getFileMetadata(exp.driveFolderId) : null;
+              try {
+                  const metaExp = exp.driveFolderId ? await this.driveService.getFileMetadata(exp.driveFolderId) : null;
           const metaOficio = oficio.driveFileId ? await this.driveService.getFileMetadata(oficio.driveFileId) : null;
 
-          // Si el ID existe pero no hay metadatos (404) o está marcado como borrado
-          const expInvalido = exp.driveFolderId && (!metaExp || metaExp.trashed);
+                  const expInvalido = exp.driveFolderId && (!metaExp || metaExp.trashed);
           const oficioInvalido = oficio.driveFileId && (!metaOficio || metaOficio.trashed);
 
           if (expInvalido || oficioInvalido) {
@@ -596,18 +577,15 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     // 1. ¿Ya existe un oficio de este tipo para este expediente?
     const existente = await this.buscarFolioExistente(expedienteId, tipo);
     if (existente) {
-      // Si tiene sufijo de versión (ej: -V1), lo limpiamos para devolver la BASE
-      return existente.split('-V')[0];
+          return existente.split('-V')[0];
     }
 
-    // 2. Si no existe, generar nuevo correlativo anual
-    const year = new Date().getFullYear();
+      const year = new Date().getFullYear();
     const prefix = this.getPrefixForTipo(tipo);
     const suffix = `/${year}`;
 
     // Buscar el último folio con este prefijo/año entre TODOS los tipos de documento,
-    // ya que comparten la misma secuencia y la restricción de unicidad es global.
-    const last = await this.oficioRepo.createQueryBuilder('o')
+      const last = await this.oficioRepo.createQueryBuilder('o')
       .where('o.folioOficio LIKE :pattern', { pattern: `${prefix}%${suffix}` })
       .orderBy('o.fechaGeneracion', 'DESC')
       .getOne();
@@ -649,7 +627,6 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     return this.obtenerFolioDocumento(TipoDocumentoEnum.OFICIO_INCORPORACION, 'GLOBAL');
   }
 
-  // ── Métodos específicos por tipo de documento ──────────────────────
 
   async generarOficioIncorporacion(
     expedienteId: string,
@@ -943,8 +920,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     
-    // F4 Data
-    const f4  = await this.f4Repo.findOne({ where: { expedienteId } });
+      const f4  = await this.f4Repo.findOne({ where: { expedienteId } });
     if (!f4) throw new NotFoundException(`No existe un F4 (Cédula Inicial) para el expediente ${expedienteId}`);
 
     const f3  = await this.f3Repo.findOne({ where: { expedienteId } });
@@ -1018,16 +994,14 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
 
     const f3 = await this.f3Repo.findOne({ where: { expedienteId } });
 
-    // 1. Obtener Guía Asignado desde la Bitácora (rol=guia, primer registro cronológico)
-    const primerBitacora = await this.bitacoraRepo.findOne({
+      const primerBitacora = await this.bitacoraRepo.findOne({
       where: { expedienteId },
       order: { createdAt: 'ASC' },
       relations: ['guia']
     });
     const nombreGuiaBitacora = primerBitacora?.guia?.nombre?.toUpperCase();
 
-    // 2. Obtener Evidencias de Bitácora (Galería de fotos)
-    const registrosBitacora = await this.bitacoraRepo.find({
+      const registrosBitacora = await this.bitacoraRepo.find({
       where: { expedienteId, evidenciaUrl: Not(IsNull()) },
       order: { fechaActividad: 'ASC' }
     });
@@ -1049,9 +1023,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       };
     }).filter(e => e.url !== null);
 
-    // 3. Construir filas de la tabla "Proceso de seguimiento de actividades" desde F3
-    //    Mapeo: key→EJE, estatus→ESTADO INICIAL, objetivo→ACCIÓN, vinculacion→VINCULACIÓN,
-    //           temporalidad→TEMPORALIDAD, seguimiento→SEGUIMIENTO, cumplimiento→OBSERVACIONES
+        //           temporalidad→TEMPORALIDAD, seguimiento→SEGUIMIENTO, cumplimiento→OBSERVACIONES
     type ActividadF3 = { estatus?: string; objetivo?: string; cumplimiento?: string; vinculacion?: string; temporalidad?: string; seguimiento?: string };
     const actividadesPlan = (f3 as any)?.actividadesPlan as Record<string, ActividadF3> | null | undefined;
     const ejesFromF3 = actividadesPlan && Object.keys(actividadesPlan).length > 0
@@ -1118,7 +1090,6 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     return count + 1;
   }
 
-  // ── LISTA DE ASISTENCIA ──────────────────────────────────────────────
 
   /**
    * Genera la plantilla en blanco para imprimir (GET) y la sube a Drive.
@@ -1134,8 +1105,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const guia = await this.obtenerGuiaAsignado(expedienteId);
 
-    // 1. Generar plantilla en blanco para imprimir
-    const bufferPlantilla = await this.generarPdf('lista_asistencia', {
+      const bufferPlantilla = await this.generarPdf('lista_asistencia', {
       logoPresentacion1:  this.logoPresentacion1,
       logoPresentacion2:  this.logoPresentacion2,
       nombreBeneficiario: ben.nombre.toUpperCase(),
@@ -1146,8 +1116,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       filasVacias:        10,
     });
 
-    // 2. Subir plantilla a Drive con folio estable (se sobrescribe si ya existe)
-    const folioPlantilla = `PLANT-LIST-${exp.folioExpediente}`;
+      const folioPlantilla = `PLANT-LIST-${exp.folioExpediente}`;
     const filenamePlantilla = `PLANTILLA PLANTILLA DE ASISTENCIA IMPRIMIR - ${ben.nombre.toUpperCase()}.pdf`;
     await this.registrarOficio({
       expedienteId,
@@ -1158,8 +1127,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       nombreArchivoFederal: filenamePlantilla,
     });
 
-    // 3. Generar PDFs para registros de bitácora que aún no tienen oficio secuencial
-    const bitacoraRecords = await this.bitacoraRepo.find({
+      const bitacoraRecords = await this.bitacoraRepo.find({
       where: { expedienteId },
       order: { fechaActividad: 'ASC' },
       relations: ['guia'],
@@ -1249,8 +1217,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const exp = await this.getExpediente(expedienteId);
     const ben = await this.getBeneficiario(exp.beneficiarioId);
 
-    // 1. Guardar en Bitácora (Persistencia Operativa)
-    const guia = await this.userRepo.findOne({ where: { id: userId } });
+      const guia = await this.userRepo.findOne({ where: { id: userId } });
     await this.bitacoraRepo.save({
       expedienteId,
       guiaId: userId,
@@ -1262,16 +1229,13 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       sede: sede || null,
     });
 
-    // 2. Determinar número incremental
-    const numero = await this.obtenerSiguienteNumeroDocumento(expedienteId, TipoDocumentoEnum.LISTA_ASISTENCIA);
+      const numero = await this.obtenerSiguienteNumeroDocumento(expedienteId, TipoDocumentoEnum.LISTA_ASISTENCIA);
     const baseFolio = await this.obtenerFolioDocumento(TipoDocumentoEnum.LISTA_ASISTENCIA, expedienteId);
     const folioUnico = `${baseFolio}-V${numero}`;
 
-    // 3. Actualizar Avance de Horas en el Expediente (Sincronización solicitada)
-    await this.actualizarAvanceHoras(expedienteId);
+      await this.actualizarAvanceHoras(expedienteId);
 
-    // 4. Generar PDF
-    // Resolver el nombre de la actividad por actividadId (si existe)
+      // Resolver el nombre de la actividad por actividadId (si existe)
     let nombreActividad = datos.actividadNombre || 'Asistencia registrada vía sistema';
     if (actividadId) {
       const act = await this.actividadRepo.findOne({ where: { id: actividadId } });
@@ -1301,13 +1265,11 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
           sede:           sede || '—',
           firma:          inicialesPost,
           asistencia:     asistencia || '—',
-          evidenciaUrl:   '',   // en POST no hay evidencia todavía
-        },
+          evidenciaUrl:   '',         },
       ],
     });
 
-    // 5. Registrar en Drive (Nuevos archivos siempre)
-    const filename = this.generarNombreArchivo(folioUnico, ben.nombre, `LISTA ${numero}`);
+      const filename = this.generarNombreArchivo(folioUnico, ben.nombre, `LISTA ${numero}`);
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
@@ -1320,7 +1282,6 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     return { buffer, filename };
   }
 
-  // ── REPORTE SEMANAL ────────────────────────────────────────────────
 
   /**
    * Genera la plantilla en blanco de reporte semanal para imprimir (GET) y la sube a Drive.
@@ -1336,8 +1297,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const guia = await this.obtenerGuiaAsignado(expedienteId);
 
-    // 1. Generar plantilla en blanco para imprimir
-    const bufferPlantilla = await this.generarPdf('reporte_semanal', {
+      const bufferPlantilla = await this.generarPdf('reporte_semanal', {
       logoEncabezadoSspc: this.logoEncabezadoSspc,
       logoGrecas:         this.logoGrecas,
       nombreBeneficiario: ben.nombre.toUpperCase(),
@@ -1346,8 +1306,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       actividades:        [],
     });
 
-    // 2. Subir plantilla a Drive con folio estable (se sobrescribe si ya existe)
-    const folioPlantilla = `PLANT-REP-${exp.folioExpediente}`;
+      const folioPlantilla = `PLANT-REP-${exp.folioExpediente}`;
     const filenamePlantilla = `PLANTILLA REPORTE IMPRIMIR - ${ben.nombre.toUpperCase()}.pdf`;
     await this.registrarOficio({
       expedienteId,
@@ -1358,8 +1317,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       nombreArchivoFederal: filenamePlantilla,
     });
 
-    // 3. Agrupar registros de bitácora por semana ISO y generar reportes faltantes
-    const bitacoraRecords = await this.bitacoraRepo.find({
+      const bitacoraRecords = await this.bitacoraRepo.find({
       where: { expedienteId },
       order: { fechaActividad: 'ASC' },
       relations: ['guia'],
@@ -1392,8 +1350,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
             descripcion: r.observaciones || 'Actividad de seguimiento',
           }));
 
-          // Unir todas las observaciones de la semana
-          const obsUnidas = semana.registros
+                  const obsUnidas = semana.registros
             .filter(r => r.observaciones)
             .map(r => r.observaciones!.trim())
             .join(' | ');
@@ -1443,20 +1400,17 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     const ben = await this.getBeneficiario(exp.beneficiarioId);
     const guia = await this.userRepo.findOne({ where: { id: userId } });
 
-    // 1. Determinar número incremental
-    const numero = await this.obtenerSiguienteNumeroDocumento(expedienteId, TipoDocumentoEnum.REPORTE_SEMANAL_GUIA);
+      const numero = await this.obtenerSiguienteNumeroDocumento(expedienteId, TipoDocumentoEnum.REPORTE_SEMANAL_GUIA);
     const baseFolio = await this.obtenerFolioDocumento(TipoDocumentoEnum.REPORTE_SEMANAL_GUIA, expedienteId);
     const folioUnico = `${baseFolio}-V${numero}`;
 
-    // 2. Mapear renglones de actividades si vienen en el JSON
-    const listaActividades = Array.isArray(renglones) ? renglones.map(r => ({
+      const listaActividades = Array.isArray(renglones) ? renglones.map(r => ({
       asistencia:  r.asistencia || 'P',
       fecha:       formatDate(r.fecha),
       descripcion: r.descripcion || 'Sin descripción'
     })) : [];
 
-    // 3. Generar PDF
-    const buffer = await this.generarPdf('reporte_semanal', {
+      const buffer = await this.generarPdf('reporte_semanal', {
       numOficio:          folioUnico,
       logoEncabezadoSspc: this.logoEncabezadoSspc,
       logoGrecas:         this.logoGrecas,
@@ -1469,8 +1423,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       actividades:        listaActividades,
     });
 
-    // 4. Registrar en Drive con nombre incremental
-    const filename = this.generarNombreArchivo(folioUnico, ben.nombre, `REPORTE ${numero}`);
+      const filename = this.generarNombreArchivo(folioUnico, ben.nombre, `REPORTE ${numero}`);
     await this.registrarOficio({
       expedienteId,
       generadoPorId:        userId,
@@ -1509,7 +1462,6 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  // ── Helpers privados ───────────────────────────────────────────────
 
   /**
    * Genera el reporte de notas de evolución psicológica.
@@ -1622,8 +1574,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
         dd   = dtmp.getUTCDate();
       }
 
-      // Todo el cálculo usando Date.UTC para mantener coherencia.
-      const d = new Date(Date.UTC(yyyy, mo, dd));
+          const d = new Date(Date.UTC(yyyy, mo, dd));
       const dayOfWeek = d.getUTCDay(); // 0=Dom, 1=Lun...
       const diffToMonday = dd - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
       const monday = new Date(Date.UTC(yyyy, mo, diffToMonday));
@@ -1662,3 +1613,4 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     return mapa[asistencia] ?? String(asistencia);
   }
 }
+

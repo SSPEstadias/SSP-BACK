@@ -23,7 +23,7 @@ async function seed() {
   const adminUser = await repo.findOne({ where: { nomUsuario: 'Admin' } });
 
   if (adminUser) {
-    console.log('✅ Admin ya existe: Admin');
+    console.log('  Admin ya existe: Admin');
     await ds.destroy();
     return;
   }
@@ -40,7 +40,7 @@ async function seed() {
   });
 
   await repo.save(user);
-  console.log('✅ Admin creado: admin /', password);
+  console.log('  Admin creado: admin /', password);
 
   await ds.destroy();
 }

@@ -81,17 +81,17 @@ El Admin puede hacer **todo**. Sigue el guion de `11-plan-pruebas-asesor.md`.
 **Login:** `{ "nomUsuario": "psico_ana", "contrasena": "Admin1234" }`
 
 **Puede:**
-- [ ] `GET /civico/expedientes/caratulas` ✅
-- [ ] `GET /civico/expedientes/{{EXP_UUID}}` ✅
-- [ ] `POST /beneficiarios` ✅
-- [ ] `GET /salud/beneficiario/1` ✅
-- [ ] `POST /civico/f1` ✅
-- [ ] `PATCH /civico/f1/:id` ✅
-- [ ] `POST /civico/f5` ✅
-- [ ] `GET /civico/f2/expediente/{{EXP_UUID}}` ✅ (solo lectura)
-- [ ] `GET /civico/documentos/plan-vida/{{EXP_UUID}}` ✅
-- [ ] `GET /civico/documentos/nota-evolucion/{{EXP_UUID}}` ✅
-- [ ] `GET /civico/documentos/f3-plan-trabajo/{{EXP_UUID}}` ✅
+- [ ] `GET /civico/expedientes/caratulas`  
+- [ ] `GET /civico/expedientes/{{EXP_UUID}}`  
+- [ ] `POST /beneficiarios`  
+- [ ] `GET /salud/beneficiario/1`  
+- [ ] `POST /civico/f1`  
+- [ ] `PATCH /civico/f1/:id`  
+- [ ] `POST /civico/f5`  
+- [ ] `GET /civico/f2/expediente/{{EXP_UUID}}`   (solo lectura)
+- [ ] `GET /civico/documentos/plan-vida/{{EXP_UUID}}`  
+- [ ] `GET /civico/documentos/nota-evolucion/{{EXP_UUID}}`  
+- [ ] `GET /civico/documentos/f3-plan-trabajo/{{EXP_UUID}}`  
 
 **NO puede:**
 - [ ] `POST /civico/expedientes` → 403 ❌
@@ -106,14 +106,14 @@ El Admin puede hacer **todo**. Sigue el guion de `11-plan-pruebas-asesor.md`.
 **Login:** `{ "nomUsuario": "social_pedro", "contrasena": "Admin1234" }`
 
 **Puede:**
-- [ ] `GET /civico/expedientes/caratulas` ✅
-- [ ] `POST /beneficiarios` ✅
-- [ ] `POST /civico/f2` ✅
-- [ ] `PATCH /civico/f2/:id` ✅
-- [ ] `GET /civico/f1/expediente/{{EXP_UUID}}` ✅ (solo lectura)
-- [ ] `GET /civico/documentos/oficio-incorporacion/{{EXP_UUID}}` ✅
-- [ ] `GET /civico/documentos/oficio-conclusion/{{EXP_UUID}}` ✅
-- [ ] `POST /civico/documentos/subir-escaneado` ✅
+- [ ] `GET /civico/expedientes/caratulas`  
+- [ ] `POST /beneficiarios`  
+- [ ] `POST /civico/f2`  
+- [ ] `PATCH /civico/f2/:id`  
+- [ ] `GET /civico/f1/expediente/{{EXP_UUID}}`   (solo lectura)
+- [ ] `GET /civico/documentos/oficio-incorporacion/{{EXP_UUID}}`  
+- [ ] `GET /civico/documentos/oficio-conclusion/{{EXP_UUID}}`  
+- [ ] `POST /civico/documentos/subir-escaneado`  
 
 **NO puede:**
 - [ ] `POST /civico/expedientes` → 403 ❌
@@ -129,16 +129,16 @@ El Admin puede hacer **todo**. Sigue el guion de `11-plan-pruebas-asesor.md`.
 **Login:** `{ "nomUsuario": "guia_roberto", "contrasena": "Admin1234" }`
 
 **Puede:**
-- [ ] `GET /civico/expedientes/caratulas` ✅
-- [ ] `POST /civico/bitacora` ✅ (requiere `guiaId: 4`)
-- [ ] `GET /civico/bitacora/expediente/{{EXP_UUID}}` ✅
-- [ ] `GET /civico/bitacora/expediente/{{EXP_UUID}}/horas` ✅
-- [ ] `POST /civico/documentos/lista-asistencia` ✅
-- [ ] `POST /civico/documentos/reporte-semanal` ✅
-- [ ] `GET /civico/documentos/lista-asistencia/{{EXP_UUID}}` ✅ (plantilla)
-- [ ] `POST /civico/incidencias` ✅
-- [ ] `PATCH /civico/incidencias/:id/resolver` ✅
-- [ ] `GET /civico/incidencias/expediente/{{EXP_UUID}}/strikes` ✅
+- [ ] `GET /civico/expedientes/caratulas`  
+- [ ] `POST /civico/bitacora`   (requiere `guiaId: 4`)
+- [ ] `GET /civico/bitacora/expediente/{{EXP_UUID}}`  
+- [ ] `GET /civico/bitacora/expediente/{{EXP_UUID}}/horas`  
+- [ ] `POST /civico/documentos/lista-asistencia`  
+- [ ] `POST /civico/documentos/reporte-semanal`  
+- [ ] `GET /civico/documentos/lista-asistencia/{{EXP_UUID}}`   (plantilla)
+- [ ] `POST /civico/incidencias`  
+- [ ] `PATCH /civico/incidencias/:id/resolver`  
+- [ ] `GET /civico/incidencias/expediente/{{EXP_UUID}}/strikes`  
 
 **NO puede:**
 - [ ] `POST /civico/expedientes` → 403 ❌

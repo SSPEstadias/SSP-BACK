@@ -22,8 +22,8 @@ Esta guía documenta todos los campos de cada formato y las reglas de negocio cr
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `expedienteId` | UUID | ✅ | UUID del expediente |
-| `psicologoId` | number | ✅ | ID del psicólogo (de `GET /users`) |
+| `expedienteId` | UUID |   | UUID del expediente |
+| `psicologoId` | number |   | ID del psicólogo (de `GET /users`) |
 | `fechaEntrevista` | `YYYY-MM-DD` | ❌ | Fecha de la sesión |
 | `consentimientoInformado` | boolean | ❌ | El beneficiario firmó consentimiento |
 | `riesgoSuicida` | boolean | ❌ | Si hay ideación suicida activa |
@@ -147,8 +147,8 @@ Esta guía documenta todos los campos de cada formato y las reglas de negocio cr
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `expedienteId` | UUID | ✅ | UUID del expediente |
-| `trabajadorSocialId` | number | ✅ | ID del trabajador social |
+| `expedienteId` | UUID |   | UUID del expediente |
+| `trabajadorSocialId` | number |   | ID del trabajador social |
 | `ingresoMensual` | decimal | ❌ | Ingreso mensual del hogar |
 | `egresoMensual` | decimal | ❌ | Egresos mensuales del hogar |
 | `nivelSocioeconomico` | `ALTO`/`MEDIO`/`BAJO` | ❌ | Nivel socioeconómico |
@@ -234,8 +234,8 @@ Respuesta: `{ "canCrearF3": true/false, "f1Completado": ..., "f2Completado": ...
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `expedienteId` | UUID | ✅ | UUID del expediente |
-| `coordinadorId` | number | ✅ | ID del coordinador (usuario Admin) |
+| `expedienteId` | UUID |   | UUID del expediente |
+| `coordinadorId` | number |   | ID del coordinador (usuario Admin) |
 | `fechaInicioEstimada` | `YYYY-MM-DD` | ❌ | Inicio del plan |
 | `fechaTerminoEstimada` | `YYYY-MM-DD` | ❌ | Fin estimado del plan |
 | `diasAsignados` | string | ❌ | Ej: `"Lunes, Miércoles y Viernes de 08:00 a 12:00"` |
@@ -331,9 +331,9 @@ A diferencia del F3, aquí **solo son 5 claves válidas** y el valor de cada una
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `expedienteId` | UUID | ✅ | UUID del expediente |
-| `psicologoId` | number | ✅ | ID del psicólogo |
-| `numSesion` | number | ✅ | Número incremental: 1, 2, 3... |
+| `expedienteId` | UUID |   | UUID del expediente |
+| `psicologoId` | number |   | ID del psicólogo |
+| `numSesion` | number |   | Número incremental: 1, 2, 3... |
 | `fechaSesion` | `YYYY-MM-DD` | ❌ | Fecha de la sesión |
 | `horaSesion` | string | ❌ | Hora de inicio, ej: `"10:00"` |
 | `fechaProximaSesion` | `YYYY-MM-DD` | ❌ | Fecha de la siguiente cita |

@@ -45,7 +45,7 @@ export class BitacoraCivica {
   })
   horasCubiertas!: number;
 
-  // ✅ CORREGIDO: Ahora es ENUM, no BOOLEAN
+  // El tipo es un enum, no un boolean, para soportar asistencia parcial y tipos de falta
   @Column({
     name: 'asistencia',
     type: 'enum',

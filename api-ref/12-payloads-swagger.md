@@ -28,7 +28,7 @@ Copia y pega directamente en Swagger. Reemplaza `{{EXP_UUID}}` con el UUID real 
 → Guarda `id` → usa como `beneficiarioId`
 
 > ⚠️ Si la foto está en una ruta local de Windows, usa `/` no `\`:  
-> ✅ `"C:/Users/yahir/Downloads/foto.jpeg"`  
+>   `"C:/Users/yahir/Downloads/foto.jpeg"`  
 > ❌ `"C:\Users\yahir\Downloads\foto.jpeg"` ← esto rompe el JSON
 
 ---

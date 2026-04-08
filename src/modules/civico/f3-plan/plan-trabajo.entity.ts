@@ -66,12 +66,12 @@ import {
     @Column({ name: 'observaciones_plan', type: 'text', nullable: true })
     observacionesPlan!: string | null;
   
-    // ── Control — solo se crea si F1 y F2 están COMPLETADOS (RF-008) ──
-    @Column({
-      name: 'estatus_f3',
-      type: 'enum',
-      enum: FormStatusEnum,
-      default: FormStatusEnum.PENDIENTE,
-    })
-    estatusF3!: FormStatusEnum;
-  }
+  // Solo se puede crear si F1 y F2 están COMPLETADOS (RF-008)
+  @Column({
+    name: 'estatus_f3',
+    type: 'enum',
+    enum: FormStatusEnum,
+    default: FormStatusEnum.PENDIENTE,
+  })
+  estatusF3!: FormStatusEnum;
+}

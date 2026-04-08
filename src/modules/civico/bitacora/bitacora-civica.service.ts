@@ -44,13 +44,10 @@ export class BitacoraCivicaService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
 
-    // ✅ NUEVO: Inyectar servicio de incidencias
     private readonly incidenciasService: IncidenciasService,
   ) {}
 
-  // ── Registrar entrada en bitácora ─────────────────────────────────
   async create(dto: CreateBitacoraCivicaDto): Promise<BitacoraCivica> {
-    // 1. Obtener expediente
     const expediente = await this.expedienteRepo.findOne({
       where: { idUUID: dto.expedienteId },
     });
@@ -59,7 +56,6 @@ export class BitacoraCivicaService {
       throw new BadRequestException(`Expediente ${dto.expedienteId} no encontrado`);
     }
 
-    // 2. Validar que el guiaId corresponda a un usuario con rol=guia
     const guia = await this.userRepo.findOne({ where: { id: dto.guiaId } });
     if (!guia) {
       throw new BadRequestException(`Usuario ${dto.guiaId} no encontrado`);
@@ -70,7 +66,6 @@ export class BitacoraCivicaService {
       );
     }
 
-    // 3. Validación: FALTA_INJUSTIFICADA siempre tiene 0 horas
     if (
       dto.asistencia === AsistenciaEnum.FALTA_INJUSTIFICADA &&
       dto.horasCubiertas !== 0
@@ -80,24 +75,21 @@ export class BitacoraCivicaService {
       );
     }
 
-    // 4. Validación: Si hay incidencia, detalleIncidencia es obligatorio
     if (dto.incidencia && !dto.detalleIncidencia) {
       throw new BadRequestException(
         'Si hay incidencia, detalleIncidencia es obligatorio',
       );
     }
 
-    // 5. Validar restricciones de salud si asistió
     if (dto.asistencia === AsistenciaEnum.PRESENTE || 
         dto.asistencia === AsistenciaEnum.PRESENTE_PARCIAL) {
       await this.validarRestriccionSalud(dto);
     }
 
-    // 6. ✅ CREAR BITÁCORA
     const bitacora = this.bitacoraRepo.create(dto);
     const saved = await this.bitacoraRepo.save(bitacora);
 
-    // 7. ✅ SI HAY INCIDENCIA EN LA BITÁCORA → CREAR TAMBIÉN EN TABLA INCIDENCIAS
+    // Si hay incidencia en la bitácora, también se registra en la tabla de incidencias
     if (dto.incidencia) {
       await this.incidenciasService.create({
         expedienteId: dto.expedienteId,
@@ -109,22 +101,19 @@ export class BitacoraCivicaService {
       });
     }
 
-    // 7. ✅ ACTUALIZAR EXPEDIENTE (UNA SOLA VEZ al final)
     let cambios = false;
 
-    // Sumar horas si hubo asistencia
     if (
       (dto.asistencia === AsistenciaEnum.PRESENTE ||
         dto.asistencia === AsistenciaEnum.PRESENTE_PARCIAL) &&
       dto.horasCubiertas > 0
     ) {
-      // ✅ Parsear a número: TypeORM devuelve columnas DECIMAL como string desde PostgreSQL
+      // TypeORM devuelve columnas DECIMAL como string desde PostgreSQL, hay que parsear
       const avanceActual = parseFloat(String(expediente.avanceHoras ?? 0));
       const horasNuevas = Number(dto.horasCubiertas);
       const nuevoAvance = avanceActual + horasNuevas;
       expediente.avanceHoras = nuevoAvance;
 
-      // Verificar si llegó a las horas requeridas Y los formatos están cerrados
       if (expediente.horasSentencia && nuevoAvance >= Number(expediente.horasSentencia)) {
         const listoParaGraduado = await this.verificarRequisitosGraduacion(dto.expedienteId);
         if (listoParaGraduado) {
@@ -135,7 +124,7 @@ export class BitacoraCivicaService {
       cambios = true;
     }
 
-    // Contar incidencias acumulativas TOTALES (Punto 6: Cualquier tipo cuenta para el acumulado) y aplicar BAJA si >= 3
+    // Tres incidencias acumuladas disparan la baja automática
     if (dto.incidencia) {
       const totalIncidencias = await this.bitacoraRepo.count({
         where: { expedienteId: dto.expedienteId },
@@ -147,7 +136,6 @@ export class BitacoraCivicaService {
       }
     }
 
-    // ✅ Guardar expediente CON TODOS los cambios
     if (cambios) {
       await this.expedienteRepo.save(expediente);
     }
@@ -155,10 +143,7 @@ export class BitacoraCivicaService {
     return saved;
   }
 
-  /**
-   * Verifica que F1, F2, F3 y F4 estén en estatus COMPLETADO/CERRADO, 
-   * y que el seguimiento psicológico (F5) haya sido marcado como cerrado.
-   */
+  // Todos los formularios (F1-F4) deben estar COMPLETADO o CERRADO, y el F5 marcado como cerrado en el expediente.
   private async verificarRequisitosGraduacion(expedienteId: string): Promise<boolean> {
     const [exp, f1, f2, f3, f4] = await Promise.all([
       this.expedienteRepo.findOne({ where: { idUUID: expedienteId } }),
@@ -168,13 +153,10 @@ export class BitacoraCivicaService {
       this.f4Repo.findOne({ where: { expedienteId } }),
     ]);
 
-    if (!exp) return false;
+    if (!exp || !exp.estatusF5Cerrado) return false;
 
-    // F5 Check
-    if (!exp.estatusF5Cerrado) return false;
-
-    // Status Check Helpers
-    const isClosed = (status?: FormStatusEnum) => status === FormStatusEnum.COMPLETADO || status === FormStatusEnum.CERRADO;
+    const isClosed = (status?: FormStatusEnum) =>
+      status === FormStatusEnum.COMPLETADO || status === FormStatusEnum.CERRADO;
 
     return (
       isClosed(f1?.estatusF1) &&
@@ -184,7 +166,7 @@ export class BitacoraCivicaService {
     );
   }
 
-  // ── Validación de salud ────────────────────────────────────────────
+
   private async validarRestriccionSalud(
     dto: CreateBitacoraCivicaDto,
   ): Promise<void> {

@@ -32,7 +32,7 @@ export class SeederService implements OnApplicationBootstrap {
     });
 
     if (existe) {
-      this.logger.log('✅ Admin ya existe — seed omitido');
+      this.logger.log('  Admin ya existe — seed omitido');
       return;
     }
 
@@ -48,14 +48,14 @@ export class SeederService implements OnApplicationBootstrap {
     });
 
     await this.userRepo.save(admin);
-    this.logger.log(`✅ Admin creado: admin / ${password}`);
+    this.logger.log(`  Admin creado: admin / ${password}`);
   }
 
   // ── Crea el catálogo de actividades si está vacío ───────────────────
   private async seedActividades(): Promise<void> {
     const count = await this.actividadRepo.count();
     if (count > 0) {
-      this.logger.log('✅ Catálogo de actividades ya poblado — seed omitido');
+      this.logger.log('  Catálogo de actividades ya poblado — seed omitido');
       return;
     }
 
@@ -110,6 +110,6 @@ export class SeederService implements OnApplicationBootstrap {
     ];
 
     await this.actividadRepo.save(this.actividadRepo.create(actividades));
-    this.logger.log(`✅ Catálogo de actividades creado (${actividades.length} items)`);
+    this.logger.log(`  Catálogo de actividades creado (${actividades.length} items)`);
   }
 }

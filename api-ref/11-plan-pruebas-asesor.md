@@ -334,7 +334,7 @@ Muestra en vivo el PDF de Plan de Vida generado con los datos de `proyectoVida` 
 ```
 
 **Verificar:** `GET /civico/expedientes/{{EXP_UUID}}`  
-→ `estatusProceso` = `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` ✅
+→ `estatusProceso` = `BAJA_POR_ACUMULACION_DE_INCIDENCIAS`  
 
 ---
 

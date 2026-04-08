@@ -4,7 +4,7 @@ Este módulo controla el avance de horas y el comportamiento del beneficiario en
 
 ---
 
-## 1. ✅ Registrar Asistencia + PDF + Drive (Endpoint Oficial)
+## 1.   Registrar Asistencia + PDF + Drive (Endpoint Oficial)
 
 > [!IMPORTANT]
 > **`POST /civico/documentos/lista-asistencia`** es el endpoint oficial para registrar asistencia.  
@@ -16,11 +16,11 @@ Este módulo controla el avance de horas y el comportamiento del beneficiario en
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `expedienteId` | UUID | ✅* | UUID del expediente. **Sin él**: solo genera PDF sin guardar. |
-| `fecha` | `YYYY-MM-DD` | ✅ | Fecha de la actividad |
-| `horasCubiertas` | number | ✅ | Horas de la sesión (máx 8, mín 0) |
-| `asistencia` | Enum | ✅ | `PRESENTE` / `PRESENTE_PARCIAL` / `FALTA_JUSTIFICADA` / `FALTA_INJUSTIFICADA` |
-| `horario` | string | ✅ | Rango de tiempo: `"08:00 - 12:00"` |
+| `expedienteId` | UUID |  * | UUID del expediente. **Sin él**: solo genera PDF sin guardar. |
+| `fecha` | `YYYY-MM-DD` |   | Fecha de la actividad |
+| `horasCubiertas` | number |   | Horas de la sesión (máx 8, mín 0) |
+| `asistencia` | Enum |   | `PRESENTE` / `PRESENTE_PARCIAL` / `FALTA_JUSTIFICADA` / `FALTA_INJUSTIFICADA` |
+| `horario` | string |   | Rango de tiempo: `"08:00 - 12:00"` |
 | `sede` | string | ❌ | Lugar donde se realizó la actividad |
 | `actividadId` | number | ❌ | ID del catálogo de actividades (tiene prioridad sobre `actividadNombre`) |
 | `actividadNombre` | string | ❌ | Nombre libre si no hay `actividadId` |
@@ -54,11 +54,11 @@ Para registrar asistencia sin generar PDF (solo BD, más rápido):
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `expedienteId` | UUID | ✅ | UUID del expediente |
-| `guiaId` | number | ✅ | ID del guía (usuario con rol `guia`) |
-| `fechaActividad` | `YYYY-MM-DD` | ✅ | Fecha de la actividad |
-| `horasCubiertas` | decimal | ✅ | Horas (ej. `4.5`, máx `8`) |
-| `asistencia` | Enum | ✅ | Ver tabla de estados abajo |
+| `expedienteId` | UUID |   | UUID del expediente |
+| `guiaId` | number |   | ID del guía (usuario con rol `guia`) |
+| `fechaActividad` | `YYYY-MM-DD` |   | Fecha de la actividad |
+| `horasCubiertas` | decimal |   | Horas (ej. `4.5`, máx `8`) |
+| `asistencia` | Enum |   | Ver tabla de estados abajo |
 | `actividadId` | number | ❌ | ID del catálogo de actividades |
 | `sede` | string | ❌ | Lugar de la actividad |
 | `incidencia` | Enum | ❌ | Tipo de incidencia (ver tabla abajo) |
@@ -70,20 +70,20 @@ Para registrar asistencia sin generar PDF (solo BD, más rápido):
 
 | Valor | Suma horas | Genera incidencia |
 | :--- | :---: | :---: |
-| `PRESENTE` | ✅ Suma | ❌ No |
-| `PRESENTE_PARCIAL` | ✅ Suma parcial | ⚠️ Opcional |
+| `PRESENTE` |   Suma | ❌ No |
+| `PRESENTE_PARCIAL` |   Suma parcial | ⚠️ Opcional |
 | `FALTA_JUSTIFICADA` | ❌ No suma | ❌ No (no es strike) |
-| `FALTA_INJUSTIFICADA` | ❌ No suma | ✅ Sí (es strike) |
+| `FALTA_INJUSTIFICADA` | ❌ No suma |   Sí (es strike) |
 
 ### Tabla de tipos de incidencia:
 
 | Valor | Acumulativa (strike) | Descripción |
 | :--- | :---: | :--- |
-| `FALTA_INJUSTIFICADA` | ✅ | No asistió sin justificación |
-| `RETARDO` | ✅ | Llegó tarde sin justificación |
-| `CONDUCTA_INAPROPIADA` | ✅ | Comportamiento inadecuado |
-| `INCUMPLIMIENTO_TAREA` | ✅ | No completó las asignaciones |
-| `RETIRO_ANTICIPADO` | ✅ | Se fue antes de terminar |
+| `FALTA_INJUSTIFICADA` |   | No asistió sin justificación |
+| `RETARDO` |   | Llegó tarde sin justificación |
+| `CONDUCTA_INAPROPIADA` |   | Comportamiento inadecuado |
+| `INCUMPLIMIENTO_TAREA` |   | No completó las asignaciones |
+| `RETIRO_ANTICIPADO` |   | Se fue antes de terminar |
 | `INASISTENCIA_JUSTIFICADA` | ❌ | Falta con justificación válida |
 | `VISITA_DOMICILIARIA` | ❌ | Registro informativo |
 | `CONVERSATORIO` | ❌ | Registro informativo de seguimiento |
@@ -138,10 +138,10 @@ Para registrar incidencias que ocurren fuera de una actividad programada:
 
 | Campo | Tipo | Req | Descripción |
 | :--- | :--- | :---: | :--- |
-| `expedienteId` | UUID | ✅ | UUID del expediente |
-| `guiaId` | number | ✅ | ID del guía |
-| `tipo` | Enum | ✅ | Tipo de incidencia (ver tabla arriba) |
-| `fechaIncidencia` | `YYYY-MM-DD` | ✅ | Fecha del evento |
+| `expedienteId` | UUID |   | UUID del expediente |
+| `guiaId` | number |   | ID del guía |
+| `tipo` | Enum |   | Tipo de incidencia (ver tabla arriba) |
+| `fechaIncidencia` | `YYYY-MM-DD` |   | Fecha del evento |
 | `descripcionHechos` | string | ❌ | Descripción detallada |
 | `esAcumulativa` | boolean | ❌ | Si suma al contador de strikes |
 | `estatusResolucion` | `PENDIENTE`/`RESUELTA`/`DERIVO_EN_BAJA` | ❌ | Estado inicial |
@@ -200,7 +200,7 @@ O sin oficio: `{ "numOficioNotificacion": null }`
 
 ## 8. Automatizaciones del Sistema
 
-- ✅ Cada asistencia suma a `avanceHoras` del expediente automáticamente.
-- ✅ Al llegar a `horasSentencia`, el expediente pasa a `GRADUADO` si los formatos están cerrados.
-- ✅ A la 3ª incidencia acumulativa → `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` automáticamente.
-- ✅ El campo `sede` se persiste en `civic_bitacora_civica.sede` (columna creada en migración `1743638040000-AddSedeToBitacora`).
+-   Cada asistencia suma a `avanceHoras` del expediente automáticamente.
+-   Al llegar a `horasSentencia`, el expediente pasa a `GRADUADO` si los formatos están cerrados.
+-   A la 3ª incidencia acumulativa → `BAJA_POR_ACUMULACION_DE_INCIDENCIAS` automáticamente.
+-   El campo `sede` se persiste en `civic_bitacora_civica.sede` (columna creada en migración `1743638040000-AddSedeToBitacora`).

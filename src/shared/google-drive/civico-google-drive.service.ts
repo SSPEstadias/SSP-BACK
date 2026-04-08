@@ -50,9 +50,7 @@ export class CivicoGoogleDriveService {
     }
   }
 
-  /**
-   * Obtiene o crea una carpeta por nombre dentro de una carpeta padre.
-   */
+  // Busca la carpeta por nombre en el padre indicado, o la crea si no existe.
   async getOrCreateFolder(name: string, parentId?: string): Promise<string> {
     if (!this.drive) return 'DRIVE_DISABLED';
     const parent = this.normalizeFolderId(parentId) || this.rootFolderId;
@@ -64,7 +62,6 @@ export class CivicoGoogleDriveService {
     }
 
     try {
-      // 1. Buscar si ya existe
       const res = await this.drive.files.list({
         q: `name = '${name.replace(/'/g, "\\'")}' and mimeType = 'application/vnd.google-apps.folder' and '${parent}' in parents and trashed = false`,
         fields: 'files(id, name)',
@@ -77,7 +74,6 @@ export class CivicoGoogleDriveService {
         return res.data.files[0].id!;
       }
 
-      // 2. Crear si no existe
       const folderMetadata = {
         name,
         mimeType: 'application/vnd.google-apps.folder',
@@ -98,9 +94,7 @@ export class CivicoGoogleDriveService {
     }
   }
 
-  /**
-   * Sube un buffer como PDF a una carpeta específica. Retorna ID y URL pública.
-   */
+  // Sube un buffer como PDF a una carpeta de Drive. Retorna el ID y la URL del archivo.
   async uploadFile(buffer: Buffer, filename: string, folderId: string): Promise<{ driveFileId: string; urlArchivo: string }> {
     if (!this.drive) return { driveFileId: 'DRIVE_DISABLED', urlArchivo: 'DRIVE_DISABLED' };
 
@@ -132,9 +126,7 @@ export class CivicoGoogleDriveService {
     }
   }
 
-  /**
-   * Actualiza el contenido de un archivo existente (Sobreescritura).
-   */
+  // Sobreescribe el contenido de un archivo existente en Drive.
   async updateFile(driveFileId: string, buffer: Buffer): Promise<{ urlArchivo: string }> {
     if (!this.drive) return { urlArchivo: 'DRIVE_DISABLED' };
 
@@ -160,16 +152,12 @@ export class CivicoGoogleDriveService {
     }
   }
 
-  /**
-   * Obtiene o crea la subcarpeta "Documentos Firmados" dentro de la carpeta del beneficiario.
-   */
+  // Retorna (o crea) la subcarpeta para documentos firmados dentro de la carpeta del beneficiario.
   async getSignedDocsFolder(beneficiaryFolderId: string): Promise<string> {
     return this.getOrCreateFolder('Documentos Firmados', beneficiaryFolderId);
   }
 
-  /**
-   * Obtiene metadatos de un archivo o carpeta (ej: si está en la papelera).
-   */
+  // Verifica si un archivo o carpeta de Drive existe y si está en la papelera.
   async getFileMetadata(fileId: string): Promise<{ trashed: boolean } | null> {
     if (!this.drive) return null;
     try {

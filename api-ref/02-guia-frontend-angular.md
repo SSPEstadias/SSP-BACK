@@ -10,7 +10,7 @@ Esta guía contiene los errores comunes, mejores prácticas y consejos específi
 
 Si usas rutas de Windows con barras invertidas `\`, el JSON las interpreta como caracteres de escape y el servidor lanzará un error de parseo.
 
-### ✅ Forma CORRECTA (barras hacia adelante `/`)
+###   Forma CORRECTA (barras hacia adelante `/`)
 ```json
 {
   "urlFoto": "C:/Users/yahir/Downloads/yoimage.jpeg"
