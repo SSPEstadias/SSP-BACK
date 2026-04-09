@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CivicoGoogleDriveService } from 'src/shared/google-drive/civico-google-drive.service';
@@ -16,9 +20,21 @@ export class PersonasService {
 
   // ─── CREAR ───────────────────────────────────────────────────
   async create(createPersonaDto: CreatePersonaDto): Promise<Persona> {
+    // Validar folio duplicado
+    if (createPersonaDto.folio) {
+      const existente = await this.personaRepository.findOne({
+        where: { folio: createPersonaDto.folio },
+      });
+
+      if (existente) {
+        throw new BadRequestException(
+          `Ya existe una persona registrada con el folio "${createPersonaDto.folio}"`,
+        );
+      }
+    }
+
     const persona = this.personaRepository.create(createPersonaDto);
     return await this.personaRepository.save(persona);
-    // TypeORM genera el UUID automáticamente con @PrimaryGeneratedColumn('uuid')
   }
 
   // ─── LISTAR TODOS ────────────────────────────────────────────
@@ -40,6 +56,20 @@ export class PersonasService {
   // ─── ACTUALIZAR ──────────────────────────────────────────────
   async update(id: string, updatePersonaDto: UpdatePersonaDto): Promise<Persona> {
     const persona = await this.findOne(id);
+
+    // Validar folio duplicado si se está cambiando
+    if (updatePersonaDto.folio && updatePersonaDto.folio !== persona.folio) {
+      const existente = await this.personaRepository.findOne({
+        where: { folio: updatePersonaDto.folio },
+      });
+
+      if (existente) {
+        throw new BadRequestException(
+          `Ya existe una persona registrada con el folio "${updatePersonaDto.folio}"`,
+        );
+      }
+    }
+
     const updated = this.personaRepository.merge(persona, updatePersonaDto);
     return await this.personaRepository.save(updated);
   }
@@ -53,16 +83,13 @@ export class PersonasService {
 
   // ─── SUBIR ARCHIVO A GOOGLE DRIVE ───────────────────────────
   async uploadFileToVoluntario(personaId: string, pdfBuffer: Buffer, fileName: string) {
-    // Obtener el padre folder del .env
     const parentFolderId = process.env.VOLUNTARIADO_DRIVE_FOLDER_ID;
 
-    // Crear o buscar carpeta de la persona
     const folderId = await this.driveService.getOrCreateFolder(
       `VOLUNTARIO-${personaId}`,
       parentFolderId,
     );
 
-    // Subir archivo
     const { driveFileId, urlArchivo } = await this.driveService.uploadFile(
       pdfBuffer,
       fileName,
