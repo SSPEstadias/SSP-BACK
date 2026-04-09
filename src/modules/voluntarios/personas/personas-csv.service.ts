@@ -64,59 +64,31 @@ export class PersonasCsvService {
     private readonly personaRepository: Repository<Persona>,
   ) {}
 
-  // ─── GENERAR TEMPLATE CSV ────────────────────────────────────
-  generateCsvTemplate(): Buffer {
-    const headers = PersonasCsvService.CSV_HEADERS.join(',');
-    const ejemplo = [
-      'Juan Perez Lopez',
-      'VOL-001',
-      'El Pecas',
-      '25',
-      '2000-01-15',
-      'PELJ000115HOCRPN09',
-      'Oaxaca',
-      'Motivo de ingreso',
-      '2026-03-01',
-      '2026-06-01',
-      'Católica',
-      'Sí',
-      'Fútbol',
-      'Leer',
-      'Sí',
-      'Oaxaca',
-      'Padres',
-      'Sí',
-      'Secundaria',
-      'Sí',
-      'true',
-      'false',
-      'false',
-      'Secundaria Técnica 5',
-      'Calle Reforma 123',
-      '2018-07-15',
-      'No',
-      '',
-      'Sí',
-      'Carpintería',
-      'Electricidad',
-      'Ninguno',
-      'IMSS',
-      'No',
-      'No',
-      'No',
-      'No',
-      'María López',
-      'Madre',
-      '9511234567',
-      'Carlos Pérez',
-      'Padre',
-      '9519876543',
-      'Activo',
-    ].join(',');
+  // ─── CONVERTIR FECHA DD-MM-YYYY → YYYY-MM-DD ─────────────────
+  // Excel modifica las fechas YYYY-MM-DD, por eso en el CSV se
+  // usan DD-MM-YYYY que Excel no reconoce como fecha y no toca.
+  // El back las convierte antes de guardar.
+ private parseFecha(valor: string | undefined): string | null {
+  if (!valor || valor.trim() === '') return null;
 
-    const csv = `${headers}\n${ejemplo}\n`;
-    return Buffer.from(csv, 'utf-8');
+  const raw = valor.trim();
+
+  // Acepta DD-MM-YYYY o DD/MM/YYYY
+  const ddmmyyyy = /^(\d{2})[-\/](\d{2})[-\/](\d{4})$/;
+  const matchDDMMYYYY = raw.match(ddmmyyyy);
+  if (matchDDMMYYYY) {
+    return `${matchDDMMYYYY[3]}-${matchDDMMYYYY[2]}-${matchDDMMYYYY[1]}`;
   }
+
+  // Acepta YYYY-MM-DD o YYYY/MM/DD
+  const yyyymmdd = /^(\d{4})[-\/](\d{2})[-\/](\d{2})$/;
+  const matchYYYYMMDD = raw.match(yyyymmdd);
+  if (matchYYYYMMDD) {
+    return `${matchYYYYMMDD[1]}-${matchYYYYMMDD[2]}-${matchYYYYMMDD[3]}`;
+  }
+
+  return null;
+}
 
   // ─── PARSEAR Y CARGAR CSV ────────────────────────────────────
   async uploadCsv(buffer: Buffer): Promise<{
@@ -162,7 +134,7 @@ export class PersonasCsvService {
         continue;
       }
 
-      // Validar fechas
+      // Validar y convertir fechas
       const camposFecha = [
         'fechaNacimiento',
         'fechaInicioTratamiento',
@@ -173,17 +145,17 @@ export class PersonasCsvService {
       let fechaInvalida = false;
       for (const campo of camposFecha) {
         if (row[campo] && row[campo].trim() !== '') {
-          const raw = row[campo]
-  ?.replace(/^="/, '')
-  ?.replace(/"$/, '')
-  ?.trim();
-
-const fecha = new Date(raw);
-          if (isNaN(fecha.getTime())) {
-            errores.push({ fila, mensaje: `Fecha inválida en "${campo}": "${row[campo]}". Use el formato YYYY-MM-DD` });
+          const convertida = this.parseFecha(row[campo]);
+          if (!convertida) {
+            errores.push({
+              fila,
+              mensaje: `Fecha inválida en "${campo}": "${row[campo]}". Use el formato DD-MM-YYYY (ej: 15-01-2000)`,
+            });
             fechaInvalida = true;
             break;
           }
+          // Reemplazamos el valor del row con la fecha convertida
+          row[campo] = convertida;
         }
       }
 
@@ -245,7 +217,6 @@ const fecha = new Date(raw);
           });
 
           if (existente) {
-            // Actualizar la persona existente
             const updated = this.personaRepository.merge(existente, datos);
             await this.personaRepository.save(updated);
             actualizados++;
