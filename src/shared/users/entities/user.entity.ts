@@ -12,7 +12,7 @@ export enum RolUsuario {
   TRABAJO_SOCIAL = 'trabajo_social',
   GUIA = 'guia',
   COORDINADOR = 'coordinador',
-  TALLERISTA = 'tallerista',
+  TALLERISTA = 'tallerista',  
 }
 
 @Entity('usuarios')

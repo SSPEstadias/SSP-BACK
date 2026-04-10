@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   BadRequestException,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
@@ -14,8 +15,14 @@ import { memoryStorage } from 'multer';
 import { join } from 'path';
 import { createReadStream, existsSync } from 'fs';
 import { PersonasCsvService } from './personas-csv.service';
+import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard';
+import { RolesGuard } from '../../../shared/common/guards/roles.guard';
+import { Roles } from '../../../shared/common/decorators/roles.decorator';
+import { RolUsuario } from '../../../shared/users/entities/user.entity';
 
 @Controller('voluntarios/personas/csv')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(RolUsuario.ADMIN, RolUsuario.COORDINADOR, RolUsuario.TALLERISTA)
 export class PersonasCsvController {
   constructor(private readonly personasCsvService: PersonasCsvService) {}
 
