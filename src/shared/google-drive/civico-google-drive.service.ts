@@ -173,4 +173,43 @@ export class CivicoGoogleDriveService {
       return null;
     }
   }
+
+  /**
+   * Descarga el contenido de un archivo desde Drive como Buffer.
+   */
+  async getFileContent(fileId: string): Promise<Buffer> {
+    if (!this.drive) throw new InternalServerErrorException('Google Drive está desactivado.');
+    try {
+      const res = await this.drive.files.get(
+        { fileId, alt: 'media', supportsAllDrives: true },
+        { responseType: 'arraybuffer' },
+      );
+      return Buffer.from(res.data as ArrayBuffer);
+    } catch (error: any) {
+      this.logger.error(`Error al descargar archivo ${fileId} de Drive: ${error.message}`);
+      throw new InternalServerErrorException(`No se pudo obtener el contenido del archivo de Drive: ${error.message}`);
+    }
+  }
+
+  /**
+   * Extrae el ID de un archivo desde una URL de Google Drive.
+   * Soporta formatos: /file/d/ID/view, id=ID, o el ID directo.
+   */
+  extractFileId(url?: string | null): string | null {
+    if (!url) return null;
+    const trimmed = url.trim();
+
+    // Caso 1: /file/d/FILE_ID/...
+    const fileMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/i);
+    if (fileMatch?.[1]) return fileMatch[1];
+
+    // Caso 2: id=FILE_ID
+    const idMatch = trimmed.match(/id=([a-zA-Z0-9_-]+)/i);
+    if (idMatch?.[1]) return idMatch[1];
+
+    // Caso 3: Es el ID directo (alfanumérico de longitud Drive)
+    if (/^[a-zA-Z0-9_-]{25,}$/.test(trimmed)) return trimmed;
+
+    return null;
+  }
 }

@@ -1006,22 +1006,16 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       order: { fechaActividad: 'ASC' }
     });
 
-    const evidencias = registrosBitacora.map(reg => {
-      const ruta = reg.evidenciaUrl?.trim();
-      let dataUri = null;
-      if (ruta) {
-        if (ruta.startsWith('http')) {
-          dataUri = ruta;
-        } else if (fs.existsSync(ruta)) {
-          dataUri = toDataUri(ruta);
-        }
-      }
+    const evidencias = await Promise.all(registrosBitacora.map(async (reg) => {
+      const dataUri = await this.resolveEvidenciaUrlToDataUri(reg.evidenciaUrl);
       return {
         fecha: formatDate(reg.fechaActividad),
         actividad: reg.detalleIncidencia || reg.observaciones || 'Actividad sin detalle',
         url: dataUri
       };
-    }).filter(e => e.url !== null);
+    }));
+
+    const evidenciasFiltradas = evidencias.filter(e => e.url !== null);
 
         //           temporalidad→TEMPORALIDAD, seguimiento→SEGUIMIENTO, cumplimiento→OBSERVACIONES
     type ActividadF3 = { estatus?: string; objetivo?: string; cumplimiento?: string; vinculacion?: string; temporalidad?: string; seguimiento?: string };
@@ -1061,7 +1055,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       logoGrecas:        this.logoGrecas,
       
       ejes:               extras['ejes'] ?? ejesFromF3,
-      evidencias:         evidencias,
+      evidencias:         evidenciasFiltradas,
       
       tituloDocumento:    'PLAN DE VIDA INDIVIDUALIZADA',
       ...extras,
@@ -1166,6 +1160,8 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
             .map(w => w[0].toUpperCase())
             .join('');
 
+          const dataUriHist = await this.resolveEvidenciaUrlToDataUri(bit.evidenciaUrl);
+
           const bufferLista = await this.generarPdf('lista_asistencia', {
             numOficio:          folioUnico,
             logoPresentacion1:  this.logoPresentacion1,
@@ -1182,7 +1178,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
                 sede:           bit.sede || '—',
                 firma:          inicialesBit,
                 asistencia:     bit.asistencia || '—',
-                evidenciaUrl:   bit.evidenciaUrl || '',
+                evidenciaUrl:   dataUriHist || '',
               },
             ],
           });
@@ -1250,6 +1246,8 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       .map(w => w[0].toUpperCase())
       .join('');
 
+    const dataUriPost = await this.resolveEvidenciaUrlToDataUri(evidenciaUrl);
+
     const buffer = await this.generarPdf('lista_asistencia', {
       numOficio:          folioUnico,
       logoPresentacion1:  this.logoPresentacion1,
@@ -1266,7 +1264,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
           sede:           sede || '—',
           firma:          inicialesPost,
           asistencia:     asistencia || '—',
-          evidenciaUrl:   evidenciaUrl || '',
+          evidenciaUrl:   dataUriPost || '',
         },
       ],
     });
@@ -1613,6 +1611,39 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       PRESENTE_PARCIAL:      'PP',
     };
     return mapa[asistencia] ?? String(asistencia);
+  }
+
+  /**
+   * Resuelve una URL de evidencia (local o Drive) a un Data URI (base64) 
+   * apto para incrustar en PDFs generados por Puppeteer.
+   */
+  private async resolveEvidenciaUrlToDataUri(url?: string | null): Promise<string | null> {
+    if (!url) return null;
+    const trimmed = url.trim();
+
+    try {
+      // 1. Caso: Es un link de Google Drive
+      const driveFileId = this.driveService.extractFileId(trimmed);
+      if (driveFileId) {
+        this.logger.debug(`Descargando imagen de Drive para PDF: ${driveFileId}`);
+        const buffer = await this.driveService.getFileContent(driveFileId);
+        // Asumimos JPEG/PNG (Drive lo maneja)
+        const base64 = buffer.toString('base64');
+        return `data:image/jpeg;base64,${base64}`;
+      }
+
+      // 2. Caso: Es una ruta local (fallback para legado o pruebas)
+      if (!trimmed.startsWith('http') && fs.existsSync(trimmed)) {
+        return toDataUri(trimmed);
+      }
+
+      // 3. Caso: Es un link HTTP directo (no Drive) o algo que no podemos procesar
+      // Lo devolvemos tal cual por si Puppeteer puede con él (ej: link directo a AWS S3)
+      return trimmed;
+    } catch (error: any) {
+      this.logger.error(`Error al resolver evidencia ${url}: ${error.message}`);
+      return null;
+    }
   }
 }
 
