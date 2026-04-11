@@ -35,45 +35,46 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
         '⚠️ **REQUIERE que F1 y F2 estén en estatus `COMPLETADO`** antes de crear este formulario (RF-008). ' +
         'Verifica con `GET /civico/f2/expediente/{id}/candado-f3` primero.\n\n' +
         '---\n\n' +
-        '### Campo `actividadesPlan` — ⚠️ Claves obligatorias\n\n' +
-        'Este campo es un objeto JSONB que **DEBE usar exactamente las siguientes claves** para que la tabla ' +
-        '"Proceso de Seguimiento de Actividades del Programa" del PDF se genere correctamente:\n\n' +
+        '### Campo `actividadesPlan` — ⚠️ Estructura obligatoria\n\n' +
+        'Este campo es un objeto JSONB que mapea las 8 categorías del programa. ' +
+        '**DEBE usar exactamente las siguientes claves**:\n\n' +
         '`EDUCATIVA` · `PSICOSOCIAL` · `PSICOLOGICA` · `ADICCIONES` · `FAMILIAR` · `LABORAL` · `DEPORTIVA` · `CULTURAL`\n\n' +
-        'Cada clave debe tener la forma: `{ "estatus": "PENDIENTE|EN_PROCESO|COMPLETADO", "objetivo": "...", "cumplimiento": "..." }`\n\n' +
-        'Si se envía cualquier otra clave (por ejemplo `TRABAJO_COMUNITARIO`), los datos **no aparecerán** en el PDF.\n\n' +
+        'Cada categoría contiene la siguiente estructura (Mapeo Plan de Vida):\n' +
+        '- `estatus`: Estado inicial (EJ: "EN PROCESO", "PENDIENTE")\n' +
+        '- `objetivo`: Acción a realizar (EJ: "Asistir a talleres...")\n' +
+        '- `vinculacion`: Vinculación institucional (EJ: "DIF", "STPS")\n' +
+        '- `temporalidad`: Periodo de ejecución (EJ: "Abril-Junio 2025")\n' +
+        '- `seguimiento`: Detalle de asistencia o incidencias\n' +
+        '- `cumplimiento`: Observaciones o avance (EJ: "50% avance")\n\n' +
         '---\n\n' +
         'Genera el documento PDF con `GET /civico/documentos/f3-plan-trabajo/{expedienteId}`.',
     })
     @ApiBody({
       description:
-        '⚠️ El campo `actividadesPlan` DEBE usar EXACTAMENTE las claves: ' +
-        'EDUCATIVA, PSICOSOCIAL, PSICOLOGICA, ADICCIONES, FAMILIAR, LABORAL, DEPORTIVA, CULTURAL. ' +
-        'Cada categoría acepta: { estatus, objetivo, cumplimiento }. ' +
-        'Usar claves diferentes provocará que la tabla del PDF quede vacía.',
+        '⚠️ El campo `actividadesPlan` DEBE usar las 8 categorías oficiales. ' +
+        'Cada categoría acepta: { estatus, objetivo, vinculacion, temporalidad, seguimiento, cumplimiento }.',
       examples: {
-        'Plan Completo (Yahir Leon — todas las categorías)': {
-          summary: '(Fase 6) Plan con las 8 categorías de actividad del programa',
+        'Plan Completo (Ejemplo Mapeo Real)': {
+          summary: 'Plan con mapeo de campos de Plan de Vida físico',
           value: {
             expedienteId: EXAMPLE_EXP_ID,
             coordinadorId: 1,
             fechaInicioEstimada: '2025-04-01',
             fechaTerminoEstimada: '2025-06-01',
-            diasAsignados: 'Lunes, Miércoles y Viernes de 08:00 a 12:00',
-            metasPrograma: 'Cumplir 48 horas de servicio comunitario y concluir el Taller de Valores.',
             proyectoVidaF3: {
-              personal: 'Retomar y concluir estudios universitarios de Ingeniería',
-              familiar: 'Fortalecer la relación con su familia de origen',
-              social: 'Participar activamente en actividades comunitarias de su colonia',
+              personal: 'Retomar estudios universitarios',
+              familiar: 'Fortalecer relación con padres',
+              social: 'Participar en tequios comunitarios',
             },
             actividadesPlan: {
-              EDUCATIVA:   { estatus: 'PENDIENTE',    objetivo: 'Acreditar el Manual Fénix (8 sesiones)',                  cumplimiento: '', vinculacion: 'CEPRESO / SSP',   temporalidad: 'Abril–Mayo 2025',  seguimiento: '' },
-              PSICOSOCIAL: { estatus: 'PENDIENTE',    objetivo: 'Fortalecer red de apoyo familiar y comunitario',          cumplimiento: '', vinculacion: 'DIF Municipal',      temporalidad: 'Abril–Junio 2025', seguimiento: '' },
-              PSICOLOGICA: { estatus: 'PENDIENTE',    objetivo: 'Asistir a 4 sesiones de orientación psicológica',        cumplimiento: '', vinculacion: 'Área de Psicología', temporalidad: 'Mensual',          seguimiento: '' },
-              ADICCIONES:  { estatus: 'PENDIENTE',    objetivo: 'Participar en taller de prevención de adicciones',       cumplimiento: '', vinculacion: 'CIJ / CAPA',        temporalidad: 'Mayo 2025',        seguimiento: '' },
-              FAMILIAR:    { estatus: 'PENDIENTE',    objetivo: 'Asistir a talleres de dinámica familiar',                cumplimiento: '', vinculacion: 'DIF / Familia',      temporalidad: 'Abril–Mayo 2025',  seguimiento: '' },
-              LABORAL:     { estatus: 'PENDIENTE',    objetivo: 'Participar en curso de habilidades para el empleo',      cumplimiento: '', vinculacion: 'STYO / INAEBA',     temporalidad: 'Mayo 2025',        seguimiento: '' },
-              DEPORTIVA:   { estatus: 'PENDIENTE',    objetivo: 'Participar en 3 tequios de rescate de espacios públicos', cumplimiento: '', vinculacion: 'Ayuntamiento',      temporalidad: 'Semanal',          seguimiento: '' },
-              CULTURAL:    { estatus: 'PENDIENTE',    objetivo: 'Participar en 2 jornadas de reforestación ecológica',    cumplimiento: '', vinculacion: 'SEMARNAT',          temporalidad: 'Bimestral',        seguimiento: '' },
+              EDUCATIVA:   { estatus: 'PENDIENTE',  objetivo: 'Acreditar el Manual Fénix', vinculacion: 'CEPRESO / SSP', temporalidad: 'Abril–Mayo 2025', seguimiento: '', cumplimiento: '' },
+              LABORAL:     { estatus: 'EN PROCESO', objetivo: 'Curso de habilidades para el empleo', vinculacion: 'STPS / ICATEN', temporalidad: 'Abril–Junio 2025', seguimiento: 'Asistencia regular', cumplimiento: '50% avance' },
+              FAMILIAR:    { estatus: 'CUMPLIDO',   objetivo: 'Talleres de dinámica familiar', vinculacion: 'DIF Estatal', temporalidad: 'Febrero-Abril 2025', seguimiento: 'Concluido', cumplimiento: '3/3 talleres' },
+              CULTURAL:    { estatus: 'EN PROCESO', objetivo: '2 jornadas de reforestación', vinculacion: 'SEMARNAT', temporalidad: 'Marzo-Mayo 2025', seguimiento: '1ª jornada realizada', cumplimiento: '1/2 completadas' },
+              DEPORTIVA:   { estatus: 'PENDIENTE',  objetivo: '3 tequios de rescate de espacios', vinculacion: 'Municipio', temporalidad: 'Mayo-Agosto 2025', seguimiento: '', cumplimiento: '' },
+              PSICOLOGICA: { estatus: 'PENDIENTE',  objetivo: '4 sesiones de orientación', vinculacion: 'CAPASITS', temporalidad: 'Mayo-Julio 2025', seguimiento: '', cumplimiento: '' },
+              PSICOSOCIAL: { estatus: 'EN_PROCESO', objetivo: 'Fortalecer red de apoyo', vinculacion: 'DIF Municipal', temporalidad: 'Marzo-Junio 2025', seguimiento: 'Avance favorable', cumplimiento: '2 sesiones' },
+              ADICCIONES:  { estatus: 'EN PROCESO', objetivo: 'Taller de prevención de adicciones', vinculacion: 'CIJ Querétaro', temporalidad: 'Abril-Mayo 2025', seguimiento: 'Participación activa', cumplimiento: '1 taller' },
             },
             observacionesPlan: 'Beneficiario comprometido con el programa. Se asignan actividades variadas para cubrir las 48 horas requeridas.',
             estatusF3: 'COMPLETADO',

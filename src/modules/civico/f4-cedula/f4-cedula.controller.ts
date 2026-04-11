@@ -33,13 +33,14 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
       summary: '(Fase 7) Crear Cédula Inicial de Seguimiento (F4) [Solo Admin] — RF-009',
       description:
         'Genera la ficha técnica de seguimiento inicial del beneficiario. ' +
-        'Consolida el proceso de ingreso y el seguimiento por categorías de actividad.\n\n' +
+        'Este documento es una versión simplificada para el seguimiento de ingreso, ' +
+        'complementando al Plan de Trabajo (F3).\n\n' +
         '---\n\n' +
         '### Campo `seguimientoActividades` — ⚠️ Claves obligatorias\n\n' +
-        'Este campo es un objeto JSONB cuya tabla "Proceso de Seguimiento" del PDF **solo reconoce exactamente estas claves**:\n\n' +
+        'Este campo solo reconoce las siguientes claves para la tabla del PDF:\n\n' +
         '`EDUCATIVA` · `LABORAL` · `FAMILIAR` · `DEPORTIVO` · `CULTURAL`\n\n' +
-        'El valor de cada clave es un **texto libre** (observaciones) que aparece en la columna "OBSERVACIONES" del PDF. ' +
-        'Si se envía cualquier otra clave, ese valor **no aparecerá** en el documento.\n\n' +
+        'A diferencia del F3, aquí cada clave acepta un **texto libre** que aparecerá en la columna "OBSERVACIONES" del PDF. ' +
+        'Se recomienda consolidar aquí el estatus y avance de manera resumida.\n\n' +
         '---\n\n' +
         'Usa `GET /civico/documentos/f4-cedula-inicial/{expedienteId}` para generar el PDF oficial.',
     })

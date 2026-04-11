@@ -1,4 +1,4 @@
-﻿import {
+import {
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -1207,7 +1207,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
    * Procesa la asistencia real (POST), guarda en Bitácora y sube a Drive.
    */
   async procesarAsistenciaHibrida(datos: any, userId: number): Promise<{ buffer: Buffer; filename: string }> {
-    const { expedienteId, fecha, horasCubiertas, asistencia, observaciones, actividadId, horario, sede } = datos;
+    const { expedienteId, fecha, horasCubiertas, asistencia, observaciones, actividadId, horario, sede, evidenciaUrl } = datos;
 
     if (!expedienteId) {
       const buffer = await this.generarPdf('lista_asistencia', { ...datos, logoPresentacion1: this.logoPresentacion1 });
@@ -1227,6 +1227,7 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       observaciones: observaciones || '',
       actividadId: actividadId || null,
       sede: sede || null,
+      evidenciaUrl: evidenciaUrl || null,
     });
 
       const numero = await this.obtenerSiguienteNumeroDocumento(expedienteId, TipoDocumentoEnum.LISTA_ASISTENCIA);
@@ -1265,7 +1266,8 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
           sede:           sede || '—',
           firma:          inicialesPost,
           asistencia:     asistencia || '—',
-          evidenciaUrl:   '',         },
+          evidenciaUrl:   evidenciaUrl || '',
+        },
       ],
     });
 
