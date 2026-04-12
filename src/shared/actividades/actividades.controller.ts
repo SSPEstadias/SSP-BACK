@@ -17,6 +17,7 @@ import { Roles } from '../common/decorators/roles.decorator';
   
     // ── POST /actividades ──────────────────────────────────────────────
     @Post()
+    @Roles('Admin', 'Coordinador')
     create(@Body(ValidationPipe) dto: CreateActividadDto) {
       return this.actividadesService.create(dto);
     }
@@ -24,6 +25,7 @@ import { Roles } from '../common/decorators/roles.decorator';
     // ── GET /actividades ───────────────────────────────────────────────
     // Solo activas (uso normal del sistema)
     @Get()
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     findAll() {
       return this.actividadesService.findAll();
     }
@@ -31,18 +33,21 @@ import { Roles } from '../common/decorators/roles.decorator';
     // ── GET /actividades/todas ─────────────────────────────────────────
     // Activas + inactivas (solo para Administrador)
     @Get('todas')
+    @Roles('Admin', 'Coordinador')
     findAllConInactivas() {
       return this.actividadesService.findAllConInactivas();
     }
   
     // ── GET /actividades/categoria?cat=TRABAJO_COMUNITARIO ────────────
     @Get('categoria')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     findByCategoria(@Query('cat') categoria: string) {
       return this.actividadesService.findByCategoria(categoria);
     }
   
     // ── GET /actividades/:id ───────────────────────────────────────────
     @Get(':id')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     findOne(@Param('id', ParseIntPipe) id: number) {
       return this.actividadesService.findOne(id);
     }
@@ -50,7 +55,7 @@ import { Roles } from '../common/decorators/roles.decorator';
     // ── PATCH /actividades/:id ─────────────────────────────────────────
     // Actualizar caulquier cmapo
     @Patch(':id')
-    @Roles('Admin')
+    @Roles('Admin', 'Coordinador')
     update(
       @Param('id', ParseIntPipe) id: number,
       @Body(ValidationPipe) dto: UpdateActividadDto,
@@ -60,14 +65,14 @@ import { Roles } from '../common/decorators/roles.decorator';
   
     // ── PATCH /actividades/:id/desactivar ─────────────────────────────
     @Patch(':id/desactivar')
-    @Roles('Admin') 
+    @Roles('Admin', 'Coordinador')
     desactivar(@Param('id', ParseIntPipe) id: number) {
       return this.actividadesService.desactivar(id);
     }
   
     // ── PATCH /actividades/:id/reactivar ──────────────────────────────
     @Patch(':id/reactivar')
-    @Roles('Admin') 
+    @Roles('Admin', 'Coordinador')
     reactivar(@Param('id', ParseIntPipe) id: number) {
       return this.actividadesService.reactivar(id);
     }

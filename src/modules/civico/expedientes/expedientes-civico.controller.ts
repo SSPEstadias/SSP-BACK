@@ -74,7 +74,7 @@ export class ExpedientesCivicoController {
 
   // ── POST /civico/expedientes ──────────────────────────────────────
   @Post()
-  @Roles('Admin')
+  @Roles('Admin', 'Coordinador')
   @ApiOperation({
     summary: '(Fase 2) Crear un nuevo expediente cívico [Solo Admin]',
     description:
@@ -149,7 +149,7 @@ export class ExpedientesCivicoController {
 
   // ── GET /civico/expedientes/caratulas ─────────────────────────────
   @Get('caratulas')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({
     summary: 'Listar carátulas resumidas de todos los expedientes',
     description: 'Vista de la pantalla principal — incluye datos del beneficiario via JOIN. Todos los roles pueden ver la lista.',
@@ -164,7 +164,7 @@ export class ExpedientesCivicoController {
 
   // ── GET /civico/expedientes ───────────────────────────────────────
   @Get()
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({ summary: 'Listar todos los expedientes (datos completos, uso interno/Admin)' })
   @ApiResponse({ status: 200, description: 'Lista completa de expedientes cívicos' })
   findAll() {
@@ -173,7 +173,7 @@ export class ExpedientesCivicoController {
 
   // ── GET /civico/expedientes/curp/:curp ────────────────────────────
   @Get('curp/:curp')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({ summary: 'Buscar expediente por CURP del beneficiario' })
   @ApiParam({ name: 'curp', description: 'CURP completa del beneficiario (18 caracteres)', example: 'LEOY880101HDFRRN01' })
   @ApiResponse({ status: 200, description: 'Expediente encontrado', schema: { type: 'object', example: EXPEDIENTE_EXAMPLE } })
@@ -184,7 +184,7 @@ export class ExpedientesCivicoController {
 
   // ── GET /civico/expedientes/:id/caratula ──────────────────────────
   @Get(':id/caratula')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({ summary: 'Obtener carátula de un expediente (header del perfil del beneficiario)' })
   @ApiParam({ name: 'id', description: 'UUID del expediente', example: '8c478ea9-fbcb-452d-90f6-e689a2590fd6' })
   @ApiResponse({ status: 200, description: 'Carátula del expediente con datos del beneficiario' })
@@ -195,7 +195,7 @@ export class ExpedientesCivicoController {
 
   // ── GET /civico/expedientes/:id ───────────────────────────────────
   @Get(':id')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({ summary: 'Obtener expediente completo por UUID' })
   @ApiParam({ name: 'id', description: 'UUID del expediente', example: '8c478ea9-fbcb-452d-90f6-e689a2590fd6' })
   @ApiResponse({ status: 200, description: 'Expediente completo', schema: { type: 'object', example: EXPEDIENTE_EXAMPLE } })
@@ -206,7 +206,7 @@ export class ExpedientesCivicoController {
 
   // ── PATCH /civico/expedientes/:id ─────────────────────────────────
   @Patch(':id')
-  @Roles('Admin')
+  @Roles('Admin', 'Coordinador')
   @ApiOperation({ summary: 'Actualizar datos del expediente [Solo Admin]' })
   @ApiParam({ name: 'id', description: 'UUID del expediente', example: '8c478ea9-fbcb-452d-90f6-e689a2590fd6' })
   @ApiBody({

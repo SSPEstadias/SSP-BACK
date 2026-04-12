@@ -58,7 +58,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/oficio-incorporacion/:expedienteId ────
   @Get('oficio-incorporacion/:expedienteId')
-  @Roles('Admin', 'TrabajoSocial')
+  @Roles('Admin', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({ summary: 'Generar Oficio de Incorporación al Programa en PDF' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
@@ -74,7 +74,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/oficio-conclusion/:expedienteId ────────
   @Get('oficio-conclusion/:expedienteId')
-  @Roles('Admin', 'TrabajoSocial')
+  @Roles('Admin', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({ summary: 'Generar Oficio de Conclusión del Programa en PDF' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
@@ -90,7 +90,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/informe-baja/:expedienteId ─────────────
   @Get('informe-baja/:expedienteId')
-  @Roles('Admin', 'TrabajoSocial')
+  @Roles('Admin', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({ summary: 'Generar Informe de Baja Definitiva en PDF' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
@@ -106,7 +106,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/ficha-incidencias/:expedienteId ────────
   @Get('ficha-incidencias/:expedienteId')
-  @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo')
+  @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo', 'Coordinador')
   @ApiOperation({ summary: 'Generar Ficha Técnica de Incidencias en PDF' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
@@ -122,7 +122,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/f3-plan-trabajo/:expedienteId ──────────
   @Get('f3-plan-trabajo/:expedienteId')
-  @Roles('Admin', 'TrabajoSocial', 'Psicologo')
+  @Roles('Admin', 'TrabajoSocial', 'Psicologo', 'Coordinador')
   @ApiOperation({ summary: 'Generar F3 — Plan de Trabajo Individual en PDF' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
@@ -138,7 +138,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/f4-cedula-inicial/:expedienteId ────────
   @Get('f4-cedula-inicial/:expedienteId')
-  @Roles('Admin', 'TrabajoSocial', 'Psicologo')
+  @Roles('Admin', 'TrabajoSocial', 'Psicologo', 'Coordinador')
   @ApiOperation({ summary: 'Generar F4 — Cédula Inicial de Seguimiento en PDF' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
@@ -154,7 +154,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/plan-vida/:expedienteId ────────────────
   @Get('plan-vida/:expedienteId')
-  @Roles('Admin', 'Psicologo')
+  @Roles('Admin', 'Psicologo', 'Coordinador')
   @ApiOperation({ summary: 'Generar Plan de Vida Individualizada (desde F1) en PDF' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
@@ -170,7 +170,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/nota-evolucion/:expedienteId ──────────
   @Get('nota-evolucion/:expedienteId')
-  @Roles('Admin', 'Psicologo')
+  @Roles('Admin', 'Psicologo', 'Coordinador')
   @ApiOperation({ summary: 'Generar Nota de Evolución Psicológica (Historial de Sesiones) en PDF' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
@@ -186,7 +186,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/lista-asistencia/:expedienteId ──────────
   @Get('lista-asistencia/:expedienteId')
-  @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo')
+  @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo', 'Tallerista', 'Coordinador')
   @ApiOperation({ summary: 'Generar Plantilla de Lista de Asistencia (para imprimir y llenar a mano)' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
@@ -202,7 +202,7 @@ export class DocumentosController {
 
   // ── POST /civico/documentos/lista-asistencia ──────────────────────
   @Post('lista-asistencia')
-  @Roles('Admin', 'Guia')
+  @Roles('Admin', 'Guia', 'Tallerista', 'Coordinador')
   @ApiOperation({ summary: 'Registrar Asistencia en Bitácora y Generar PDF' })
   @ApiProduces('application/pdf')
   @ApiBody({
@@ -235,7 +235,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/reporte-semanal/:expedienteId ──────────
   @Get('reporte-semanal/:expedienteId')
-  @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo')
+  @Roles('Admin', 'Guia', 'TrabajoSocial', 'Psicologo', 'Coordinador')
   @ApiOperation({ summary: 'Generar Plantilla de Reporte Semanal (para imprimir)' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiProduces('application/pdf')
@@ -251,7 +251,7 @@ export class DocumentosController {
 
   // ── POST /civico/documentos/reporte-semanal ───────────────────────
   @Post('reporte-semanal')
-  @Roles('Admin', 'Guia')
+  @Roles('Admin', 'Guia', 'Coordinador')
   @ApiOperation({ summary: 'Registrar Reporte Semanal en Bitácora y Generar PDF' })
   @ApiProduces('application/pdf')
   @ApiBody({
@@ -285,7 +285,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/historial/:expedienteId ────────────────
   @Get('historial/:expedienteId')
-  @Roles('Admin', 'TrabajoSocial', 'Psicologo', 'Guia')
+  @Roles('Admin', 'TrabajoSocial', 'Psicologo', 'Guia', 'Tallerista', 'Coordinador')
   @ApiOperation({ summary: 'Obtener el historial de oficios y documentos generados para un expediente' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente cívico', example: EXAMPLE_EXP_ID })
   @ApiResponse({
@@ -301,7 +301,7 @@ export class DocumentosController {
 
   // ── POST /civico/documentos/generar-custom ────────────────────────
   @Post('generar-custom')
-  @Roles('Admin')
+  @Roles('Admin', 'Coordinador')
   @ApiOperation({
     summary: 'Generar cualquier template HBS con datos personalizados (Admin)',
     description: 'Útil para pruebas y documentos ad-hoc sin un expediente ligado.',
@@ -332,7 +332,7 @@ export class DocumentosController {
 
   // ── GET /civico/documentos/expediente/:id/paquete-forms ───────────
   @Get('expediente/:id/paquete-forms')
-  @Roles('Admin', 'TrabajoSocial', 'Psicologo')
+  @Roles('Admin', 'TrabajoSocial', 'Psicologo', 'Coordinador')
   @ApiOperation({ 
     summary: 'Obtener URLs de todos los documentos para el Google Form Federal',
     description: 'Consolida enlaces de Drive de F3, F4, Plan Vida, Reporte Semanal y los escaneos firmados.' 
@@ -344,7 +344,7 @@ export class DocumentosController {
 
   // ── POST /civico/documentos/subir-escaneado ───────────────────────
   @Post('subir-escaneado')
-  @Roles('Admin', 'TrabajoSocial')
+  @Roles('Admin', 'TrabajoSocial', 'Coordinador')
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ 

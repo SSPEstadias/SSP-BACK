@@ -28,7 +28,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // POST /civico/f3  — falla si F1 o F2 no están COMPLETADOS (RF-008)
     @Post()
-    @Roles('Admin')
+    @Roles('Admin', 'Coordinador')
     @ApiOperation({
       summary: '(Fase 6) Crear Plan de Trabajo (F3) [Solo Admin] — RF-006, RF-008',
       description:
@@ -118,7 +118,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f3/expediente/:expedienteId
     @Get('expediente/:expedienteId')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     @ApiOperation({ summary: 'Obtener F3 por expediente' })
     @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
     @ApiResponse({ status: 200, description: 'Plan de trabajo del expediente' })
@@ -129,7 +129,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f3/:id
     @Get(':id')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     @ApiOperation({ summary: 'Obtener F3 por UUID del registro' })
     @ApiParam({ name: 'id', description: 'UUID del registro F3' })
     @ApiResponse({ status: 200, description: 'Plan de trabajo encontrado' })
@@ -139,7 +139,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // PATCH /civico/f3/:id
     @Patch(':id')
-  @Roles('Admin')
+  @Roles('Admin', 'Coordinador')
   @ApiOperation({ summary: 'Actualizar datos del plan de trabajo F3 [Solo Admin]' })
   @ApiParam({ name: 'id', description: 'UUID del registro F3' })
   @ApiBody({
@@ -184,7 +184,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // PATCH /civico/f3/:id/estatus
     @Patch(':id/estatus')
-  @Roles('Admin')
+  @Roles('Admin', 'Coordinador')
   @ApiOperation({ summary: 'Cambiar estatus del F3 [Solo Admin]' })
   @ApiParam({ name: 'id', description: 'UUID del registro F3' })
   @ApiBody({

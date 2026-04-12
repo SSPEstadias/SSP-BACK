@@ -26,7 +26,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // POST /civico/bitacora
     @Post()
-    @Roles('Admin', 'Guia')
+    @Roles('Admin', 'Guia', 'Tallerista', 'Coordinador')
     @ApiOperation({
       summary: '(Fase 8) Registrar asistencia en bitácora — RF-011, RF-012, RF-013',
       description:
@@ -145,7 +145,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/bitacora/expediente/:expedienteId
     @Get('expediente/:expedienteId')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Tallerista', 'Coordinador')
     @ApiOperation({ summary: 'Listar todos los registros de bitácora de un expediente' })
     @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
     @ApiResponse({ status: 200, description: 'Lista de registros de asistencia ordenados por fecha' })
@@ -155,7 +155,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/bitacora/expediente/:expedienteId/horas
     @Get('expediente/:expedienteId/horas')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Tallerista', 'Coordinador')
     @ApiOperation({
       summary: 'Calcular horas acumuladas de un expediente (RF-011)',
       description: 'Suma las horas registradas en la bitácora. Útil para verificar el progreso respecto a `horasSentencia`.',
@@ -179,7 +179,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/bitacora/:id
     @Get(':id')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Tallerista', 'Coordinador')
     @ApiOperation({ summary: 'Obtener un registro de bitácora por UUID' })
     @ApiParam({ name: 'id', description: 'UUID del registro de bitácora', example: 'f6a7b8c9-d0e1-2345-f012-456789012345' })
     @ApiResponse({ status: 200, description: 'Registro de asistencia encontrado' })

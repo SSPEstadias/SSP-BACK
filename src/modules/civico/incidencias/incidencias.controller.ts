@@ -27,7 +27,7 @@ export class IncidenciasController {
 
   //   POST: Crear incidencia MANUAL (Sin bitácora - ej. no asistió a nada)
   @Post()
-  @Roles('Admin', 'Guia')
+  @Roles('Admin', 'Guia', 'Coordinador')
   @ApiOperation({
     summary: 'Crear incidencia manual (desacoplada de bitácora) — RF-012, RF-013',
     description:
@@ -145,7 +145,7 @@ export class IncidenciasController {
 
   // GET: Listar incidencias de un expediente
   @Get('expediente/:expedienteId')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({ summary: 'Listar todas las incidencias de un expediente' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
   @ApiResponse({ status: 200, description: 'Lista de incidencias ordenadas por fecha' })
@@ -155,7 +155,7 @@ export class IncidenciasController {
 
   // GET: Contar strikes/incidencias acumulativas
   @Get('expediente/:expedienteId/strikes')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({
     summary: 'Contar strikes acumulativos del expediente (RF-013)',
     description: 'Cuenta las incidencias con `esAcumulativa = true`. Al llegar a 3, se activa la baja automática.',
@@ -180,7 +180,7 @@ export class IncidenciasController {
 
   // GET: Obtener una incidencia específica
   @Get(':id')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({ summary: 'Obtener una incidencia por UUID' })
   @ApiParam({ name: 'id', description: 'UUID del registro de incidencia', example: 'a7b8c9d0-e1f2-3456-0123-567890123456' })
   @ApiResponse({ status: 200, description: 'Incidencia encontrada' })
@@ -191,7 +191,7 @@ export class IncidenciasController {
 
   // PATCH: Resolver incidencia (cambiar estatus)
   @Patch(':id/resolver')
-  @Roles('Admin', 'Guia')
+  @Roles('Admin', 'Guia', 'Coordinador')
   @ApiOperation({
     summary: 'Resolver una incidencia (cambiar estatus a RESUELTA)',
     description: 'Marca la incidencia como resuelta. Opcionalmente registra el número de oficio de notificación al juzgado.',

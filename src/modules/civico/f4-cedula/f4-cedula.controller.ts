@@ -28,7 +28,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // POST /civico/f4
     @Post()
-    @Roles('Admin')
+    @Roles('Admin', 'Coordinador')
     @ApiOperation({
       summary: '(Fase 7) Crear Cédula Inicial de Seguimiento (F4) [Solo Admin] — RF-009',
       description:
@@ -98,7 +98,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f4/expediente/:expedienteId
     @Get('expediente/:expedienteId')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     @ApiOperation({ summary: 'Obtener F4 por expediente' })
     @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
     @ApiResponse({ status: 200, description: 'Cédula inicial del expediente' })
@@ -109,7 +109,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f4/:id
     @Get(':id')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     @ApiOperation({ summary: 'Obtener F4 por UUID del registro' })
     @ApiParam({ name: 'id', description: 'UUID del registro F4' })
     @ApiResponse({ status: 200, description: 'Cédula inicial encontrada' })
@@ -119,7 +119,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // PATCH /civico/f4/:id
     @Patch(':id')
-    @Roles('Admin')
+    @Roles('Admin', 'Coordinador')
     @ApiOperation({ summary: 'Actualizar datos de la cédula inicial F4 [Solo Admin]' })
     @ApiParam({ name: 'id', description: 'UUID del registro F4' })
     @ApiBody({
@@ -156,7 +156,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // PATCH /civico/f4/:id/estatus
     @Patch(':id/estatus')
-  @Roles('Admin')
+  @Roles('Admin', 'Coordinador')
   @ApiOperation({ summary: 'Cambiar estatus del F4 [Solo Admin]' })
   @ApiParam({ name: 'id', description: 'UUID del registro F4' })
   @ApiBody({

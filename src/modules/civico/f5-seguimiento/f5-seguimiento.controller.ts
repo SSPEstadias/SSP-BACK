@@ -29,7 +29,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // POST /civico/f5
     @Post()
-    @Roles('Admin', 'Psicologo')
+    @Roles('Admin', 'Psicologo', 'Coordinador')
     @ApiOperation({
       summary: '(Fase 9) Crear Nota de Evolución Psicológica (F5) — RF-010',
       description:
@@ -120,7 +120,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f5/expediente/:expedienteId
     @Get('expediente/:expedienteId')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
     @ApiOperation({ summary: 'Listar todas las sesiones F5 de un expediente' })
     @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
     @ApiResponse({ status: 200, description: 'Lista de sesiones psicológicas ordenadas por número de sesión' })
@@ -130,7 +130,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f5/expediente/:expedienteId/total
     @Get('expediente/:expedienteId/total')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
     @ApiOperation({ summary: 'Contar el total de sesiones F5 de un expediente' })
     @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
     @ApiResponse({
@@ -147,7 +147,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f5/expediente/:expedienteId/sesion/:num
     @Get('expediente/:expedienteId/sesion/:num')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
     @ApiOperation({ summary: 'Obtener una sesión F5 específica por número de sesión' })
     @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
     @ApiParam({ name: 'num', description: 'Número de sesión (1, 2, 3...)', example: 1 })
@@ -162,7 +162,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f5/:id
     @Get(':id')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
     @ApiOperation({ summary: 'Obtener sesión F5 por UUID del registro' })
     @ApiParam({ name: 'id', description: 'UUID del registro de sesión F5' })
     @ApiResponse({ status: 200, description: 'Sesión psicológica encontrada' })
@@ -172,7 +172,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // PATCH /civico/f5/:id
     @Patch(':id')
-  @Roles('Admin', 'Psicologo')
+  @Roles('Admin', 'Psicologo', 'Coordinador')
   @ApiOperation({ summary: 'Actualizar datos de una sesión F5' })
   @ApiParam({ name: 'id', description: 'UUID del registro de sesión F5' })
   @ApiBody({

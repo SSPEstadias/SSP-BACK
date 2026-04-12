@@ -41,7 +41,7 @@ export class BeneficiariosController {
 
   // ── POST /beneficiarios ───────────────────────────────────────────
   @Post()
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({
     summary: '(Fase 1) Registrar un nuevo beneficiario',
     description:
@@ -85,7 +85,7 @@ export class BeneficiariosController {
 
   // ── GET /beneficiarios ────────────────────────────────────────────
   @Get()
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({ summary: 'Listar todos los beneficiarios registrados' })
   @ApiResponse({
     status: 200,
@@ -98,7 +98,7 @@ export class BeneficiariosController {
 
   // ── GET /beneficiarios/filtrar?unidad=HORAS ───────────────────────
   @Get('filtrar')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({ summary: 'Filtrar beneficiarios por unidad de tiempo (HORAS o MESES)' })
   @ApiQuery({ name: 'unidad', enum: ['HORAS', 'MESES'], example: 'HORAS' })
   @ApiResponse({
@@ -112,7 +112,7 @@ export class BeneficiariosController {
 
   // ── GET /beneficiarios/:id ────────────────────────────────────────
   @Get(':id')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
   @ApiOperation({ summary: 'Obtener un beneficiario por ID' })
   @ApiParam({ name: 'id', description: 'ID numérico del beneficiario', example: 1 })
   @ApiResponse({ status: 200, description: 'Beneficiario encontrado', schema: BENEFICIARIO_RESPONSE_SCHEMA })
@@ -123,7 +123,7 @@ export class BeneficiariosController {
 
   // ── PATCH /beneficiarios/:id ──────────────────────────────────────
   @Patch(':id')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({ summary: 'Actualizar datos de un beneficiario' })
   @ApiParam({ name: 'id', description: 'ID numérico del beneficiario', example: 1 })
   @ApiBody({

@@ -28,7 +28,7 @@ export class F1EntrevistaController {
 
   // POST /civico/f1
   @Post()
-  @Roles('Admin', 'Psicologo')
+  @Roles('Admin', 'Psicologo', 'Coordinador')
   @ApiOperation({
     summary: '(Fase 4) Crear Entrevista Clínica Inicial (F1) — RF-004',
     description:
@@ -209,7 +209,7 @@ export class F1EntrevistaController {
 
   // GET /civico/f1/expediente/:expedienteId
   @Get('expediente/:expedienteId')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({ summary: 'Obtener F1 por expediente' })
   @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
   @ApiResponse({ status: 200, description: 'Entrevista clínica del expediente' })
@@ -220,7 +220,7 @@ export class F1EntrevistaController {
 
   // GET /civico/f1/:id
   @Get(':id')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({ summary: 'Obtener F1 por UUID del registro' })
   @ApiParam({ name: 'id', description: 'UUID del registro F1', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
   @ApiResponse({ status: 200, description: 'Entrevista clínica encontrada' })
@@ -230,7 +230,7 @@ export class F1EntrevistaController {
 
   // PATCH /civico/f1/:id
   @Patch(':id')
-  @Roles('Admin', 'Psicologo')
+  @Roles('Admin', 'Psicologo', 'Coordinador')
   @ApiOperation({ summary: 'Actualizar datos de la entrevista clínica F1' })
   @ApiParam({ name: 'id', description: 'UUID del registro F1' })
   @ApiBody({
@@ -260,7 +260,7 @@ export class F1EntrevistaController {
 
   // PATCH /civico/f1/:id/estatus
   @Patch(':id/estatus')
-  @Roles('Admin', 'Psicologo')
+  @Roles('Admin', 'Psicologo', 'Coordinador')
   @ApiOperation({
     summary: 'Cambiar estatus del F1',
     description:

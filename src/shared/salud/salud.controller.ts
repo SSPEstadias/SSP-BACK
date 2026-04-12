@@ -49,7 +49,7 @@ export class SaludController {
 
   // ── POST /salud ────────────────────────────────────────────────────
   @Post()
-  @Roles('Admin', 'Psicologo')
+  @Roles('Admin', 'Psicologo', 'Coordinador')
   @ApiOperation({
     summary: '(Fase 3) Registrar perfil de salud y aptitud física',
     description:
@@ -124,7 +124,7 @@ export class SaludController {
 
   // ── GET /salud ─────────────────────────────────────────────────────
   @Get()
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({ summary: 'Listar todos los perfiles de salud' })
   @ApiResponse({ status: 200, description: 'Lista de perfiles de salud', schema: { type: 'array', items: SALUD_RESPONSE_SCHEMA } })
   findAll() {
@@ -133,7 +133,7 @@ export class SaludController {
 
   // ── GET /salud/aptitud?esApto=true ────────────────────────────────
   @Get('aptitud')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({
     summary: 'Filtrar perfiles de salud por aptitud física (RF-005, RF-009)',
     description: 'Útil para identificar beneficiarios que no pueden realizar actividades físicas antes de asignarles el plan.',
@@ -147,7 +147,7 @@ export class SaludController {
 
   // ── GET /salud/beneficiario/:beneficiarioId ────────────────────────
   @Get('beneficiario/:beneficiarioId')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({ summary: 'Obtener perfil de salud por ID de beneficiario' })
   @ApiParam({ name: 'beneficiarioId', description: 'ID numérico del beneficiario', example: 1 })
   @ApiResponse({ status: 200, description: 'Perfil de salud del beneficiario', schema: SALUD_RESPONSE_SCHEMA })
@@ -158,7 +158,7 @@ export class SaludController {
 
   // ── GET /salud/:id ────────────────────────────────────────────────
   @Get(':id')
-  @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+  @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
   @ApiOperation({ summary: 'Obtener perfil de salud por ID de registro' })
   @ApiParam({ name: 'id', description: 'ID numérico del registro de salud', example: 1 })
   @ApiResponse({ status: 200, description: 'Perfil de salud encontrado', schema: SALUD_RESPONSE_SCHEMA })
@@ -169,7 +169,7 @@ export class SaludController {
 
   // ── PATCH /salud/:id ───────────────────────────────────────────────
   @Patch(':id')
-  @Roles('Admin', 'Psicologo')
+  @Roles('Admin', 'Psicologo', 'Coordinador')
   @ApiOperation({ summary: 'Actualizar perfil de salud por ID de registro' })
   @ApiParam({ name: 'id', description: 'ID del registro de salud', example: 1 })
   @ApiBody({
@@ -193,7 +193,7 @@ export class SaludController {
 
   // ── PATCH /salud/beneficiario/:beneficiarioId ──────────────────────
   @Patch('beneficiario/:beneficiarioId')
-  @Roles('Admin', 'Psicologo')
+  @Roles('Admin', 'Psicologo', 'Coordinador')
   @ApiOperation({ summary: 'Actualizar perfil de salud por ID de beneficiario' })
   @ApiParam({ name: 'beneficiarioId', description: 'ID numérico del beneficiario', example: 1 })
   @ApiBody({

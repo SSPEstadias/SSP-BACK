@@ -27,7 +27,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // POST /civico/oficios
     @Post()
-    @Roles('Admin', 'Guia')
+    @Roles('Admin', 'Guia', 'Coordinador')
     @ApiOperation({
       summary: '(Fase 10) Registrar un documento/oficio generado — RF-015',
       description:
@@ -121,7 +121,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/oficios/expediente/:expedienteId
     @Get('expediente/:expedienteId')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     @ApiOperation({ summary: 'Listar todos los oficios de un expediente' })
     @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
     @ApiResponse({ status: 200, description: 'Lista de oficios generados para el expediente' })
@@ -131,7 +131,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/oficios/expediente/:expedienteId?tipo=OFICIO_CONCLUSION
     @Get('expediente/:expedienteId/tipo')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     @ApiOperation({ summary: 'Filtrar oficios de un expediente por tipo de documento' })
     @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
     @ApiQuery({
@@ -154,7 +154,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/oficios/folio/:folio
     @Get('folio/:folio')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     @ApiOperation({ summary: 'Buscar un oficio por número de folio' })
     @ApiParam({ name: 'folio', description: 'Número de folio del oficio', example: 'OFC-INCORP-2025-0001' })
     @ApiResponse({ status: 200, description: 'Oficio encontrado por folio' })
@@ -166,7 +166,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/oficios/:id
     @Get(':id')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Guia', 'Coordinador')
     @ApiOperation({ summary: 'Obtener un oficio por UUID' })
     @ApiParam({ name: 'id', description: 'UUID del registro de oficio', example: 'b8c9d0e1-f2a3-4567-1234-678901234567' })
     @ApiResponse({ status: 200, description: 'Oficio encontrado' })

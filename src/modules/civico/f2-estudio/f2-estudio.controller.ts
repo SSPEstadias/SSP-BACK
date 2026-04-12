@@ -28,7 +28,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // POST /civico/f2
     @Post()
-    @Roles('Admin', 'TrabajoSocial')
+    @Roles('Admin', 'TrabajoSocial', 'Coordinador')
     @ApiOperation({
       summary: '(Fase 5) Crear Estudio Socioeconómico (F2) — RF-005',
       description:
@@ -107,7 +107,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f2/expediente/:expedienteId
     @Get('expediente/:expedienteId')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
     @ApiOperation({ summary: 'Obtener F2 por expediente' })
     @ApiParam({ name: 'expedienteId', description: 'UUID del expediente', example: EXAMPLE_EXP_ID })
     @ApiResponse({ status: 200, description: 'Estudio socioeconómico del expediente' })
@@ -118,7 +118,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f2/expediente/:expedienteId/candado-f3
     @Get('expediente/:expedienteId/candado-f3')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
     @ApiOperation({
       summary: 'Verificar candado RF-008 — ¿Se puede crear el F3?',
       description:
@@ -145,7 +145,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // GET /civico/f2/:id
     @Get(':id')
-    @Roles('Admin', 'Psicologo', 'TrabajoSocial')
+    @Roles('Admin', 'Psicologo', 'TrabajoSocial', 'Coordinador')
     @ApiOperation({ summary: 'Obtener F2 por UUID del registro' })
     @ApiParam({ name: 'id', description: 'UUID del registro F2' })
     @ApiResponse({ status: 200, description: 'Estudio socioeconómico encontrado' })
@@ -155,7 +155,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // PATCH /civico/f2/:id
     @Patch(':id')
-    @Roles('Admin', 'TrabajoSocial')
+    @Roles('Admin', 'TrabajoSocial', 'Coordinador')
     @ApiOperation({ summary: 'Actualizar datos del estudio socioeconómico F2' })
     @ApiParam({ name: 'id', description: 'UUID del registro F2' })
     @ApiBody({
@@ -189,7 +189,7 @@ const EXAMPLE_EXP_ID = '8c478ea9-fbcb-452d-90f6-e689a2590fd6';
   
     // PATCH /civico/f2/:id/estatus
     @Patch(':id/estatus')
-    @Roles('Admin', 'TrabajoSocial')
+    @Roles('Admin', 'TrabajoSocial', 'Coordinador')
     @ApiOperation({
       summary: 'Cambiar estatus del F2',
       description: '⚠️ Para desbloquear el F3 (RF-008), el F2 **debe estar en `COMPLETADO`** junto con el F1.',
