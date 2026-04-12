@@ -214,8 +214,11 @@ export class CivicoGoogleDriveService {
     const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/i);
     if (idMatch?.[1]) return idMatch[1];
 
-    // Caso 3: Es el ID directo (alfanumérico de longitud Drive)
-    // Drive IDs suelen tener entre 33 y 45 caracteres, pero usamos 25 para seguridad
+    // Caso 3: d/FILE_ID (sin /file/)
+    const shortenMatch = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/i);
+    if (shortenMatch?.[1]) return shortenMatch[1];
+
+    // Caso 4: Es el ID directo (alfanumérico de longitud Drive)
     if (/^[a-zA-Z0-9_-]{25,}$/.test(trimmed) && !trimmed.startsWith('http')) {
       return trimmed;
     }

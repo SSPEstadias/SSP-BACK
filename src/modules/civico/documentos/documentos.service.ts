@@ -1620,13 +1620,20 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
         return `data:${mimeType};base64,${base64}`;
       }
 
-      // 2. Caso: Es una ruta local (fallback para legado o pruebas)
+      // 2. Caso: Es una ruta local
       if (!trimmed.startsWith('http') && fs.existsSync(trimmed)) {
         this.logger.debug(`[PDF] Resolviendo desde ruta local: ${trimmed}`);
         return toDataUri(trimmed);
       }
 
-      // 3. Caso: Es un link HTTP directo (no Drive) o algo que no podemos procesar
+      // 3. Caso: Es un link HTTP directo (no Drive)
+      // Si detectamos que es de Google pero no pudimos sacar el ID o falló el download, 
+      // NO devolvemos el link original porque se verá roto en el PDF.
+      if (trimmed.includes('drive.google.com') || trimmed.includes('googleusercontent.com')) {
+        this.logger.warn(`[PDF] No se pudo procesar link de Google: ${trimmed}. Se omitirá para evitar imagen rota.`);
+        return null;
+      }
+
       this.logger.debug(`[PDF] Usando URL original (Sin procesar): ${trimmed}`);
       return trimmed;
     } catch (error: any) {
