@@ -1128,71 +1128,60 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
     });
 
     if (bitacoraRecords.length > 0) {
-      // Contar oficios secuenciales ya existentes (excluir la plantilla fija)
-      const oficiosExistentes = await this.oficioRepo.count({
-        where: {
-          expedienteId,
-          tipoDocumento: TipoDocumentoEnum.LISTA_ASISTENCIA,
-          folioOficio:   Not(Like('PLANT-%')),
-        },
-      });
+      const baseFolio = await this.obtenerFolioDocumento(TipoDocumentoEnum.LISTA_ASISTENCIA, expedienteId);
 
-      if (oficiosExistentes < bitacoraRecords.length) {
-        const baseFolio = await this.obtenerFolioDocumento(TipoDocumentoEnum.LISTA_ASISTENCIA, expedienteId);
+      for (let i = 0; i < bitacoraRecords.length; i++) {
+        const bit = bitacoraRecords[i];
+        const numero = i + 1;
+        const folioUnico = `${baseFolio}-V${numero}`;
+        const guiaBit = bit.guia ?? await this.userRepo.findOne({ where: { id: bit.guiaId } });
 
-        for (let i = oficiosExistentes; i < bitacoraRecords.length; i++) {
-          const bit = bitacoraRecords[i];
-          const numero = i + 1;
-          const folioUnico = `${baseFolio}-V${numero}`;
-          const guiaBit = bit.guia ?? await this.userRepo.findOne({ where: { id: bit.guiaId } });
-
-          // Resolver nombre de actividad por actividadId
-          let nombreActividad = 'Actividad de seguimiento';
-          if (bit.actividadId) {
-            const act = await this.actividadRepo.findOne({ where: { id: bit.actividadId } });
-            if (act) nombreActividad = act.nombre;
-          }
-
-          // Iniciales del nombre del beneficiario para simular firma
-          const inicialesBit = ben.nombre
-            .split(/\s+/)
-            .filter(Boolean)
-            .map(w => w[0].toUpperCase())
-            .join('');
-
-          const dataUriHist = await this.resolveEvidenciaUrlToDataUri(bit.evidenciaUrl);
-
-          const bufferLista = await this.generarPdf('lista_asistencia', {
-            numOficio:          folioUnico,
-            logoPresentacion1:  this.logoPresentacion1,
-            logoPresentacion2:  this.logoPresentacion2,
-            nombreBeneficiario: ben.nombre.toUpperCase(),
-            nombreGuia:         guiaBit?.nombre?.toUpperCase() || '—',
-            fecha:              formatDate(bit.fechaActividad),
-            fechaHoja:          formatDate(bit.fechaActividad),
-            observaciones:      bit.observaciones || '',
-            actividades: [
-              {
-                horario:        bit.horasCubiertas != null ? `${bit.horasCubiertas} HORAS` : '—',
-                actividad:      nombreActividad,
-                sede:           bit.sede || '—',
-                firma:          inicialesBit,
-                asistencia:     bit.asistencia || '—',
-                evidenciaUrl:   dataUriHist || '',
-              },
-            ],
-          });
-
-          const filenameLista = this.generarNombreArchivo(folioUnico, ben.nombre, `LISTA ${numero}`);
-          await this.registrarOficio({
-            expedienteId,
-            generadoPorId:        userId,
-            tipoDocumento:        TipoDocumentoEnum.LISTA_ASISTENCIA,
-            folioOficio:          folioUnico,
-            buffer:               bufferLista,
-            nombreArchivoFederal: filenameLista,
-          });
+        // Resolver nombre de actividad por actividadId
+        let nombreActividad = 'Actividad de seguimiento';
+        if (bit.actividadId) {
+          const act = await this.actividadRepo.findOne({ where: { id: bit.actividadId } });
+          if (act) nombreActividad = act.nombre;
         }
+
+        // Iniciales del nombre del beneficiario para simular firma
+        const inicialesBit = ben.nombre
+          .split(/\s+/)
+          .filter(Boolean)
+          .map(w => w[0].toUpperCase())
+          .join('');
+
+        const dataUriHist = await this.resolveEvidenciaUrlToDataUri(bit.evidenciaUrl);
+
+        const bufferLista = await this.generarPdf('lista_asistencia', {
+          numOficio:          folioUnico,
+          logoPresentacion1:  this.logoPresentacion1,
+          logoPresentacion2:  this.logoPresentacion2,
+          nombreBeneficiario: ben.nombre.toUpperCase(),
+          nombreGuia:         guiaBit?.nombre?.toUpperCase() || '—',
+          fecha:              formatDate(bit.fechaActividad),
+          fechaHoja:          formatDate(bit.fechaActividad),
+          observaciones:      bit.observaciones || '',
+          actividades: [
+            {
+              horario:        bit.horasCubiertas != null ? `${bit.horasCubiertas} HORAS` : '—',
+              actividad:      nombreActividad,
+              sede:           bit.sede || '—',
+              firma:          inicialesBit,
+              asistencia:     bit.asistencia || '—',
+              evidenciaUrl:   dataUriHist || '',
+            },
+          ],
+        });
+
+        const filenameLista = this.generarNombreArchivo(folioUnico, ben.nombre, `LISTA ${numero}`);
+        await this.registrarOficio({
+          expedienteId,
+          generadoPorId:        userId,
+          tipoDocumento:        TipoDocumentoEnum.LISTA_ASISTENCIA,
+          folioOficio:          folioUnico,
+          buffer:               bufferLista,
+          nombreArchivoFederal: filenameLista,
+        });
       }
     }
 
@@ -1625,23 +1614,23 @@ export class DocumentosService implements OnModuleInit, OnModuleDestroy {
       // 1. Caso: Es un link de Google Drive
       const driveFileId = this.driveService.extractFileId(trimmed);
       if (driveFileId) {
-        this.logger.debug(`Descargando imagen de Drive para PDF: ${driveFileId}`);
-        const buffer = await this.driveService.getFileContent(driveFileId);
-        // Asumimos JPEG/PNG (Drive lo maneja)
+        this.logger.debug(`[PDF] Resolviendo desde Drive: ${driveFileId}`);
+        const { buffer, mimeType } = await this.driveService.getFileContent(driveFileId);
         const base64 = buffer.toString('base64');
-        return `data:image/jpeg;base64,${base64}`;
+        return `data:${mimeType};base64,${base64}`;
       }
 
       // 2. Caso: Es una ruta local (fallback para legado o pruebas)
       if (!trimmed.startsWith('http') && fs.existsSync(trimmed)) {
+        this.logger.debug(`[PDF] Resolviendo desde ruta local: ${trimmed}`);
         return toDataUri(trimmed);
       }
 
       // 3. Caso: Es un link HTTP directo (no Drive) o algo que no podemos procesar
-      // Lo devolvemos tal cual por si Puppeteer puede con él (ej: link directo a AWS S3)
+      this.logger.debug(`[PDF] Usando URL original (Sin procesar): ${trimmed}`);
       return trimmed;
     } catch (error: any) {
-      this.logger.error(`Error al resolver evidencia ${url}: ${error.message}`);
+      this.logger.error(`[PDF] Error al resolver evidencia ${url}: ${error.message}`);
       return null;
     }
   }

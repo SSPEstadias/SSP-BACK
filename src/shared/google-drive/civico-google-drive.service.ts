@@ -158,15 +158,15 @@ export class CivicoGoogleDriveService {
   }
 
   // Verifica si un archivo o carpeta de Drive existe y si está en la papelera.
-  async getFileMetadata(fileId: string): Promise<{ trashed: boolean } | null> {
+  async getFileMetadata(fileId: string): Promise<{ trashed: boolean; mimeType?: string } | null> {
     if (!this.drive) return null;
     try {
       const res = await this.drive.files.get({
         fileId,
-        fields: 'trashed',
+        fields: 'trashed, mimeType',
         supportsAllDrives: true,
       });
-      return { trashed: !!res.data.trashed };
+      return { trashed: !!res.data.trashed, mimeType: res.data.mimeType || undefined };
     } catch (error: any) {
       if (error.code === 404) return null;
       this.logger.error(`Error getting metadata for ${fileId}: ${error.message}`);
@@ -177,14 +177,21 @@ export class CivicoGoogleDriveService {
   /**
    * Descarga el contenido de un archivo desde Drive como Buffer.
    */
-  async getFileContent(fileId: string): Promise<Buffer> {
+  async getFileContent(fileId: string): Promise<{ buffer: Buffer; mimeType: string }> {
     if (!this.drive) throw new InternalServerErrorException('Google Drive está desactivado.');
     try {
       const res = await this.drive.files.get(
         { fileId, alt: 'media', supportsAllDrives: true },
         { responseType: 'arraybuffer' },
       );
-      return Buffer.from(res.data as ArrayBuffer);
+      
+      const meta = await this.getFileMetadata(fileId);
+      const mimeType = meta?.mimeType || 'image/jpeg';
+
+      return { 
+        buffer: Buffer.from(res.data as ArrayBuffer),
+        mimeType
+      };
     } catch (error: any) {
       this.logger.error(`Error al descargar archivo ${fileId} de Drive: ${error.message}`);
       throw new InternalServerErrorException(`No se pudo obtener el contenido del archivo de Drive: ${error.message}`);
@@ -203,12 +210,15 @@ export class CivicoGoogleDriveService {
     const fileMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/i);
     if (fileMatch?.[1]) return fileMatch[1];
 
-    // Caso 2: id=FILE_ID
-    const idMatch = trimmed.match(/id=([a-zA-Z0-9_-]+)/i);
+    // Caso 2: /open?id=FILE_ID o /uc?id=FILE_ID o similar
+    const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/i);
     if (idMatch?.[1]) return idMatch[1];
 
     // Caso 3: Es el ID directo (alfanumérico de longitud Drive)
-    if (/^[a-zA-Z0-9_-]{25,}$/.test(trimmed)) return trimmed;
+    // Drive IDs suelen tener entre 33 y 45 caracteres, pero usamos 25 para seguridad
+    if (/^[a-zA-Z0-9_-]{25,}$/.test(trimmed) && !trimmed.startsWith('http')) {
+      return trimmed;
+    }
 
     return null;
   }
