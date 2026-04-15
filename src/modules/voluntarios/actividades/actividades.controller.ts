@@ -50,7 +50,7 @@ export class ActividadesController {
   }
 
   // DELETE /actividades/:id
-  @Roles(RolUsuario.ADMIN, RolUsuario.COORDINADOR, RolUsuario.TALLERISTA)
+  @Roles(RolUsuario.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.actividadesService.remove(id);

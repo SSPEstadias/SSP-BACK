@@ -55,7 +55,7 @@ export class PersonasController {
   }
 
   // DELETE /api/personas/:id
-  @Roles(RolUsuario.ADMIN, RolUsuario.COORDINADOR, RolUsuario.TALLERISTA)
+  @Roles(RolUsuario.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.personasService.remove(id);
